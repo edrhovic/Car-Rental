@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+
+{% block title %}JDM Car Rentals - Home{% endblock %}
+
+{% block content %}
+<div class="jumbotron bg-light p-5 rounded">
+    <h1 class="display-4">Experience Authentic JDM Cars</h1>
+    <p class="lead">Drive the legendary Japanese domestic market vehicles that defined an era.</p>
+    <hr class="my-4">
+    <p>From the iconic Supra to the legendary GT-R, we offer the finest selection of JDM cars for rent.</p>
+    <a class="btn btn-primary btn-lg" href="{{ url_for('car.car_list') }}" role="button">Browse Cars</a>
+</div>
+
+<div class="my-5">
+    <h2 class="text-center mb-4">Featured Cars</h2>
+    <div class="row">
+        {% for car in cars[:3] %}
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                {% if car.image_url %}
+                <img src="{{ car.image_url }}" class="card-img-top" alt="{{ car.make }} {{ car.model }}">
+                {% else %}
+                <img src="{{ url_for('static', filename='images/car-placeholder.jpg') }}" class="card-img-top" alt="Car Placeholder">
+                {% endif %}
+                <div class="card-body">
+                    <h5 class="card-title">{{ car.make }} {{ car.model }} ({{ car.year }})</h5>
+                    <p class="card-text">{{ car.description|truncate(100) }}</p>
+                    <p class="text-primary fw-bold">₱{{ car.daily_rate }}/day</p>
+                </div>
+                <div class="card-footer">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <small class="text-muted">
+                            <i class="fas fa-star text-warning"></i> 
+                            {{ "%.1f"|format(car.average_rating) }} Rating
+                        </small>
+                        <a href="{{ url_for('car.car_details', car_id=car.id) }}" class="btn btn-sm btn-outline-primary">View Details</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    <div class="text-center mt-4">
+        <a href="{{ url_for('car.car_list') }}" class="btn btn-outline-primary">View All Cars</a>
+    </div>
+</div>
+
+<div class="my-5 py-5 bg-light rounded">
+    <div class="container">
+        <h2 class="text-center mb-4">Why Choose JDM Car Rentals?</h2>
+        <div class="row text-center">
+            <div class="col-md-4 mb-4">
+                <div class="p-3">
+                    <i class="fas fa-car-side fa-3x mb-3 text-primary"></i>
+                    <h4>Authentic JDM Experience</h4>
+                    <p>Our fleet consists of genuine Japanese domestic market vehicles, imported directly from Japan.</p>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="p-3">
+                    <i class="fas fa-tools fa-3x mb-3 text-primary"></i>
+                    <h4>Well-Maintained</h4>
+                    <p>All our vehicles are meticulously maintained to ensure reliability and performance.</p>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="p-3">
+                    <i class="fas fa-credit-card fa-3x mb-3 text-primary"></i>
+                    <h4>Easy Booking & Payment</h4>
+                    <p>Our streamlined booking process and secure payment system make renting a car hassle-free.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="my-5">
+    <h2 class="text-center mb-4">Customer Testimonials</h2>
+    <div class="row">
+        {% for review in recent_reviews|default([]) %}
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="mb-2">
+                        {% for _ in range(review.rating) %}
+                        <i class="fas fa-star text-warning"></i>
+                        {% endfor %}
+                        {% for _ in range(5 - review.rating) %}
+                        <i class="far fa-star text-warning"></i>
+                        {% endfor %}
+                    </div>
+                    <p class="card-text">{{ review.comment|truncate(150) }}</p>
+                    <p class="card-text"><small class="text-muted">- {{ review.user.first_name }}</small></p>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="col-12 text-center">
+            <p>No reviews yet. Be the first to review after renting one of our cars!</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %} 

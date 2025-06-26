@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+
+{% block title %}Verify OTP - JDM Car Rentals{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h3 class="card-title mb-0">Verify OTP</h3>
+            </div>
+            <div class="card-body">
+                <p class="text-muted mb-4">We've sent a one-time password (OTP) to <strong>{{ email }}</strong>. Please enter the 6-digit code below to verify your identity.</p>
+                
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+                
+                <div class="alert alert-info" role="alert">
+                    <i class="fas fa-info-circle me-2"></i> 
+                    An OTP has been sent to your email address. Please check your inbox (and spam folder) for the verification code.
+                </div>
+                
+                <form method="POST" action="{{ url_for('auth.verify_otp') }}" class="needs-validation" novalidate>
+                    <input type="hidden" name="email" value="{{ email }}">
+                    
+                    <div class="mb-3">
+                        <label for="otp" class="form-label">OTP Code</label>
+                        <div class="otp-input-container d-flex justify-content-between">
+                            <input type="text" class="form-control otp-input otp-digit" id="otp1" maxlength="1" pattern="[0-9]" inputmode="numeric" required>
+                            <input type="text" class="form-control otp-input otp-digit" id="otp2" maxlength="1" pattern="[0-9]" inputmode="numeric" required>
+                            <input type="text" class="form-control otp-input otp-digit" id="otp3" maxlength="1" pattern="[0-9]" inputmode="numeric" required>
+                            <input type="text" class="form-control otp-input otp-digit" id="otp4" maxlength="1" pattern="[0-9]" inputmode="numeric" required>
+                            <input type="text" class="form-control otp-input otp-digit" id="otp5" maxlength="1" pattern="[0-9]" inputmode="numeric" required>
+                            <input type="text" class="form-control otp-input otp-digit" id="otp6" maxlength="1" pattern="[0-9]" inputmode="numeric" required>
+                        </div>
+                        <input type="hidden" name="otp" id="otp_value" required>
+                        <div class="invalid-feedback">Please enter the 6-digit OTP.</div>
+                    </div>
+                    
+                    <div class="mb-3 text-center">
+                        <p id="otp-timer" class="text-muted">Code expires in <span id="countdown">05:00</span></p>
+                        <a href="{{ url_for('auth.forgot_password') }}" id="resend-btn" class="btn btn-link disabled">Didn't receive code? Resend</a>
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary">Verify OTP</button>
+                    </div>
+                </form>
+            </div>
+            <div class="card-footer text-center">
+                <p class="mb-0"><a href="{{ url_for('auth.login') }}">Back to Login</a></p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/validation/form-utils.js') }}"></script>
+<script src="{{ url_for('static', filename='js/validation/otp-form.js') }}"></script>
+
+<script>
+// Add debug output to verify OTP combination
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    const otpValue = document.getElementById('otp_value');
+    
+    if (form && otpValue) {
+        form.addEventListener('submit', function(e) {
+            console.log('Form submitted with OTP:', otpValue.value);
+        });
+    }
+});
+</script>
+
+<style>
+.otp-input-container {
+    gap: 8px;
+}
+
+.otp-input {
+    width: 45px;
+    height: 50px;
+    text-align: center;
+    font-size: 1.2rem;
+    font-weight: bold;
+}
+</style>
+{% endblock %} 

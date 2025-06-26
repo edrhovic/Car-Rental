@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {% if current_user.is_authenticated %}
+    <!-- Prevent caching for authenticated users -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    {% endif %}
+    <title>{% block title %}JDM Car Rentals{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    {% if current_user.is_authenticated and current_user.is_admin %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin-theme.css') }}">
+    {% else %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/customer-theme.css') }}">
+    {% endif %}
+    
+    <!-- Notification Styles -->
+    <style>
+        .notification-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+        }
+        
+        .notification-dropdown {
+            width: 320px !important;
+            overflow-y: auto;
+            max-height: 400px;
+        }
+        
+        .notification-item {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+            transition: background-color 0.2s;
+        }
+        
+        .notification-item:hover {
+            background-color: rgba(0,0,0,0.03);
+        }
+        
+        .notification-item.read {
+            background-color: #f8f9fa;
+        }
+        
+        .notification-item.read h6 {
+            font-weight: normal;
+            color: #6c757d;
+        }
+        
+        /* Animation for bell icon when there are unread notifications */
+        @keyframes bell-pulse {
+            0% { transform: scale(1); }
+            25% { transform: scale(1.1); }
+            50% { transform: scale(1); }
+            75% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        
+        .bell-animated {
+            animation: bell-pulse 2s ease infinite;
+            transform-origin: center;
+        }
+        
+        /* Make notification badge more noticeable */
+        #notification-badge {
+            font-size: 0.7rem;
+            font-weight: bold;
+            padding: 0.25em 0.4em;
+            box-shadow: 0 0 0 2px #fff;
+        }
+        
+        /* Empty state styling */
+        .notifications-empty-state {
+            text-align: center;
+            padding: 2rem 1rem;
+            color: #6c757d;
+        }
+        
+        .notifications-empty-state i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+    </style>
+    
+    {% block styles %}{% endblock %}
+</head>
+<body{% if current_user.is_authenticated and current_user.is_admin %} class="admin-user"{% endif %}>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark" style="background: linear-gradient(135deg, #00695c 0%, #00897b 100%) !important; padding-top: 1.1rem; padding-bottom: 1.1rem;">
+        <div class="container">
+            <a class="navbar-brand" href="{{ url_for('home') }}" style="font-size: 1.4rem;">
+                <i class="fas fa-car me-2"></i>JDM Car Rentals
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNavDropdown">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('home') }}"><i class="fas fa-home me-1"></i> Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('car.car_list') }}"><i class="fas fa-car me-1"></i> Cars</a>
+                    </li>
+                    {% if not current_user.is_authenticated or not current_user.is_admin %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('about_us') }}"><i class="fas fa-info-circle me-1"></i> About Us</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('contact') }}"><i class="fas fa-envelope me-1"></i> Contact Us</a>
+                    </li>
+                    {% endif %}
+                    {% if current_user.is_authenticated %}
+                        {% if not current_user.is_admin %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ url_for('booking.active_bookings') }}">
+                                    <i class="fas fa-calendar-check me-1"></i> My Bookings
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ url_for('user.late_fees') }}">
+                                    <i class="fas fa-exclamation-circle me-1"></i> Late Fees
+                                    <span id="late-fees-badge" class="badge bg-danger d-none">0</span>
+                                </a>
+                            </li>
+                        {% endif %}
+                    {% endif %}
+                </ul>
+                <ul class="navbar-nav">
+                    {% if not current_user.is_authenticated %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('admin.admin_login') }}">Admin</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('auth.login') }}">Login</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('auth.register') }}">Register</a>
+                    </li>
+                    {% else %}
+                    <!-- Notifications Dropdown -->
+                    <li class="nav-item dropdown me-2">
+                        <a class="nav-link position-relative" href="#" id="notificationDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-bell"></i>
+                            <span id="notification-badge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none">
+                                0
+                                <span class="visually-hidden">unread notifications</span>
+                            </span>
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-end notification-dropdown" aria-labelledby="notificationDropdown" style="width: 320px; max-height: 400px; overflow-y: auto;">
+                            <div class="d-flex justify-content-between align-items-center p-3 border-bottom">
+                                <h6 class="mb-0">Notifications</h6>
+                                <button type="button" class="btn btn-sm btn-link text-decoration-none p-0" onclick="markAllNotificationsAsRead()">
+                                    Mark all as read
+                                </button>
+                            </div>
+                            <div id="notification-loading" class="text-center p-3 d-none">
+                                <div class="spinner-border spinner-border-sm text-primary" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                                <span class="ms-2">Loading notifications...</span>
+                            </div>
+                            <div id="notification-list">
+                                <!-- Notifications will be loaded here via JavaScript -->
+                            </div>
+                        </div>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-user me-2"></i>{{ current_user.username }}
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                            <li><a class="dropdown-item" href="{{ url_for('user.profile') }}">My Profile</a></li>
+                            {% if not current_user.is_admin %}
+                            <li><a class="dropdown-item" href="{{ url_for('user.booking_history') }}">Booking History</a></li>
+                            {% endif %}
+                            <li><a class="dropdown-item" href="{{ url_for('notification.list_notifications') }}">Notifications</a></li>
+                            {% if current_user.is_admin %}
+                            <li><a class="dropdown-item" href="{{ url_for('admin.dashboard') }}">Admin Dashboard</a></li>
+                            {% endif %}
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{{ url_for('auth.logout') }}">Logout</a></li>
+                        </ul>
+                    </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Flash Messages -->
+    <div class="container mt-3">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </div>
+
+    <!-- Main Content -->
+    <main class="container my-4">
+        {% block content %}
+        {% endblock %}
+    </main>
+
+    <!-- Footer - Reduced size -->
+    <footer class="text-white py-3 mt-5" style="background: linear-gradient(135deg, #00695c 0%, #00897b 100%) !important;">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4">
+                    <h6>JDM Car Rentals</h6>
+                    <p class="small">Your premier destination for authentic Japanese Domestic Market vehicles.</p>
+                </div>
+                <div class="col-md-4">
+                    <h6>Quick Links</h6>
+                    <ul class="list-unstyled small">
+                        <li><a class="text-white" href="{{ url_for('home') }}">Home</a></li>
+                        <li><a class="text-white" href="{{ url_for('car.car_list') }}">Available Cars</a></li>
+                        {% if current_user.is_authenticated %}
+                            <li><a class="text-white" href="{{ url_for('user.profile') }}">My Profile</a></li>
+                            {% if not current_user.is_admin %}
+                            <li><a class="text-white" href="{{ url_for('user.booking_history') }}">Booking History</a></li>
+                            {% endif %}
+                        {% else %}
+                            <li><a class="text-white" href="{{ url_for('auth.login') }}">Login</a></li>
+                            <li><a class="text-white" href="{{ url_for('auth.register') }}">Register</a></li>
+                        {% endif %}
+                    </ul>
+                </div>
+                <div class="col-md-4">
+                    {% if not current_user.is_authenticated or not current_user.is_admin %}
+                    <h6><a href="{{ url_for('contact') }}" class="text-white">Contact Us</a></h6>
+                    <address class="small">
+                        <p class="mb-1"><i class="fas fa-map-marker-alt me-2"></i> Block 8 Lot 35 Bria Homes, San Jose, Santa Cruz, Laguna </p>
+                        <p class="mb-1"><i class="fas fa-phone me-2"></i> +63-962-561-5941 </p>
+                        <p class="mb-1"><i class="fas fa-envelope me-2"></i> info@jdmcarrentals.com </p>
+                    </address>
+                    {% else %}
+                    <h6>System Information</h6>
+                    <p class="small">Admin Panel for JDM Car Rentals management system. Access comprehensive tools for managing cars, bookings, users, and more.</p>
+                    {% endif %}
+                </div>
+            </div>
+            <hr class="border-light my-2">
+            <div class="text-center small">
+                <p class="mb-0">&copy; {{ now.year }} JDM Car Rentals. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/late-fees.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/validation/form-utils.js') }}"></script>
+    
+    <!-- Notifications System -->
+    {% if current_user.is_authenticated %}
+    <script src="{{ url_for('static', filename='js/notifications.js') }}"></script>
+    
+    <!-- Session Security - Prevent back button issues -->
+    <script>
+        // Prevent page caching and back button issues
+        (function() {
+            // Add event listener for page load
+            window.addEventListener('pageshow', function(event) {
+                // If the page is loaded from cache (back button)
+                if (event.persisted) {
+                    // Reload the page from server
+                    window.location.reload();
+                }
+            });
+            
+            // Disable browser caching
+            window.onpageshow = function(event) {
+                if (event.persisted) {
+                    window.location.reload();
+                }
+            };
+            
+            // Prevent using back button after logout
+            window.addEventListener('load', function() {
+                window.history.pushState({page: 1}, '', window.location.href);
+                window.onpopstate = function(event) {
+                    window.history.pushState({page: 1}, '', window.location.href);
+                };
+            });
+        })();
+    </script>
+    {% endif %}
+    
+    <!-- AJAX Search Utilities -->
+    {% if 'admin/cars' in request.path %}
+    <script src="{{ url_for('static', filename='js/admin-car-filters.js') }}"></script>
+    {% elif 'admin/users' in request.path %}
+    <script src="{{ url_for('static', filename='js/admin-user-search.js') }}"></script>
+    {% elif 'admin/bookings' in request.path %}
+    <script src="{{ url_for('static', filename='js/admin-booking-search.js') }}"></script>
+    {% elif 'admin/payments' in request.path %}
+    <script src="{{ url_for('static', filename='js/admin-payment-search.js') }}"></script>
+    {% elif 'admin/reviews' in request.path %}
+    <script src="{{ url_for('static', filename='js/admin-review-search.js') }}"></script>
+    {% elif request.endpoint == 'car.car_list' %}
+    <script src="{{ url_for('static', filename='js/car-search.js') }}"></script>
+    {% endif %}
+    
+    <!-- For late fee badge -->
+    {% if current_user.is_authenticated and not current_user.is_admin %}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            fetch('/user/late-fees/check')
+                .then(response => response.json())
+                .then(data => {
+                    const badge = document.getElementById('late-fees-badge');
+                    if (data.count > 0) {
+                        badge.textContent = data.count;
+                        badge.classList.remove('d-none');
+                    }
+                })
+                .catch(error => console.error('Error checking late fees:', error));
+        });
+    </script>
+    {% endif %}
+
+    <!-- Notification Booking Details Modal -->
+    <div class="modal fade" id="bookingDetailsModal" tabindex="-1" aria-labelledby="bookingDetailsModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="bookingDetailsModalLabel">Booking Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="booking-modal-loading" class="text-center my-5">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-2">Loading booking details...</p>
+                    </div>
+                    <div id="booking-details-content" class="d-none">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h5>Booking Information</h5>
+                                <ul class="list-group mb-4">
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        <span>Booking ID:</span>
+                                        <span id="modal-booking-id"></span>
+                                    </li>
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        <span>Reference:</span>
+                                        <span id="modal-booking-reference"></span>
+                                    </li>
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        <span>Booking Date:</span>
+                                        <span id="modal-booking-date"></span>
+                                    </li>
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        <span>Status:</span>
+                                        <span id="modal-booking-status"></span>
+                                    </li>
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        <span>Rental Period:</span>
+                                        <span id="modal-rental-period"></span>
+                                    </li>
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        <span>Duration:</span>
+                                        <span id="modal-duration"></span>
+                                    </li>
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        <span>Total Cost:</span>
+                                        <span id="modal-total-cost"></span>
+                                    </li>
+                                </ul>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card h-100">
+                                    <div class="card-header">
+                                        <h5 class="mb-0">Car Details</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="text-center mb-3">
+                                            <img id="modal-car-image" class="img-fluid rounded" style="max-height: 150px;" alt="Car Image">
+                                        </div>
+                                        <h5 class="card-title" id="modal-car-name"></h5>
+                                        <p class="card-text mb-3">Daily Rate: ₱<span id="modal-daily-rate"></span></p>
+                                        <p class="card-text mb-3">Location: <span id="modal-location"></span></p>
+                                        <a id="modal-car-link" href="#" class="btn btn-outline-primary btn-sm">View Car</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <a id="modal-view-full-details" href="#" class="btn btn-primary">View Full Details</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% block scripts %}{% endblock %}
+</body>
+</html> 

@@ -1,0 +1,216 @@
+{% extends 'base.html' %}
+
+{% block title %}Pay Late Fee - JDM Car Rentals{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <h1 class="mb-4">Pay Late Fee</h1>
+    
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+    
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-dark text-white">
+                    <h5 class="mb-0">Payment Details</h5>
+                </div>
+                <div class="card-body">
+                    <form id="payment-form" method="POST" action="{{ url_for('user.pay_late_fee', payment_id=payment.id) }}" class="needs-validation" novalidate>
+                        <div class="mb-4">
+                            <h5>Select Payment Method</h5>
+                            <div class="row payment-methods">
+                                <div class="col-md-3 mb-3">
+                                    <div class="form-check payment-method-card">
+                                        <input class="form-check-input" type="radio" name="payment_method" id="credit_card" value="credit_card" checked>
+                                        <label class="form-check-label payment-label" for="credit_card">
+                                            <i class="far fa-credit-card fa-2x mb-2"></i>
+                                            <span>Credit Card</span>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    <div class="form-check payment-method-card">
+                                        <input class="form-check-input" type="radio" name="payment_method" id="debit_card" value="debit_card">
+                                        <label class="form-check-label payment-label" for="debit_card">
+                                            <i class="fas fa-credit-card fa-2x mb-2"></i>
+                                            <span>Debit Card</span>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    <div class="form-check payment-method-card">
+                                        <input class="form-check-input" type="radio" name="payment_method" id="paypal" value="paypal">
+                                        <label class="form-check-label payment-label" for="paypal">
+                                            <i class="fab fa-paypal fa-2x mb-2"></i>
+                                            <span>PayPal</span>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    <div class="form-check payment-method-card">
+                                        <input class="form-check-input" type="radio" name="payment_method" id="bank_transfer" value="bank_transfer">
+                                        <label class="form-check-label payment-label" for="bank_transfer">
+                                            <i class="fas fa-university fa-2x mb-2"></i>
+                                            <span>Bank Transfer</span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Credit/Debit Card Form -->
+                        <div id="card_payment_form">
+                            <div id="card_form">
+                                <div class="mb-3">
+                                    <label for="card_number" class="form-label">Card Number</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="far fa-credit-card"></i></span>
+                                        <input type="text" class="form-control" id="card_number" name="card_number" placeholder="XXXX XXXX XXXX XXXX" required>
+                                        <div class="invalid-feedback">Please enter a valid card number.</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="card_holder" class="form-label">Cardholder Name</label>
+                                            <input type="text" class="form-control" id="card_holder" name="card_holder" placeholder="John Smith" required>
+                                            <div class="invalid-feedback">Please enter the cardholder name.</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="mb-3">
+                                            <label for="expiry_date" class="form-label">Expiry Date</label>
+                                            <input type="text" class="form-control" id="expiry_date" name="expiry_date" placeholder="MM/YY" required>
+                                            <div class="invalid-feedback">Please enter a valid expiry date.</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="mb-3">
+                                            <label for="cvv" class="form-label">CVV</label>
+                                            <input type="text" class="form-control" id="cvv" name="cvv" placeholder="123" required>
+                                            <div class="invalid-feedback">Please enter a valid CVV.</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- PayPal Form -->
+                        <div id="paypal_form" style="display: none;">
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle me-2"></i> You will be redirected to PayPal to complete your payment after clicking the Pay Now button.
+                            </div>
+                        </div>
+                        
+                        <!-- Bank Transfer Form -->
+                        <div id="bank_transfer_form" style="display: none;">
+                            <div class="alert alert-info mb-3">
+                                <h6 class="alert-heading"><i class="fas fa-info-circle me-2"></i> Bank Transfer Instructions</h6>
+                                <p>Please transfer the amount to the following bank account:</p>
+                                <ul class="mb-0">
+                                    <li><strong>Bank Name:</strong> JDM National Bank</li>
+                                    <li><strong>Account Name:</strong> JDM Car Rentals, Inc.</li>
+                                    <li><strong>Account Number:</strong> 1234567890</li>
+                                    <li><strong>Reference:</strong> LF-{{ payment.id }}</li>
+                                </ul>
+                            </div>
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="checkbox" id="bank_transfer_confirm" name="bank_transfer_confirm" required>
+                                <label class="form-check-label" for="bank_transfer_confirm">
+                                    I confirm that I have initiated the bank transfer for the full amount.
+                                </label>
+                                <div class="invalid-feedback">You must confirm the bank transfer before proceeding.</div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="terms_agree" name="terms_agree" required>
+                            <label class="form-check-label" for="terms_agree">
+                                I agree to the payment terms and conditions.
+                            </label>
+                            <div class="invalid-feedback">You must agree to the terms before proceeding.</div>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between">
+                            <a href="{{ url_for('user.late_fees') }}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-1"></i> Back to Late Fees
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-lock me-1"></i> Pay ₱{{ payment.amount }} Now
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-dark text-white">
+                    <h5 class="mb-0">Payment Summary</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Late Fee:</span>
+                        <span>₱{{ payment.amount }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Processing Fee:</span>
+                        <span>₱0.00</span>
+                    </div>
+                    <hr>
+                    <div class="d-flex justify-content-between mb-2 fw-bold">
+                        <span>Total:</span>
+                        <span>₱{{ payment.amount }}</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-dark text-white">
+                    <h5 class="mb-0">Booking Details</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>Booking Reference:</strong> {{ booking.get_reference() }}</p>
+                    <p><strong>Car:</strong> {{ booking.car.year }} {{ booking.car.make }} {{ booking.car.model }}</p>
+                    <p><strong>Rental Period:</strong> {{ booking.start_date.strftime('%Y-%m-%d') }} to {{ booking.end_date.strftime('%Y-%m-%d') }}</p>
+                    <p class="mb-0"><strong>Status:</strong> 
+                        {% if booking.status == 'confirmed' %}
+                            <span class="badge bg-success">{{ booking.status }}</span>
+                        {% elif booking.status == 'completed' %}
+                            <span class="badge bg-primary">{{ booking.status }}</span>
+                        {% else %}
+                            <span class="badge bg-secondary">{{ booking.status }}</span>
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+            
+            <div class="card shadow-sm">
+                <div class="card-header bg-dark text-white">
+                    <h5 class="mb-0">Secure Payment</h5>
+                </div>
+                <div class="card-body">
+                    <p class="mb-2"><i class="fas fa-lock text-success me-2"></i> SSL Encrypted</p>
+                    <p class="mb-2"><i class="fas fa-shield-alt text-success me-2"></i> Secure Transaction</p>
+                    <p class="mb-0"><i class="fas fa-credit-card text-success me-2"></i> Multiple Payment Options</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/validation/payment-form.js') }}"></script>
+{% endblock %} 

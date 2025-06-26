@@ -1,0 +1,89 @@
+{% extends 'admin/layout.html' %}
+
+{% block title %}Edit About Us Page - JDM Car Rentals Admin{% endblock %}
+
+{% block admin_content %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('admin.dashboard') }}">Dashboard</a></li>
+        <li class="breadcrumb-item active">Edit About Us Page</li>
+    </ol>
+</nav>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h2">Edit About Us Page</h1>
+    <div>
+        <a href="{{ url_for('about_us') }}" class="btn btn-outline-primary" target="_blank">
+            <i class="fas fa-external-link-alt me-1"></i> View Page
+        </a>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header bg-light">
+        <h5 class="mb-0">Page Content</h5>
+    </div>
+    <div class="card-body">
+        <form method="POST" action="{{ url_for('admin.edit_about_us') }}">
+            <div class="mb-3">
+                <label for="title" class="form-label">Page Title</label>
+                <input type="text" class="form-control" id="title" name="title" value="{{ about_content.title }}" required>
+            </div>
+            
+            <div class="mb-3">
+                <label for="content" class="form-label">Page Content (HTML)</label>
+                <textarea class="form-control" id="content" name="content" rows="20" required>{{ about_content.content }}</textarea>
+                <small class="text-muted">You can use HTML tags for formatting. For example, &lt;h2&gt;Heading&lt;/h2&gt; for headings and &lt;p&gt;paragraph&lt;/p&gt; for paragraphs.</small>
+            </div>
+            
+            <div class="mb-3">
+                <label class="form-label">Last Updated</label>
+                {% if about_content.last_updated %}
+                <p class="form-control-plaintext">{{ about_content.last_updated.strftime('%Y-%m-%d %H:%M:%S') }}</p>
+                {% else %}
+                <p class="form-control-plaintext">Never</p>
+                {% endif %}
+            </div>
+            
+            <div class="d-grid">
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header bg-light">
+        <h5 class="mb-0">Preview</h5>
+    </div>
+    <div class="card-body">
+        <div class="preview-container p-3 border rounded mb-3">
+            <h1 id="preview-title" class="mb-4">{{ about_content.title }}</h1>
+            <div id="preview-content">
+                {{ about_content.content|safe }}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const titleInput = document.getElementById('title');
+        const contentTextarea = document.getElementById('content');
+        const previewTitle = document.getElementById('preview-title');
+        const previewContent = document.getElementById('preview-content');
+        
+        // Update preview when title changes
+        titleInput.addEventListener('input', function() {
+            previewTitle.textContent = this.value;
+        });
+        
+        // Update preview when content changes
+        contentTextarea.addEventListener('input', function() {
+            previewContent.innerHTML = this.value;
+        });
+    });
+</script>
+{% endblock %} 

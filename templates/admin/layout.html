@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar -->
+        {% include 'admin/partials/sidebar.html' %}
+        
+        <!-- Main content -->
+        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
+            {% block admin_content %}{% endblock %}
+        </main>
+    </div>
+</div>
+
+<script>
+    // Close sidebar when a menu item is clicked on mobile
+    document.addEventListener('DOMContentLoaded', function() {
+        // Get all nav links in the sidebar
+        const navLinks = document.querySelectorAll('#sidebarMenu .nav-link');
+        const sidebarMenu = document.getElementById('sidebarMenu');
+        
+        // Add click event listener to each nav link
+        navLinks.forEach(function(link) {
+            link.addEventListener('click', function() {
+                // If we're on mobile (sidebar has 'show' class), hide the sidebar
+                if (window.innerWidth < 768) {
+                    const bsCollapse = new bootstrap.Collapse(sidebarMenu);
+                    bsCollapse.hide();
+                }
+            });
+        });
+    });
+</script>
+{% endblock %} 

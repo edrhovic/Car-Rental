@@ -1,0 +1,280 @@
+{% extends 'base.html' %}
+
+{% block title %}Payment - JDM Car Rentals{% endblock %}
+
+{% block content %}
+<div class="container">
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('home') }}">Home</a></li>
+            <li class="breadcrumb-item"><a href="{{ url_for('car.car_list') }}">Cars</a></li>
+            <li class="breadcrumb-item"><a href="{{ url_for('car.car_details', car_id=booking.car.id) }}">{{ booking.car.make }} {{ booking.car.model }}</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Payment</li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="card-title mb-0">Payment Details</h3>
+                </div>
+                <div class="card-body">
+                    <h4 class="mb-4">Booking Summary</h4>
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <p><strong>Car:</strong> {{ booking.car.make }} {{ booking.car.model }} ({{ booking.car.year }})</p>
+                            <p><strong>Start Date:</strong> {{ booking.start_date.strftime('%B %d, %Y') }}</p>
+                            <p><strong>End Date:</strong> {{ booking.end_date.strftime('%B %d, %Y') }}</p>
+                            <p><strong>Duration:</strong> {{ booking.duration_days }} days</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Daily Rate:</strong> ₱{{ "%.2f"|format(booking.car.daily_rate) }}</p>
+                            <p><strong>Subtotal:</strong> ₱{{ "%.2f"|format(booking.total_cost) }}</p>
+                            <p><strong>Tax (10%):</strong> ₱{{ "%.2f"|format(booking.total_cost * 0.1) }}</p>
+                            <p><strong>Total:</strong> ₱{{ "%.2f"|format(booking.total_cost + (booking.total_cost * 0.1)) }}</p>
+                        </div>
+                    </div>
+
+                    <form method="POST" action="{{ url_for('car.payment', booking_id=booking.id) }}" id="payment-form">
+                        <h4 class="mb-3">Payment Method</h4>
+                        <div class="mb-3">
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="payment_method" id="credit_card" value="credit_card" checked>
+                                <label class="form-check-label" for="credit_card">
+                                    <i class="fab fa-cc-visa me-2"></i>Credit Card
+                                </label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="payment_method" id="debit_card" value="debit_card">
+                                <label class="form-check-label" for="debit_card">
+                                    <i class="fab fa-cc-mastercard me-2"></i>Debit Card
+                                </label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="payment_method" id="bank_transfer" value="bank_transfer">
+                                <label class="form-check-label" for="bank_transfer">
+                                    <i class="fas fa-university me-2"></i>Bank Transfer
+                                </label>
+                            </div>
+                        </div>
+
+                        <div id="card_payment_form">
+                            <div id="card_form">
+                                <div class="row mb-3">
+                                    <div class="col-md-12">
+                                        <label for="card_holder" class="form-label">Name on Card</label>
+                                        <input type="text" class="form-control" id="card_holder" name="card_holder" placeholder="John Doe" required>
+                                    </div>
+                                </div>
+                                <div class="row mb-3">
+                                    <div class="col-md-12">
+                                        <label for="card_number" class="form-label">Card Number</label>
+                                        <input type="text" class="form-control" id="card_number" name="card_number" placeholder="1234 5678 9012 3456" required>
+                                    </div>
+                                </div>
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label for="expiry_date" class="form-label">Expiry Date</label>
+                                        <input type="text" class="form-control" id="expiry_date" name="expiry_date" placeholder="MM/YY" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="cvv" class="form-label">CVV</label>
+                                        <input type="text" class="form-control" id="cvv" name="cvv" placeholder="123" required>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="bank_transfer_form" style="display: none;">
+                            <div class="alert alert-info">
+                                <h5><i class="fas fa-info-circle me-2"></i>Bank Transfer Information</h5>
+                                <p>Please transfer the total amount to the following account:</p>
+                                <ul>
+                                    <li><strong>Bank Name:</strong> Japan Trust Bank</li>
+                                    <li><strong>Account Name:</strong> JDM Car Rentals Inc.</li>
+                                    <li><strong>Account Number:</strong> 1234-5678-9012-3456</li>
+                                    <li><strong>Reference:</strong> Booking #{{ booking.id }}</li>
+                                </ul>
+                                <p class="mb-0">After making the transfer, please enter the reference number below.</p>
+                            </div>
+                            <div class="mb-3">
+                                <label for="transfer_reference" class="form-label">Transfer Reference Number</label>
+                                <input type="text" class="form-control" id="transfer_reference" name="transfer_reference">
+                            </div>
+                        </div>
+
+                        <div class="alert alert-info">
+                            <p class="mb-0">
+                                <i class="fas fa-info-circle me-2"></i>
+                                This is a demo application. No actual payment will be processed.
+                            </p>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg">Complete Payment</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h4>Order Summary</h4>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        {% if booking.car.image_url %}
+                        <img src="{{ booking.car.image_url }}" class="img-thumbnail me-3" alt="{{ booking.car.make }} {{ booking.car.model }}" style="width: 80px; height: 60px; object-fit: cover;">
+                        {% else %}
+                        <img src="{{ url_for('static', filename='images/car-placeholder.jpg') }}" class="img-thumbnail me-3" alt="Car Placeholder" style="width: 80px; height: 60px; object-fit: cover;">
+                        {% endif %}
+                        <div>
+                            <h5 class="mb-0">{{ booking.car.make }} {{ booking.car.model }}</h5>
+                            <small class="text-muted">{{ booking.car.year }}</small>
+                        </div>
+                    </div>
+                    
+                    <ul class="list-group mb-3">
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span>Subtotal</span>
+                            <strong>₱{{ "%.2f"|format(booking.total_cost) }}</strong>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span>Tax (10%)</span>
+                            <strong>₱{{ "%.2f"|format(booking.total_cost * 0.1) }}</strong>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between bg-light">
+                            <span class="text-primary">Total (PHP)</span>
+                            <strong class="text-primary">₱{{ "%.2f"|format(booking.total_cost + (booking.total_cost * 0.1)) }}</strong>
+                        </li>
+                    </ul>
+                    
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <h5 class="card-title">Cancellation Policy</h5>
+                            <p class="card-text">Free cancellation up to 24 hours before pickup. After that, a cancellation fee of 50% of the total cost will be charged.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Need Help?</h5>
+                            <p class="card-text">For payment assistance, please contact our customer service team.</p>
+                            <p><i class="fas fa-phone me-2"></i> +81 123-456-7890</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.hidden-form {
+    display: none !important;
+}
+</style>
+
+<script>
+    $(document).ready(function() {
+        console.log("Payment form initialized");
+        
+        // Payment method switching
+        $('input[name="payment_method"]').change(function() {
+            const selectedMethod = $(this).val();
+            console.log("Payment method changed to:", selectedMethod);
+            
+            $('#card_payment_form').hide();
+            $('#bank_transfer_form').hide();
+            
+            if (selectedMethod === 'credit_card' || selectedMethod === 'debit_card') {
+                $('#card_payment_form').show();
+            } else if (selectedMethod === 'bank_transfer') {
+                $('#bank_transfer_form').show();
+                $('#card_payment_form input').prop('required', false);
+                $('#card_payment_form input').prop('disabled', true);
+            }
+        });
+        
+        // Trigger initial state setup
+        $('input[name="payment_method"]:checked').change();
+        
+        // Format card number with spaces
+        const cardNumberInput = document.getElementById('card_number');
+        if (cardNumberInput) {
+            cardNumberInput.addEventListener('input', function(e) {
+                let value = this.value.replace(/\D/g, '');
+                if (value.length > 16) value = value.slice(0, 16);
+                
+                // Add spaces after every 4 digits
+                let formattedValue = '';
+                for (let i = 0; i < value.length; i++) {
+                    if (i > 0 && i % 4 === 0) {
+                        formattedValue += ' ';
+                    }
+                    formattedValue += value[i];
+                }
+                
+                this.value = formattedValue;
+            });
+        }
+        
+        // Format expiry date (MM/YY)
+        const expiryDateInput = document.getElementById('expiry_date');
+        if (expiryDateInput) {
+            expiryDateInput.addEventListener('input', function(e) {
+                let value = this.value.replace(/\D/g, '');
+                if (value.length > 4) value = value.slice(0, 4);
+                
+                if (value.length > 2) {
+                    this.value = value.slice(0, 2) + '/' + value.slice(2);
+                } else {
+                    this.value = value;
+                }
+            });
+        }
+        
+        // Format CVV (numbers only, max 4 digits)
+        const cvvInput = document.getElementById('cvv');
+        if (cvvInput) {
+            cvvInput.addEventListener('input', function(e) {
+                let value = this.value.replace(/\D/g, '');
+                if (value.length > 4) value = value.slice(0, 4);
+                this.value = value;
+            });
+        }
+        
+        // Form submission check
+        $('#payment-form').submit(function(e) {
+            const paymentMethod = $('input[name="payment_method"]:checked').val();
+            console.log("Form submitted with payment method:", paymentMethod);
+            
+            if (paymentMethod === 'credit_card' || paymentMethod === 'debit_card') {
+                // Validate card inputs
+                const cardNumber = $('#card_number').val();
+                const cardHolder = $('#card_holder').val();
+                const expiryDate = $('#expiry_date').val();
+                const cvv = $('#cvv').val();
+                
+                if (!cardNumber || !cardHolder || !expiryDate || !cvv) {
+                    e.preventDefault();
+                    alert('Please fill in all card details');
+                    return false;
+                }
+            } else if (paymentMethod === 'bank_transfer') {
+                const transferRef = $('#transfer_reference').val();
+                if (!transferRef) {
+                    e.preventDefault();
+                    alert('Please enter the transfer reference number');
+                    return false;
+                }
+            }
+            
+            return true;
+        });
+    });
+</script>
+{% endblock %} 

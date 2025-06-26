@@ -1,0 +1,122 @@
+{% extends 'base.html' %}
+
+{% block title %}Contact Us - JDM Car Rentals{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card shadow-sm rounded-3 border-0 overflow-hidden mb-5">
+                <div class="card-body">
+                    <!-- Simple Text Header -->
+                    <div class="text-center py-4 mb-4" style="background-color: var(--primary-very-light);">
+                        <h1 class="display-4 fw-bold text-primary">Contact Us</h1>
+                        <p class="lead mt-3">We're here to help! Get in touch with our team.</p>
+                    </div>
+                    
+                    <!-- Contact Content -->
+                    <div class="p-4 p-md-5">
+                        <div class="row">
+                            <div class="col-md-6 mb-4">
+                                <div class="card h-100 border-0 shadow-sm">
+                                    <div class="card-body">
+                                        <h4 class="mb-4">Send Us a Message</h4>
+                                        <form action="{{ url_for('contact.contact_submit') }}" method="POST" id="contactForm">
+                                            <div class="mb-3">
+                                                <label for="name" class="form-label">Your Name</label>
+                                                <input type="text" class="form-control" id="name" name="name" required>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="email" class="form-label">Email Address</label>
+                                                <input type="email" class="form-control" id="email" name="email" required>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="phone" class="form-label">Phone Number</label>
+                                                <input type="tel" class="form-control" id="phone" name="phone">
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="message" class="form-label">Your Message</label>
+                                                <textarea class="form-control" id="message" name="message" rows="5" required></textarea>
+                                            </div>
+                                            <button type="submit" class="btn btn-primary w-100">Send Message</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-4">
+                                <div class="card h-100 border-0 shadow-sm">
+                                    <div class="card-body">
+                                        <h4 class="mb-4">Contact Information</h4>
+                                        <div class="d-flex mb-4">
+                                            <div class="icon-box me-3">
+                                                <i class="fas fa-map-marker-alt fa-2x text-primary"></i>
+                                            </div>
+                                            <div>
+                                                <h5>Our Location</h5>
+                                                <p>Block 8 Lot 35 Bria Homes, San Jose, Santa Cruz, Laguna</p>
+                                            </div>
+                                        </div>
+                                        <div class="d-flex mb-4">
+                                            <div class="icon-box me-3">
+                                                <i class="fas fa-phone fa-2x text-primary"></i>
+                                            </div>
+                                            <div>
+                                                <h5>Phone Number</h5>
+                                                <p>+63 962 561 5941</p>
+                                            </div>
+                                        </div>
+                                        <div class="d-flex mb-4">
+                                            <div class="icon-box me-3">
+                                                <i class="fas fa-envelope fa-2x text-primary"></i>
+                                            </div>
+                                            <div>
+                                                <h5>Email Address</h5>
+                                                <p>info@jdmcarrentals.com</p>
+                                            </div>
+                                        </div>
+                                        <div class="d-flex mb-4">
+                                            <div class="icon-box me-3">
+                                                <i class="fas fa-clock fa-2x text-primary"></i>
+                                            </div>
+                                            <div>
+                                                <h5>Business Hours</h5>
+                                                <p>Monday - Sunday: 9:00 AM - 6:00 PM</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-5">
+                            <h4 class="text-center mb-4">Our Locations</h4>
+                            <div class="row">
+                                <div class="col-md-6 mb-4">
+                                    <div class="card border-0 shadow-sm">
+                                        <div class="card-body">
+                                            <h5><i class="fas fa-building me-2 text-primary"></i> Main Office - Sta. Cruz</h5>
+                                            <p>Block 8 Lot 35, Bria Homes San Jose, Santa Cruz, Laguna</p>
+                                            <p><strong>Hours:</strong> 9:00 AM - 6:00 PM, Monday to Sunday</p>
+                                            <p><strong>Phone:</strong> +63 962-561-5941</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-4">
+                                    <div class="card border-0 shadow-sm">
+                                        <div class="card-body">
+                                            <h5><i class="fas fa-building me-2 text-primary"></i> Victoria Branch</h5>
+                                            <p>216 ML Quezon, San Roque, Victoria, Laguna</p>
+                                            <p><strong>Hours:</strong> 9:00 AM - 6:00 PM, Monday to Sunday</p>
+                                            <p><strong>Phone:</strong> +63 928-123-4567</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

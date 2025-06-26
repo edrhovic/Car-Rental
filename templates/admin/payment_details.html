@@ -1,0 +1,212 @@
+{% extends 'admin/layout.html' %}
+
+{% block title %}Payment Details - JDM Car Rentals Admin{% endblock %}
+
+{% block admin_content %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('admin.dashboard') }}">Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('admin.payment_list') }}">Payments</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Payment #{{ payment.id }}</li>
+    </ol>
+</nav>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h2">Payment Details</h1>
+    <div>
+        <a href="{{ url_for('admin.payment_list') }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Back to Payments
+        </a>
+        {% if payment.status != 'refunded' and payment.status == 'completed' %}
+            <form action="{{ url_for('admin.refund_payment', payment_id=payment.id) }}" method="POST" style="display: inline;">
+                <button type="submit" class="btn btn-warning ms-2" onclick="return confirm('Are you sure you want to refund this payment? This action cannot be undone.');">
+                    <i class="fas fa-undo me-2"></i>Refund Payment
+                </button>
+            </form>
+        {% endif %}
+        {% if payment.status == 'pending' %}
+            <form action="{{ url_for('admin.complete_payment', payment_id=payment.id) }}" method="POST" style="display: inline;">
+                <button type="submit" class="btn btn-success ms-2">
+                    <i class="fas fa-check me-2"></i>Mark as Completed
+                </button>
+            </form>
+        {% endif %}
+    </div>
+</div>
+
+<div class="row">
+    <!-- Payment Information -->
+    <div class="col-lg-8">
+        <div class="card mb-4">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">Payment Information</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <h6 class="text-muted">Payment ID</h6>
+                        <p class="fs-5">{{ payment.id }}</p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <h6 class="text-muted">Payment Date</h6>
+                        <p class="fs-5">{{ payment.payment_date.strftime('%Y-%m-%d %H:%M') }}</p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <h6 class="text-muted">Status</h6>
+                        <p>
+                            {% if payment.status == 'completed' %}
+                                <span class="badge bg-success fs-6">Completed</span>
+                            {% elif payment.status == 'pending' %}
+                                <span class="badge bg-warning fs-6">Pending</span>
+                            {% elif payment.status == 'failed' %}
+                                <span class="badge bg-danger fs-6">Failed</span>
+                            {% elif payment.status == 'refunded' %}
+                                <span class="badge bg-secondary fs-6">Refunded</span>
+                            {% else %}
+                                <span class="badge bg-dark fs-6">{{ payment.status|title }}</span>
+                            {% endif %}
+                        </p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <h6 class="text-muted">Type</h6>
+                        <p>
+                            {% if payment.is_late_fee %}
+                                <span class="badge bg-danger fs-6">Late Fee</span>
+                            {% else %}
+                                <span class="badge bg-info fs-6">Booking</span>
+                            {% endif %}
+                        </p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <h6 class="text-muted">Amount</h6>
+                        <p class="fs-5 fw-bold {% if payment.is_late_fee %}text-danger{% endif %}">₱{{ payment.amount|float|round(2) }}</p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <h6 class="text-muted">Payment Method</h6>
+                        <p class="fs-5">{{ payment.payment_method|replace('_', ' ')|title }}</p>
+                    </div>
+                    {% if payment.transaction_id %}
+                    <div class="col-md-6 mb-3">
+                        <h6 class="text-muted">Transaction ID</h6>
+                        <p class="fs-5">{{ payment.transaction_id }}</p>
+                    </div>
+                    {% endif %}
+                    <div class="col-md-6 mb-3">
+                        <h6 class="text-muted">Created On</h6>
+                        <p>{{ payment.created_at.strftime('%Y-%m-%d %H:%M') if payment.created_at else 'N/A' }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% if refund_transactions %}
+        <div class="card mb-4">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">Refund Information</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Refund Date</th>
+                                <th>Amount</th>
+                                <th>Transaction ID</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for refund in refund_transactions %}
+                            <tr>
+                                <td>{{ refund.payment_date.strftime('%Y-%m-%d %H:%M') }}</td>
+                                <td class="text-danger">₱{{ (refund.amount * -1)|float|round(2) }}</td>
+                                <td>{{ refund.transaction_id }}</td>
+                                <td>
+                                    <span class="badge bg-success">{{ refund.status|title }}</span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Related Information -->
+    <div class="col-lg-4">
+        <!-- User Information -->
+        {% if payment.user %}
+        <div class="card mb-4">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">Customer Information</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <h6 class="text-muted">Customer Name</h6>
+                    <p class="fs-5">{{ payment.user.first_name }} {{ payment.user.last_name }}</p>
+                </div>
+                <div class="mb-3">
+                    <h6 class="text-muted">Email</h6>
+                    <p>{{ payment.user.email }}</p>
+                </div>
+                <div class="mb-3">
+                    <h6 class="text-muted">Phone</h6>
+                    <p>{{ payment.user.phone_number or 'Not provided' }}</p>
+                </div>
+                <div class="text-center mt-3">
+                    <a href="{{ url_for('admin.view_user', user_id=payment.user.id) }}" class="btn btn-outline-primary">
+                        View Customer Profile
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Booking Information -->
+        {% if payment.booking %}
+        <div class="card mb-4">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">Booking Information</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <h6 class="text-muted">Booking Reference</h6>
+                    <p class="fs-5">{{ payment.booking.get_reference() }}</p>
+                </div>
+                <div class="mb-3">
+                    <h6 class="text-muted">Car</h6>
+                    <p>{{ payment.booking.car.make }} {{ payment.booking.car.model }} ({{ payment.booking.car.year }})</p>
+                </div>
+                <div class="mb-3">
+                    <h6 class="text-muted">Rental Period</h6>
+                    <p>{{ payment.booking.start_date.strftime('%Y-%m-%d') }} to {{ payment.booking.end_date.strftime('%Y-%m-%d') }}</p>
+                </div>
+                <div class="mb-3">
+                    <h6 class="text-muted">Booking Status</h6>
+                    <p>
+                        {% if payment.booking.status == 'confirmed' %}
+                            <span class="badge bg-success">Confirmed</span>
+                        {% elif payment.booking.status == 'pending' %}
+                            <span class="badge bg-warning">Pending</span>
+                        {% elif payment.booking.status == 'cancelled' %}
+                            <span class="badge bg-danger">Cancelled</span>
+                        {% elif payment.booking.status == 'completed' %}
+                            <span class="badge bg-info">Completed</span>
+                        {% else %}
+                            <span class="badge bg-secondary">{{ payment.booking.status|title }}</span>
+                        {% endif %}
+                    </p>
+                </div>
+                <div class="text-center mt-3">
+                    <a href="{{ url_for('admin.booking_details', booking_id=payment.booking.id) }}" class="btn btn-outline-primary">
+                        View Booking Details
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

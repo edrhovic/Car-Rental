@@ -1,0 +1,353 @@
+{% extends 'base.html' %}
+
+{% block title %}Booking Details - JDM Car Rentals{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar -->
+        <nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse">
+            <div class="position-sticky pt-3">
+                <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
+                    <span>Admin Panel</span>
+                </h6>
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('admin.dashboard') }}">
+                            <i class="fas fa-tachometer-alt me-2"></i>
+                            Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('admin.car_list') }}">
+                            <i class="fas fa-car me-2"></i>
+                            Car Management
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="{{ url_for('admin.booking_list') }}">
+                            <i class="fas fa-calendar-alt me-2"></i>
+                            Bookings
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('admin.user_list') }}">
+                            <i class="fas fa-users me-2"></i>
+                            User Management
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('admin.review_list') }}">
+                            <i class="fas fa-star me-2"></i>
+                            Reviews
+                        </a>
+                    </li>
+                    <!-- 
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">
+                            <i class="fas fa-money-bill-wave me-2"></i>
+                            Payments
+                        </a>
+                    </li>
+                    -->
+                </ul>
+
+                <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
+                    <span>System</span>
+                </h6>
+                <ul class="nav flex-column mb-2">
+                    <!--
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">
+                            <i class="fas fa-cog me-2"></i>
+                            Settings
+                        </a>
+                    </li>
+                    -->
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('home') }}">
+                            <i class="fas fa-arrow-left me-2"></i>
+                            Return to Site
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+
+        <!-- Main content -->
+        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 main-content">
+            <div class="content-header">
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center">
+                    <div>
+                        <h1 class="h3 mb-0">Booking Details</h1>
+                        <p class="text-muted">Booking #{{ booking.id }}</p>
+                    </div>
+                    <div class="action-btns">
+                        <a href="{{ url_for('admin.booking_list') }}" class="btn btn-outline-primary">
+                            <i class="fas fa-arrow-left me-1"></i> Back to Bookings
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <!-- Booking summary -->
+                <div class="col-md-8">
+                    <div class="card mb-4">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="card-title mb-0">Booking Summary</h5>
+                            <span class="badge {% if booking.status == 'pending' %}bg-warning
+                                {% elif booking.status == 'confirmed' %}bg-primary
+                                {% elif booking.status == 'completed' %}bg-success
+                                {% elif booking.status == 'cancelled' %}bg-danger
+                                {% else %}bg-secondary
+                                {% endif %}">
+                                {{ booking.status|title|replace('_', ' ') }}
+                            </span>
+                        </div>
+                        <div class="card-body">
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <p class="mb-1 text-muted">Booking Date</p>
+                                    <p class="mb-3 fw-bold">{{ booking.booking_date.strftime('%B %d, %Y at %H:%M') }}</p>
+                                    
+                                    <p class="mb-1 text-muted">Pickup Date</p>
+                                    <p class="mb-3 fw-bold">{{ booking.start_date.strftime('%B %d, %Y') }}</p>
+                                    
+                                    <p class="mb-1 text-muted">Return Date</p>
+                                    <p class="fw-bold">{{ booking.end_date.strftime('%B %d, %Y') }}</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p class="mb-1 text-muted">Total Days</p>
+                                    <p class="mb-3 fw-bold">{{ (booking.end_date - booking.start_date).days }}</p>
+                                    
+                                    <p class="mb-1 text-muted">Daily Rate</p>
+                                    <p class="mb-3 fw-bold">₱{{ booking.car.daily_rate }}</p>
+                                    
+                                    <p class="mb-1 text-muted">Total Price</p>
+                                    <p class="fw-bold">₱{{ booking.total_cost }}</p>
+                                </div>
+                            </div>
+
+                            <div class="row mb-3">
+                                <div class="col-12">
+                                    <p class="mb-1 text-muted">Branch Location</p>
+                                    <p class="mb-3 fw-bold">{{ booking.pickup_location or 'Not specified' }}</p>
+                                    {% if booking.locations and booking.locations.pickup %}
+                                    <div class="small text-muted">
+                                        <p class="mb-1"><i class="fas fa-map-marker-alt me-1"></i> {{ booking.locations.pickup.address }}</p>
+                                        <p class="mb-1"><i class="fas fa-clock me-1"></i> {{ booking.locations.pickup.hours }}</p>
+                                        <p class="mb-1"><i class="fas fa-phone me-1"></i> {{ booking.locations.pickup.contact }}</p>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            {% if booking.special_requests %}
+                            <div class="row mb-3">
+                                <div class="col-12">
+                                    <p class="mb-1 text-muted">Special Requests</p>
+                                    <p class="fw-bold">{{ booking.special_requests }}</p>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Car Details -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">Car Details</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-4">
+                                    {% if booking.car.image_url %}
+                                    <img src="{{ booking.car.image_url }}" alt="{{ booking.car.make }} {{ booking.car.model }}" class="img-fluid rounded mb-3">
+                                    {% else %}
+                                    <div class="bg-secondary text-white d-flex justify-content-center align-items-center rounded mb-3" style="height: 150px;">
+                                        <i class="fas fa-car fa-3x"></i>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-8">
+                                    <h5>{{ booking.car.year }} {{ booking.car.make }} {{ booking.car.model }}</h5>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <p class="mb-1 text-muted">License Plate</p>
+                                            <p class="mb-3 fw-bold">{{ booking.car.license_plate }}</p>
+                                            
+                                            <p class="mb-1 text-muted">Color</p>
+                                            <p class="mb-3 fw-bold">{{ booking.car.color }}</p>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <p class="mb-1 text-muted">Transmission</p>
+                                            <p class="mb-3 fw-bold">{{ booking.car.transmission }}</p>
+                                            
+                                            <p class="mb-1 text-muted">Daily Rate</p>
+                                            <p class="fw-bold">₱{{ booking.car.daily_rate }}</p>
+                                        </div>
+                                    </div>
+                                    <a href="{{ url_for('admin.edit_car', car_id=booking.car.id) }}" class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-edit me-1"></i> View Car Details
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sidebar with customer info and actions -->
+                <div class="col-md-4">
+                    <!-- Customer information -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">Customer Information</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="bg-light rounded-circle me-3 d-flex justify-content-center align-items-center" style="width: 50px; height: 50px;">
+                                    <i class="fas fa-user fa-lg text-muted"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-0">{{ booking.user.first_name }} {{ booking.user.last_name }}</h6>
+                                    <p class="text-muted mb-0">Customer #{{ booking.user.id }}</p>
+                                </div>
+                            </div>
+                            
+                            <p class="mb-1 text-muted">Email</p>
+                            <p class="mb-3 fw-bold">{{ booking.user.email }}</p>
+                            
+                            <p class="mb-1 text-muted">Phone</p>
+                            <p class="mb-3 fw-bold">{{ booking.user.phone_number }}</p>
+                            
+                            <p class="mb-1 text-muted">Driver's License</p>
+                            <p class="mb-3 fw-bold">{{ booking.user.driver_license }}</p>
+                            
+                            <a href="{{ url_for('admin.view_user', user_id=booking.user.id) }}" class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-user me-1"></i> View Customer Profile
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Actions card -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">Actions</h5>
+                        </div>
+                        <div class="card-body">
+                            <p class="text-muted mb-3">Update booking status</p>
+                            
+                            {% if booking.status == 'pending' and booking.payment and booking.payment.status == 'completed' %}
+                            <div class="alert alert-info mb-3">
+                                <i class="fas fa-info-circle me-2"></i> 
+                                <strong>This booking has been paid for but is awaiting your approval.</strong>
+                                <p class="mb-0 mt-1">Please confirm this booking to make the car unavailable for other customers.</p>
+                            </div>
+                            {% endif %}
+                            
+                            {% if booking.status == 'pending_return' %}
+                            <div class="alert alert-warning mb-3">
+                                <i class="fas fa-exclamation-triangle me-2"></i> 
+                                <strong>This car has been returned and needs your inspection.</strong>
+                                <p class="mb-0 mt-1">Check for damages and additional fees. Mark as "Completed" if the car is in acceptable condition or add charges as needed.</p>
+                                <div class="mt-3">
+                                    <form method="POST" action="{{ url_for('admin.update_booking_status', booking_id=booking.id) }}" class="d-inline">
+                                        <input type="hidden" name="status" value="completed">
+                                        <button type="submit" class="btn btn-success btn-sm me-2">
+                                            <i class="fas fa-check me-1"></i> Approve Return
+                                        </button>
+                                    </form>
+                                    <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#rejectReturnModal">
+                                        <i class="fas fa-times me-1"></i> Reject Return
+                                    </button>
+                                </div>
+                            </div>
+                            {% endif %}
+                            
+                            <div class="alert alert-light mb-3">
+                                <h6><i class="fas fa-info-circle me-2"></i> Booking Status Guide:</h6>
+                                <ul class="mb-0 small">
+                                    <li><strong>Pending</strong> - Initial booking state, awaiting payment</li>
+                                    <li><strong>Confirmed</strong> - Booking approved by admin, car reserved, confirmation email sent</li>
+                                    <li><strong>Pending Return</strong> - Customer has requested to return the car, awaiting admin inspection</li>
+                                    <li><strong>Completed</strong> - Car has been returned and approved by admin</li>
+                                    <li><strong>Cancelled</strong> - Booking was cancelled</li>
+                                </ul>
+                            </div>
+                            
+                            <form method="POST" action="{{ url_for('admin.update_booking_status', booking_id=booking.id) }}">
+                                <div class="mb-3">
+                                    <select class="form-select" name="status">
+                                        <option value="pending" {% if booking.status == 'pending' %}selected{% endif %}>Pending</option>
+                                        <option value="confirmed" {% if booking.status == 'confirmed' %}selected{% endif %}>Confirmed</option>
+                                        <option value="pending_return" {% if booking.status == 'pending_return' %}selected{% endif %}>Pending Return</option>
+                                        <option value="completed" {% if booking.status == 'completed' %}selected{% endif %}>Completed</option>
+                                        <option value="cancelled" {% if booking.status == 'cancelled' %}selected{% endif %}>Cancelled</option>
+                                    </select>
+                                </div>
+                                <button type="submit" class="btn btn-primary w-100">Update Status</button>
+                            </form>
+                            
+                            <hr class="my-4">
+                            
+                            <p class="text-muted mb-3">Additional actions</p>
+                            
+                            {% if booking.status == 'confirmed' %}
+                            {% if booking.payment and booking.payment.status == 'completed' %}
+                            <a href="{{ url_for('admin.send_booking_confirmation', booking_id=booking.id) }}" class="btn btn-outline-primary w-100 mb-2">
+                                <i class="fas fa-envelope me-1"></i> Resend Confirmation Email
+                            </a>
+                            {% endif %}
+                            
+                            <a href="#" class="btn btn-outline-success w-100 mb-2" disabled>
+                                <i class="fas fa-check-circle me-1"></i> Mark as Returned
+                            </a>
+                            {% endif %}
+                            
+                            <a href="#" class="btn btn-outline-secondary w-100" disabled>
+                                <i class="fas fa-print me-1"></i> Print Booking Details
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+
+<!-- Reject Return Modal -->
+<div class="modal fade" id="rejectReturnModal" tabindex="-1" aria-labelledby="rejectReturnModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="rejectReturnModalLabel">Reject Car Return</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="POST" action="{{ url_for('admin.reject_car_return', booking_id=booking.id) }}">
+                <div class="modal-body">
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-circle me-2"></i>
+                        Use this option if there are issues with the car that require additional charges or action.
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="damage_description" class="form-label">Damage/Issue Description</label>
+                        <textarea class="form-control" id="damage_description" name="damage_description" rows="3" required></textarea>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="damage_fee" class="form-label">Additional Charge Amount (₱)</label>
+                        <input type="number" class="form-control" id="damage_fee" name="damage_fee" min="0" step="0.01" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-danger">Submit & Charge Customer</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %} 

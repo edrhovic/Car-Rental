@@ -1,0 +1,2 @@
+# This file ensures the uploads/cars directory is tracked by git
+# while the actual uploaded files are ignored 

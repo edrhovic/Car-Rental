@@ -1,0 +1,510 @@
+{% extends 'base.html' %}
+
+{% block title %}Payment Management - JDM Car Rentals Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar -->
+        {% include 'admin/partials/sidebar.html' %}
+
+        <!-- Main content -->
+        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                <h1 class="h2">Payment Management</h1>
+                <div class="btn-toolbar mb-2 mb-md-0">
+                    <div class="btn-group me-2">
+                        <button id="export-btn" type="button" class="btn btn-sm btn-outline-secondary">
+                            <i class="fas fa-download me-1"></i> Export
+                        </button>
+                    </div>
+                    <div class="dropdown">
+                        <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle" id="time-period-dropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-calendar me-1"></i>
+                            <span id="selected-period">This month</span>
+                        </button>
+                        <ul class="dropdown-menu" aria-labelledby="time-period-dropdown">
+                            <li><a class="dropdown-item period-item" href="{{ date_filters.today }}">Today</a></li>
+                            <li><a class="dropdown-item period-item" href="{{ date_filters.week }}">Last 7 days</a></li>
+                            <li><a class="dropdown-item period-item" href="{{ date_filters.month }}">This month</a></li>
+                            <li><a class="dropdown-item period-item" href="{{ date_filters.year }}">This year</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <!-- Payment Stats -->
+            <div class="row mb-4" id="payment-stats-container">
+                <div class="col-md-3">
+                    <div class="card text-white bg-primary mb-3">
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-3">
+                                    <i class="fas fa-money-bill-wave fa-3x"></i>
+                                </div>
+                                <div class="col-9 text-end">
+                                    <h3 class="total-revenue">₱{{ "%.2f"|format(stats.total_revenue) }}</h3>
+                                    <h6>Total Revenue</h6>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-white bg-success mb-3">
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-3">
+                                    <i class="fas fa-cash-register fa-3x"></i>
+                                </div>
+                                <div class="col-9 text-end">
+                                    <h3>₱{{ "%.2f"|format(stats.today_revenue) }}</h3>
+                                    <h6>Today's Revenue</h6>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-white bg-warning mb-3">
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-3">
+                                    <i class="fas fa-clock fa-3x"></i>
+                                </div>
+                                <div class="col-9 text-end">
+                                    <h3 class="total-pending">₱{{ "%.2f"|format(stats.total_pending) }}</h3>
+                                    <h6>Pending Payments</h6>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-white bg-info mb-3">
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-3">
+                                    <i class="fas fa-receipt fa-3x"></i>
+                                </div>
+                                <div class="col-9 text-end">
+                                    <h3 class="total-transactions">{{ stats.total_payments }}</h3>
+                                    <h6>Total Transactions</h6>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filter and Search Section -->
+            <div class="card mb-4">
+                <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Filter Payments</h5>
+                    <button type="button" class="btn btn-sm btn-outline-secondary clear-filters-btn">
+                        <i class="fas fa-times me-1"></i> Clear All Filters
+                    </button>
+                </div>
+                <div class="card-body">
+                    <form id="payment-filter-form" method="GET" action="{{ url_for('admin.payment_list') }}" class="row g-3">
+                        <div class="col-md-2">
+                            <label for="type" class="form-label">Payment Type</label>
+                            <select class="form-select immediate-filter" id="type" name="type">
+                                <option value="" {% if filter_type == '' %}selected{% endif %}>All Types</option>
+                                <option value="booking" {% if filter_type == 'booking' %}selected{% endif %}>Booking Payments</option>
+                                <option value="late_fee" {% if filter_type == 'late_fee' %}selected{% endif %}>Late Fees</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label for="status" class="form-label">Status</label>
+                            <select class="form-select immediate-filter" id="status" name="status">
+                                <option value="" {% if filter_status == '' %}selected{% endif %}>All Statuses</option>
+                                <option value="pending" {% if filter_status == 'pending' %}selected{% endif %}>Pending</option>
+                                <option value="completed" {% if filter_status == 'completed' %}selected{% endif %}>Completed</option>
+                                <option value="failed" {% if filter_status == 'failed' %}selected{% endif %}>Failed</option>
+                                <option value="refunded" {% if filter_status == 'refunded' %}selected{% endif %}>Refunded</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label for="start_date" class="form-label">Start Date</label>
+                            <input type="date" class="form-control immediate-filter" id="start_date" name="start_date" value="{{ filter_start_date }}">
+                        </div>
+                        <div class="col-md-2">
+                            <label for="end_date" class="form-label">End Date</label>
+                            <input type="date" class="form-control immediate-filter" id="end_date" name="end_date" value="{{ filter_end_date }}">
+                        </div>
+                        <div class="col-md-3">
+                            <label for="search" class="form-label">Search</label>
+                            <input type="text" class="form-control" id="search" name="search" placeholder="Name, Email, Booking ID..." value="{{ search }}">
+                        </div>
+                        <div class="col-md-1 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary w-100">Filter</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Active Filters -->
+            <div id="active-filters-container" class="mb-4 {% if not (filter_type or filter_status or filter_start_date or filter_end_date or search) %}d-none{% endif %}">
+                <h6>Active Filters:</h6>
+                <div>
+                    {% if filter_type %}
+                    <span class="badge bg-primary me-2">
+                        Type: {{ 'Booking Payments' if filter_type == 'booking' else 'Late Fees' }}
+                        <i class="fas fa-times ms-1 clear-filter" data-filter="type"></i>
+                    </span>
+                    {% endif %}
+                    
+                    {% if filter_status %}
+                    <span class="badge bg-primary me-2">
+                        Status: {{ filter_status|capitalize }}
+                        <i class="fas fa-times ms-1 clear-filter" data-filter="status"></i>
+                    </span>
+                    {% endif %}
+                    
+                    {% if filter_start_date %}
+                    <span class="badge bg-primary me-2">
+                        From: {{ filter_start_date }}
+                        <i class="fas fa-times ms-1 clear-filter" data-filter="start_date"></i>
+                    </span>
+                    {% endif %}
+                    
+                    {% if filter_end_date %}
+                    <span class="badge bg-primary me-2">
+                        To: {{ filter_end_date }}
+                        <i class="fas fa-times ms-1 clear-filter" data-filter="end_date"></i>
+                    </span>
+                    {% endif %}
+                    
+                    {% if search %}
+                    <span class="badge bg-primary me-2">
+                        Search: {{ search }}
+                        <i class="fas fa-times ms-1 clear-filter" data-filter="search"></i>
+                    </span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Revenue Chart -->
+            <div class="row mb-4">
+                <div class="col-md-8">
+                    <div class="card">
+                        <div class="card-header bg-light">
+                            <h5 class="mb-0">Monthly Revenue</h5>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="revenueChart" height="250"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card">
+                        <div class="card-header bg-light">
+                            <h5 class="mb-0">Payment Methods</h5>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="paymentMethodsChart" height="250"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payments Table -->
+            <div class="card mb-4">
+                <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Payment Transactions</h5>
+                    <span class="badge bg-primary" id="payment-count-display">{{ pagination.total }} Results</span>
+                </div>
+                <div class="card-body p-0" id="payment-table-container">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Date</th>
+                                    <th>User</th>
+                                    <th>Booking Ref</th>
+                                    <th>Amount</th>
+                                    <th>Method</th>
+                                    <th>Type</th>
+                                    <th>Status</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if payments %}
+                                    {% for payment in payments %}
+                                        <tr>
+                                            <td>{{ payment.id }}</td>
+                                            <td>{{ payment.payment_date.strftime('%Y-%m-%d %H:%M') }}</td>
+                                            <td>
+                                                {% if payment.user %}
+                                                    <a href="{{ url_for('admin.view_user', user_id=payment.user.id) }}">
+                                                        {{ payment.user.first_name }} {{ payment.user.last_name }}
+                                                    </a>
+                                                {% else %}
+                                                    N/A
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                {% if payment.booking %}
+                                                    {{ payment.booking.get_reference() }}
+                                                {% else %}
+                                                    N/A
+                                                {% endif %}
+                                            </td>
+                                            <td class="{% if payment.is_late_fee %}text-danger{% endif %}">
+                                                ₱{{ payment.amount|float|round(2) }}
+                                            </td>
+                                            <td>
+                                                {% if payment.payment_method %}
+                                                    {{ payment.payment_method|replace('_', ' ')|title }}
+                                                {% else %}
+                                                    N/A
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                {% if payment.is_late_fee %}
+                                                    <span class="badge bg-danger">Late Fee</span>
+                                                {% else %}
+                                                    <span class="badge bg-info">Booking</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                {% if payment.status == 'completed' %}
+                                                    <span class="badge bg-success">Completed</span>
+                                                {% elif payment.status == 'pending' %}
+                                                    <span class="badge bg-warning">Pending</span>
+                                                {% elif payment.status == 'failed' %}
+                                                    <span class="badge bg-danger">Failed</span>
+                                                {% elif payment.status == 'refunded' %}
+                                                    <span class="badge bg-secondary">Refunded</span>
+                                                {% else %}
+                                                    <span class="badge bg-dark">{{ payment.status|title }}</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <div class="dropdown">
+                                                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="action-{{ payment.id }}" data-bs-toggle="dropdown" aria-expanded="false">
+                                                        Actions
+                                                    </button>
+                                                    <ul class="dropdown-menu" aria-labelledby="action-{{ payment.id }}">
+                                                        {% if payment.status == 'pending' %}
+                                                            <li>
+                                                                <form action="{{ url_for('admin.complete_payment', payment_id=payment.id) }}" method="POST" style="display: inline;">
+                                                                    <button type="submit" class="dropdown-item">
+                                                                        <i class="fas fa-check me-2"></i> Mark as Completed
+                                                                    </button>
+                                                                </form>
+                                                            </li>
+                                                        {% endif %}
+                                                        {% if payment.status != 'refunded' and payment.status == 'completed' %}
+                                                            <li>
+                                                                <form action="{{ url_for('admin.refund_payment', payment_id=payment.id) }}" method="POST" style="display: inline;">
+                                                                    <button type="submit" class="dropdown-item" onclick="return confirm('Are you sure you want to refund this payment? This action cannot be undone.');">
+                                                                        <i class="fas fa-undo me-2"></i> Refund Payment
+                                                                    </button>
+                                                                </form>
+                                                            </li>
+                                                        {% endif %}
+                                                        <li>
+                                                            <a class="dropdown-item" href="{{ url_for('admin.payment_details', payment_id=payment.id) }}">
+                                                                <i class="fas fa-file-invoice me-2"></i> View Details
+                                                            </a>
+                                                        </li>
+                                                        {% if payment.booking %}
+                                                            <li>
+                                                                <a class="dropdown-item" href="{{ url_for('admin.booking_details', booking_id=payment.booking.id) }}">
+                                                                    <i class="fas fa-calendar-alt me-2"></i> View Booking
+                                                                </a>
+                                                            </li>
+                                                        {% endif %}
+                                                    </ul>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                {% else %}
+                                    <tr>
+                                        <td colspan="9" class="text-center py-4">No payment records found</td>
+                                    </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- Pagination - will be handled by AJAX -->
+            </div>
+        </main>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="{{ url_for('static', filename='js/admin-payment-filters.js') }}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('Payment management page loaded');
+        
+        // Initialize the payment filter system
+        initPaymentFilters({
+            formId: 'payment-filter-form',
+            tableContainerId: 'payment-table-container',
+            countDisplayId: 'payment-count-display',
+            statsContainerId: 'payment-stats-container',
+            activeFiltersContainerId: 'active-filters-container',
+            apiEndpoint: '{{ url_for("admin.payment_list_api") }}',
+            pageUrl: '{{ url_for("admin.payment_list") }}'
+        });
+
+        // Add handler for clear all filters button
+        document.querySelectorAll('.clear-filters-btn').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                resetAllFilters();
+                return false;
+            });
+        });
+        
+        // Check if UI elements exist
+        const exportBtn = document.getElementById('export-btn');
+        console.log('Export button found:', !!exportBtn);
+        
+        // Revenue Chart
+        const revenueCtx = document.getElementById('revenueChart').getContext('2d');
+        new Chart(revenueCtx, {
+            type: 'line',
+            data: {
+                labels: [{% for item in stats.monthly_data %}"{{ item.month }}",{% endfor %}],
+                datasets: [{
+                    label: 'Revenue (₱)',
+                    data: [{% for item in stats.monthly_data %}{{ item.revenue }},{% endfor %}],
+                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 2,
+                    tension: 0.1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return '₱' + value;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        
+        // Payment Methods Chart
+        const methodsCtx = document.getElementById('paymentMethodsChart').getContext('2d');
+        new Chart(methodsCtx, {
+            type: 'doughnut',
+            data: {
+                labels: [{% for method in stats.payment_methods %}"{{ method.payment_method|replace('_', ' ')|title }}",{% endfor %}],
+                datasets: [{
+                    data: [{% for method in stats.payment_methods %}{{ method.total }},{% endfor %}],
+                    backgroundColor: [
+                        'rgba(255, 99, 132, 0.7)',
+                        'rgba(54, 162, 235, 0.7)',
+                        'rgba(255, 206, 86, 0.7)',
+                        'rgba(75, 192, 192, 0.7)',
+                        'rgba(153, 102, 255, 0.7)'
+                    ],
+                    borderColor: [
+                        'rgba(255, 99, 132, 1)',
+                        'rgba(54, 162, 235, 1)',
+                        'rgba(255, 206, 86, 1)',
+                        'rgba(75, 192, 192, 1)',
+                        'rgba(153, 102, 255, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'right',
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const value = context.raw;
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const percentage = Math.round((value / total) * 100);
+                                return `₱${value} (${percentage}%)`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        
+        // Export functionality
+        if (exportBtn) {
+            exportBtn.addEventListener('click', function() {
+                console.log('Export button clicked');
+                // Create CSV content
+                let csvContent = "data:text/csv;charset=utf-8,";
+                
+                // Add headers
+                csvContent += "ID,Date,User,Booking Reference,Amount,Method,Type,Status\n";
+                
+                // Add data rows from table
+                const table = document.querySelector('table');
+                const rows = table.querySelectorAll('tbody tr');
+                
+                rows.forEach(row => {
+                    if (row.cells.length > 1) {  // Skip empty rows
+                        const cells = row.querySelectorAll('td');
+                        const rowData = [
+                            cells[0].textContent.trim(),                        // ID
+                            cells[1].textContent.trim(),                        // Date
+                            cells[2].textContent.trim().replace(/\s+/g, ' '),   // User
+                            cells[3].textContent.trim(),                        // Booking Ref
+                            cells[4].textContent.trim().replace('₱', ''),       // Amount
+                            cells[5].textContent.trim(),                        // Method
+                            cells[6].textContent.trim(),                        // Type
+                            cells[7].textContent.trim()                         // Status
+                        ];
+                        
+                        // Add row to CSV
+                        csvContent += rowData.join(',') + "\n";
+                    }
+                });
+                
+                // Create download link
+                const encodedUri = encodeURI(csvContent);
+                const link = document.createElement("a");
+                link.setAttribute("href", encodedUri);
+                link.setAttribute("download", "payment_report_" + new Date().toISOString().slice(0,10) + ".csv");
+                document.body.appendChild(link);
+                
+                // Trigger download and remove link
+                link.click();
+                document.body.removeChild(link);
+            });
+        }
+    });
+</script>
+{% endblock %} 

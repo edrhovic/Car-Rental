@@ -1,0 +1,150 @@
+{% extends 'base.html' %}
+
+{% block title %}My Profile - JDM Car Rentals{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="page-header">
+        <h1 class="h3 mb-3">My Profile</h1>
+    </div>
+
+    <div class="row">
+        <!-- Profile Information -->
+        <div class="col-md-4 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Personal Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        <div class="avatar-container mx-auto mb-3">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <h4>{{ current_user.first_name }} {{ current_user.last_name }}</h4>
+                        <div class="profile-stat">
+                            <div class="stat-value">Member Since</div>
+                            <div class="stat-data">{{ current_user.registration_date.strftime('%B %Y') }}</div>
+                        </div>
+                    </div>
+                    
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span><i class="fas fa-envelope me-2"></i> Email</span>
+                            <span>{{ current_user.email }}</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span><i class="fas fa-phone me-2"></i> Phone</span>
+                            <span>{{ current_user.phone_number or 'Not provided' }}</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span><i class="fas fa-id-card me-2"></i> Driver's License</span>
+                            <span>{{ current_user.driver_license or 'Not provided' }}</span>
+                        </li>
+                    </ul>
+                    
+                    <div class="mt-4">
+                        <a href="#" class="btn btn-outline-primary w-100" data-bs-toggle="modal" data-bs-target="#editProfileModal">
+                            <i class="fas fa-edit me-2"></i>Edit Profile
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h4>Quick Links</h4>
+                </div>
+                <div class="list-group list-group-flush">
+                    {% if not user.is_admin %}
+                    <a href="{{ url_for('user.booking_history') }}" class="list-group-item list-group-item-action">
+                        <i class="fas fa-history me-2"></i> Booking History
+                    </a>
+                    <a href="{{ url_for('booking.active_bookings') }}" class="list-group-item list-group-item-action">
+                        <i class="fas fa-car me-2"></i> Active Rentals
+                    </a>
+                    {% endif %}
+                    <a href="{{ url_for('car.car_list') }}" class="list-group-item list-group-item-action">
+                        <i class="fas fa-search me-2"></i> Find a Car
+                    </a>
+                    {% if user.is_admin %}
+                    <a href="{{ url_for('admin.dashboard') }}" class="list-group-item list-group-item-action">
+                        <i class="fas fa-tachometer-alt me-2"></i> Admin Dashboard
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-8">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h4>Personal Information</h4>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-4 fw-bold">Username:</div>
+                        <div class="col-md-8">{{ user.username }}</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-4 fw-bold">First Name:</div>
+                        <div class="col-md-8">{{ user.first_name }}</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-4 fw-bold">Last Name:</div>
+                        <div class="col-md-8">{{ user.last_name }}</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-4 fw-bold">Date of Birth:</div>
+                        <div class="col-md-8">{{ user.date_of_birth.strftime('%B %d, %Y') }}</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-4 fw-bold">Address:</div>
+                        <div class="col-md-8">{{ user.address }}</div>
+                    </div>
+                </div>
+            </div>
+            
+            {% if not user.is_admin %}
+            <!-- Removing the Recent Bookings section -->
+            {% endif %}
+            
+            <div class="card mb-4">
+                <div class="card-header bg-dark text-white">
+                    <h5 class="mb-0">Account Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <a href="{{ url_for('user.edit_profile') }}" class="btn btn-primary w-100">
+                                <i class="fas fa-user-edit me-2"></i> Edit Profile
+                            </a>
+                        </div>
+                        {% if not current_user.is_admin %}
+                        <div class="col-md-6 mb-3">
+                            <a href="{{ url_for('booking.active_bookings') }}" class="btn btn-info w-100">
+                                <i class="fas fa-calendar-check me-2"></i> My Bookings
+                            </a>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <a href="{{ url_for('user.payment_history') }}" class="btn btn-secondary w-100">
+                                <i class="fas fa-history me-2"></i> Payment History
+                            </a>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <a href="{{ url_for('user.late_fees') }}" class="btn btn-warning w-100">
+                                <i class="fas fa-exclamation-circle me-2"></i> Manage Late Fees
+                            </a>
+                        </div>
+                        {% endif %}
+                        <div class="col-md-6 mb-3">
+                            <a href="{{ url_for('auth.logout') }}" class="btn btn-danger w-100">
+                                <i class="fas fa-sign-out-alt me-2"></i> Logout
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

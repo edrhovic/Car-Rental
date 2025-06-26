@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+
+{% block title %}Terms and Conditions - JDM Car Rentals{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="card-title mb-0">Terms and Conditions</h3>
+                </div>
+                <div class="card-body">
+                    <div class="mb-4">
+                        <h4>1. Acceptance of Terms</h4>
+                        <p>By accessing or using JDM Car Rentals services, you agree to be bound by these Terms and Conditions. If you do not agree to all the terms and conditions, you may not access or use our services.</p>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h4>2. Eligibility</h4>
+                        <p>To rent a vehicle from JDM Car Rentals, you must:</p>
+                        <ul>
+                            <li>Be at least 21 years of age</li>
+                            <li>Possess a valid driver's license that has been held for at least 2 years</li>
+                            <li>Have a clean driving record with no major violations</li>
+                            <li>Provide valid identification and credit card information</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h4>3. Reservation and Payment</h4>
+                        <p>Reservations can be made online or through our customer service. Payment terms include:</p>
+                        <ul>
+                            <li>A valid credit card is required for all reservations</li>
+                            <li>Full payment is required at the time of vehicle pickup</li>
+                            <li>A security deposit will be held and released upon vehicle return, subject to inspection</li>
+                            <li>Cancellation policies apply as outlined in section 5</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h4>4. Vehicle Use and Restrictions</h4>
+                        <p>When renting a vehicle from JDM Car Rentals, you agree to:</p>
+                        <ul>
+                            <li>Use the vehicle only for personal use and not for racing, performance testing, or commercial purposes</li>
+                            <li>Not drive the vehicle outside the designated geographic boundaries without prior written permission</li>
+                            <li>Not allow anyone not listed as an authorized driver to operate the vehicle</li>
+                            <li>Return the vehicle with the same amount of fuel as at pickup</li>
+                            <li>Not smoke in the vehicle or transport pets without prior approval</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h4>5. Cancellation Policy</h4>
+                        <p>Our cancellation policy is as follows:</p>
+                        <ul>
+                            <li>Cancellations made 72+ hours before pickup: Full refund</li>
+                            <li>Cancellations made 24-72 hours before pickup: 50% refund</li>
+                            <li>Cancellations made less than 24 hours before pickup: No refund</li>
+                            <li>No-shows will be charged the full reservation amount</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h4>6. Liability and Insurance</h4>
+                        <p>You are responsible for the vehicle during your rental period. Our insurance policies and your liability include:</p>
+                        <ul>
+                            <li>Basic insurance is included in all rentals</li>
+                            <li>Additional insurance options are available for purchase</li>
+                            <li>You are responsible for any damage not covered by the selected insurance plan</li>
+                            <li>You must report any accidents or damage immediately</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h4>7. Privacy Policy</h4>
+                        <p>We respect your privacy and handle your personal information according to our Privacy Policy. By using our services, you consent to the collection and use of your information as described in our Privacy Policy.</p>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h4>8. Amendments to Terms</h4>
+                        <p>JDM Car Rentals reserves the right to modify these terms and conditions at any time. Changes will be effective immediately upon posting to our website. Your continued use of our services after any changes indicates your acceptance of the modified terms.</p>
+                    </div>
+                    
+                    <div>
+                        <h4>9. Contact Information</h4>
+                        <p>If you have any questions about these Terms and Conditions, please contact us at:</p>
+                        <p>
+                            <strong>Email:</strong> info@jdmcarrentals.com<br>
+                            <strong>Phone:</strong> +81 123-456-7890<br>
+                            <strong>Address:</strong> 123 JDM Street, Tokyo, Japan
+                        </p>
+                    </div>
+                </div>
+                <div class="card-footer text-center">
+                    <p class="mb-0">Last updated: {{ now.strftime('%B %d, %Y') }}</p>
+                    <a href="{{ url_for('auth.register') }}" class="btn btn-primary mt-3">Return to Registration</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

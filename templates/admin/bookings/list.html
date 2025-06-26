@@ -1,0 +1,278 @@
+{% extends 'base.html' %}
+
+{% block title %}Booking Management - JDM Car Rentals{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar -->
+        {% include 'admin/partials/sidebar.html' %}
+
+        <!-- Main content -->
+        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                <h1 class="h2">Booking Management</h1>
+            </div>
+
+            <!-- Booking Filter -->
+            <div class="card mb-4">
+                <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Filter Bookings</h5>
+                    {% if request.args.get('booking_id') or request.args.get('user_id') or request.args.get('status') or request.args.get('date_range') or request.args.get('location') %}
+                    <button type="button" class="btn btn-sm btn-outline-light clear-filters-btn">
+                        <i class="fas fa-times me-1"></i> Clear All Filters
+                    </button>
+                    {% endif %}
+                </div>
+                <div class="card-body">
+                    <form id="admin-booking-filter-form" method="GET">
+                        <div class="row g-3">
+                            <div class="col-md-2">
+                                <label for="booking_id" class="form-label">Booking ID</label>
+                                <input type="text" class="form-control" id="booking_id" name="booking_id" value="{{ request.args.get('booking_id', '') }}">
+                            </div>
+                            <div class="col-md-2">
+                                <label for="user_id" class="form-label">User ID</label>
+                                <input type="text" class="form-control" id="user_id" name="user_id" value="{{ request.args.get('user_id', '') }}">
+                            </div>
+                            <div class="col-md-3">
+                                <label for="status" class="form-label">Status</label>
+                                <select class="form-select immediate-filter" id="status" name="status">
+                                    <option value="">All</option>
+                                    <option value="pending" {% if request.args.get('status') == 'pending' %}selected{% endif %}>Pending</option>
+                                    <option value="confirmed" {% if request.args.get('status') == 'confirmed' %}selected{% endif %}>Confirmed</option>
+                                    <option value="pending_return" {% if request.args.get('status') == 'pending_return' %}selected{% endif %}>Pending Return</option>
+                                    <option value="completed" {% if request.args.get('status') == 'completed' %}selected{% endif %}>Completed</option>
+                                    <option value="cancelled" {% if request.args.get('status') == 'cancelled' %}selected{% endif %}>Cancelled</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="location" class="form-label">Branch Location</label>
+                                <select class="form-select immediate-filter" id="location" name="location">
+                                    <option value="">All Locations</option>
+                                    <!-- 
+                                    To add new branches:
+                                    1. Add a new option here with the exact same value as in routes/car.py
+                                    2. Make sure the branches match between all files
+                                    -->
+                                    <option value="Main Office - Sta. Cruz" {% if request.args.get('location') == 'Main Office - Sta. Cruz' %}selected{% endif %}>Main Office - Sta. Cruz</option>
+                                    <option value="Victoria Branch" {% if request.args.get('location') == 'Victoria Branch' %}selected{% endif %}>Victoria Branch</option>
+                                    <option value="San Pablo Branch" {% if request.args.get('location') == 'San Pablo Branch' %}selected{% endif %}>San Pablo Branch</option>
+                                    <option value="Calamba Branch" {% if request.args.get('location') == 'Calamba Branch' %}selected{% endif %}>Calamba Branch</option>
+                                    <!-- Add new branch options here -->
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="date_range" class="form-label">Date Range</label>
+                                <select class="form-select immediate-filter" id="date_range" name="date_range">
+                                    <option value="">All</option>
+                                    <option value="today" {% if request.args.get('date_range') == 'today' %}selected{% endif %}>Today</option>
+                                    <option value="week" {% if request.args.get('date_range') == 'week' %}selected{% endif %}>This Week</option>
+                                    <option value="month" {% if request.args.get('date_range') == 'month' %}selected{% endif %}>This Month</option>
+                                </select>
+                            </div>
+                            <div class="col-md-2 d-flex align-items-end">
+                                <button type="submit" class="btn btn-primary w-100">Apply Filters</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Active Filters -->
+            <div id="active-filters-container" class="mb-4 {% if not request.args.get('booking_id') and not request.args.get('user_id') and not request.args.get('status') and not request.args.get('date_range') and not request.args.get('location') %}d-none{% endif %}">
+                <h6>Active Filters:</h6>
+                <div>
+                    {% if request.args.get('booking_id') %}
+                    <span class="badge bg-primary me-2">Booking ID: {{ request.args.get('booking_id') }} <i class="fas fa-times ms-1 clear-filter" data-filter="booking_id"></i></span>
+                    {% endif %}
+                    
+                    {% if request.args.get('user_id') %}
+                    <span class="badge bg-primary me-2">User ID: {{ request.args.get('user_id') }} <i class="fas fa-times ms-1 clear-filter" data-filter="user_id"></i></span>
+                    {% endif %}
+                    
+                    {% if request.args.get('status') %}
+                    <span class="badge bg-primary me-2">Status: {{ request.args.get('status') }} <i class="fas fa-times ms-1 clear-filter" data-filter="status"></i></span>
+                    {% endif %}
+                    
+                    {% if request.args.get('date_range') %}
+                    <span class="badge bg-primary me-2">
+                        Date Range: 
+                        {% if request.args.get('date_range') == 'today' %}Today
+                        {% elif request.args.get('date_range') == 'week' %}This Week
+                        {% elif request.args.get('date_range') == 'month' %}This Month
+                        {% endif %}
+                        <i class="fas fa-times ms-1 clear-filter" data-filter="date_range"></i>
+                    </span>
+                    {% endif %}
+                    
+                    {% if request.args.get('location') %}
+                    <span class="badge bg-primary me-2">Location: {{ request.args.get('location') }} <i class="fas fa-times ms-1 clear-filter" data-filter="location"></i></span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Bookings Table -->
+            <div class="card">
+                <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+                    <h5 id="filter-stats" class="card-title mb-0">
+                        {% if request.args.get('booking_id') or request.args.get('user_id') or request.args.get('status') or request.args.get('date_range') or request.args.get('location') %}
+                            Filtered Bookings ({{ bookings|length }})
+                        {% else %}
+                            All Bookings ({{ bookings|length }})
+                        {% endif %}
+                    </h5>
+                    <div>
+                        <small id="booking-count-display" class="text-white">
+                            {% if bookings|length == 0 %}
+                                No bookings found
+                            {% elif bookings|length == 1 %}
+                                Showing 1 booking
+                            {% else %}
+                                Showing {{ bookings|length }} bookings
+                            {% endif %}
+                        </small>
+                    </div>
+                </div>
+                <div id="booking-table-container">
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>User ID</th>
+                                    <th>User</th>
+                                    <th>Car</th>
+                                    <th>Pickup Date</th>
+                                    <th>Return Date</th>
+                                    <th>Location</th>
+                                    <th>Total Price</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if bookings %}
+                                    {% for booking in bookings %}
+                                    <tr>
+                                        <td>
+                                            {% if booking.booking_reference %}
+                                                {{ booking.booking_reference }}
+                                            {% else %}
+                                                BKNG-{{ '%03d' % booking.id }}
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ booking.user_id }}</td>
+                                        <td>
+                                            <a href="{{ url_for('admin.view_user', user_id=booking.user_id) }}">
+                                                {{ booking.user.email }}
+                                            </a>
+                                        </td>
+                                        <td>
+                                            {% if booking.car %}
+                                                {{ booking.car.year }} {{ booking.car.make }} {{ booking.car.model }}
+                                            {% else %}
+                                                <span class="text-muted">Car deleted</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ booking.start_date.strftime('%Y-%m-%d') }}</td>
+                                        <td>{{ booking.end_date.strftime('%Y-%m-%d') }}</td>
+                                        <td>
+                                            <small class="d-block">
+                                                <i class="fas fa-map-marker-alt me-1"></i> 
+                                                {% if booking.pickup_location and booking.pickup_location != 'Branch Not Recorded' %}
+                                                    {{ booking.pickup_location }}
+                                                {% else %}
+                                                    <span class="text-muted">Branch Not Recorded</span>
+                                                {% endif %}
+                                            </small>
+                                        </td>
+                                        <td>₱{{ booking.total_cost }}</td>
+                                        <td>
+                                            {% if booking.status == 'pending' %}
+                                                <span class="badge bg-warning">Pending</span>
+                                            {% elif booking.status == 'confirmed' %}
+                                                <span class="badge bg-primary">Confirmed</span>
+                                            {% elif booking.status == 'completed' %}
+                                                <span class="badge bg-success">Completed</span>
+                                            {% elif booking.status == 'cancelled' %}
+                                                <span class="badge bg-danger">Cancelled</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">{{ booking.status }}</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm">
+                                                <a href="{{ url_for('admin.booking_details', booking_id=booking.id) }}" class="btn btn-outline-primary">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                {% else %}
+                                    <tr>
+                                        <td colspan="10" class="text-center">No bookings found.</td>
+                                    </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+
+<!-- Cancel Booking Modal -->
+<div class="modal fade" id="cancelBookingModal" tabindex="-1" aria-labelledby="cancelBookingModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="cancelBookingModalLabel">Confirm Cancellation</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to cancel this booking?</p>
+                <p>This action will mark the booking as cancelled and make the car available for other customers.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <form id="cancelBookingForm" method="POST" action="">
+                    <input type="hidden" name="status" value="cancelled">
+                    <button type="submit" class="btn btn-danger">Cancel Booking</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script src="{{ url_for('static', filename='js/admin-booking-filters.js') }}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize the booking filter system
+        initBookingFilters({
+            formId: 'admin-booking-filter-form',
+            tableContainerId: 'booking-table-container',
+            countDisplayId: 'booking-count-display',
+            filterStatsId: 'filter-stats',
+            activeFiltersContainerId: 'active-filters-container',
+            apiEndpoint: '{{ url_for("admin.booking_list_api") }}',
+            pageUrl: '{{ url_for("admin.booking_list") }}'
+        });
+
+        // Add handler for clear all filters button if it exists
+        const clearAllBtn = document.querySelector('.clear-filters-btn');
+        if (clearAllBtn) {
+            clearAllBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                resetAllFilters();
+                return false;
+            });
+        }
+    });
+</script>
+{% endblock %} 

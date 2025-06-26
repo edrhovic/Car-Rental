@@ -1,0 +1,155 @@
+{% extends 'base.html' %}
+
+{% block title %}Our Cars - JDM Car Rentals{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="page-header">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h1 class="h3 mb-0">Browse Our JDM Collection</h1>
+            <div>
+                <span id="total-cars-count" class="text-muted">{{ cars|length }} car(s) found</span>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <!-- Filter Sidebar -->
+        <div class="col-lg-3 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Filters</h5>
+                </div>
+                <div class="card-body">
+                    <form id="car-filter-form" method="GET" action="{{ url_for('car.car_list') }}">
+                        <!-- Search -->
+                        <div class="mb-3">
+                            <label for="search" class="form-label">Search</label>
+                            <div class="input-group">
+                                <input type="text" class="form-control immediate-filter" id="search" name="search" placeholder="Search cars..." value="{{ search_query }}">
+                                <button class="btn btn-primary" type="button" id="search-btn">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Sort Options -->
+                        <div class="mb-3">
+                            <label for="sort" class="form-label">Sort By</label>
+                            <select class="form-select immediate-filter" id="sort" name="sort">
+                                <option value="" {% if not current_sort %}selected{% endif %}>Default</option>
+                                <option value="price_asc" {% if current_sort == 'price_asc' %}selected{% endif %}>Price: Low to High</option>
+                                <option value="price_desc" {% if current_sort == 'price_desc' %}selected{% endif %}>Price: High to Low</option>
+                                <option value="year_desc" {% if current_sort == 'year_desc' %}selected{% endif %}>Year: Newest First</option>
+                                <option value="year_asc" {% if current_sort == 'year_asc' %}selected{% endif %}>Year: Oldest First</option>
+                                <option value="rating_desc" {% if current_sort == 'rating_desc' %}selected{% endif %}>Rating: High to Low</option>
+                            </select>
+                        </div>
+                        
+                        <hr>
+                        
+                        <!-- Make Filter -->
+                        <div class="mb-3">
+                            <label for="make" class="form-label">Make</label>
+                            <select class="form-select immediate-filter" id="make" name="make">
+                                <option value="">All Makes</option>
+                                {% for make_option in available_makes %}
+                                <option value="{{ make_option }}" {% if request.args.get('make') == make_option %}selected{% endif %}>{{ make_option }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <!-- Transmission Filter -->
+                        <div class="mb-3">
+                            <label for="transmission" class="form-label">Transmission</label>
+                            <select class="form-select immediate-filter" id="transmission" name="transmission">
+                                <option value="">All Transmissions</option>
+                                <option value="Automatic" {% if request.args.get('transmission') == 'Automatic' %}selected{% endif %}>Automatic</option>
+                                <option value="Manual" {% if request.args.get('transmission') == 'Manual' %}selected{% endif %}>Manual</option>
+                                <option value="CVT" {% if request.args.get('transmission') == 'CVT' %}selected{% endif %}>CVT</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Fuel Type Filter -->
+                        <div class="mb-3">
+                            <label for="fuel_type" class="form-label">Fuel Type</label>
+                            <select class="form-select immediate-filter" id="fuel_type" name="fuel_type">
+                                <option value="">All Fuel Types</option>
+                                <option value="Gasoline" {% if request.args.get('fuel_type') == 'Gasoline' %}selected{% endif %}>Gasoline</option>
+                                <option value="Diesel" {% if request.args.get('fuel_type') == 'Diesel' %}selected{% endif %}>Diesel</option>
+                                <option value="Hybrid" {% if request.args.get('fuel_type') == 'Hybrid' %}selected{% endif %}>Hybrid</option>
+                            </select>
+                        </div>
+                
+                        <button type="submit" class="btn btn-primary w-100">Apply Filters</button>
+                        <button id="reset-filters-btn" class="btn btn-outline-secondary w-100 mt-2">Reset Filters</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Car Listings -->
+        <div class="col-lg-9">
+            <div id="loading-indicator" class="text-center py-5 d-none">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p class="mt-2">Searching for cars...</p>
+            </div>
+            <div id="car-listings-container">
+                {% if cars %}
+                <div class="row">
+                    {% for car in cars %}
+                    <div class="col-md-6 col-lg-4 mb-4">
+                        <div class="card car-card h-100">
+                            <div class="position-relative">
+                                {% if car.image_url %}
+                                <img src="{{ car.image_url }}" class="card-img-top" alt="{{ car.make }} {{ car.model }}">
+                                {% else %}
+                                <img src="{{ url_for('static', filename='images/car-placeholder.jpg') }}" class="card-img-top" alt="Car Placeholder">
+                                {% endif %}
+                                
+                                <!-- Car Rating Badge -->
+                                {% if car.average_rating > 0 %}
+                                <span class="badge bg-warning position-absolute top-0 end-0 m-2">
+                                    <i class="fas fa-star me-1"></i>{{ "%.1f"|format(car.average_rating) }}
+                                </span>
+                                {% endif %}
+                            </div>
+                            <div class="card-body">
+                                <h5 class="card-title">{{ car.year }} {{ car.make }} {{ car.model }}</h5>
+                                <ul class="car-specs">
+                                    <li><i class="fas fa-cog me-2"></i> {{ car.transmission }}</li>
+                                    <li><i class="fas fa-gas-pump me-2"></i> {{ car.fuel_type }}</li>
+                                    <li><i class="fas fa-users me-2"></i> {{ car.seats }} seats</li>
+                                </ul>
+                                <p class="car-price">₱{{ "%.2f"|format(car.daily_rate) }} / day</p>
+                            </div>
+                            <div class="card-footer">
+                                <div class="d-grid gap-2">
+                                    <a href="{{ url_for('car.car_details', car_id=car.id) }}" class="btn btn-primary">View Details</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="card">
+                    <div class="card-body text-center py-5">
+                        <i class="fas fa-car fa-3x mb-3 text-muted"></i>
+                        <h4>No cars found</h4>
+                        <p class="mb-0">Try adjusting your filters or search term.</p>
+                        <a href="{{ url_for('car.car_list') }}" class="btn btn-outline-primary mt-3">Reset Filters</a>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/car-filters.js') }}"></script>
+{% endblock %} 

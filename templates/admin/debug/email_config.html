@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+
+{% block title %}Email Configuration Debug - Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        {% include 'admin/partials/sidebar.html' %}
+        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('admin.dashboard') }}">Dashboard</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Email Configuration Debug</li>
+                </ol>
+            </nav>
+            
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h2">Email Configuration Debug</h1>
+                <div>
+                    <a href="{{ url_for('test_email') }}" class="btn btn-primary">
+                        <i class="fas fa-paper-plane me-2"></i>Test Email
+                    </a>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Mailgun Configuration</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <tbody>
+                                {% for key, value in config.items() %}
+                                <tr>
+                                    <th style="width: 30%;">{{ key }}</th>
+                                    <td>{{ value }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Troubleshooting Steps</h5>
+                </div>
+                <div class="card-body">
+                    <h6>Common issues with email sending:</h6>
+                    <ol>
+                        <li>
+                            <strong>Invalid API Key:</strong> 
+                            Make sure your Mailgun API key is active and correct. The current key ends with <code>{{ config.get('MAILGUN_API_KEY', '').split('...')[-1] }}</code>
+                        </li>
+                        <li>
+                            <strong>Domain not verified:</strong> 
+                            Your Mailgun domain <code>{{ config.get('MAILGUN_DOMAIN', '') }}</code> must be verified in your Mailgun account.
+                        </li>
+                        <li>
+                            <strong>Sender format:</strong> 
+                            The sender email format should be <code>"Name &lt;email@domain.com&gt;"</code>. Current format: <code>{{ config.get('MAILGUN_SENDER', '') }}</code>
+                        </li>
+                        <li>
+                            <strong>Network issues:</strong> 
+                            Check if your server can connect to external services. Mailgun API is hosted at <code>api.mailgun.net</code>
+                        </li>
+                        <li>
+                            <strong>Request library:</strong> 
+                            The requests library is {% if config.get('Email Module', False) %}installed{% else %}not installed{% endif %}
+                        </li>
+                    </ol>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Sending a Test Email</h5>
+                </div>
+                <div class="card-body">
+                    <form action="{{ url_for('test_email') }}" method="GET">
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Recipient Email</label>
+                            <input type="email" class="form-control" id="email" name="email" value="{{ current_user.email }}">
+                            <div class="form-text">Enter an email address to test the email functionality</div>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Send Test Email</button>
+                    </form>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+{% endblock %} 

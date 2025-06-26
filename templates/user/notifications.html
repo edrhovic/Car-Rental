@@ -1,0 +1,239 @@
+{% extends 'base.html' %}
+
+{% block title %}Your Notifications - JDM Car Rentals{% endblock %}
+
+{% block styles %}
+<style>
+    .notification {
+        border-left: 5px solid #ccc;
+        margin-bottom: 1rem;
+        transition: all 0.2s ease;
+    }
+    
+    .notification:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    
+    .notification.unread {
+        border-left-color: #4caf50;
+        background-color: rgba(76, 175, 80, 0.05);
+    }
+    
+    .notification.booking_status {
+        border-left-color: #2196F3;
+    }
+    
+    .notification.payment {
+        border-left-color: #FF9800;
+    }
+    
+    .notification.system {
+        border-left-color: #9C27B0;
+    }
+    
+    .notification-time {
+        font-size: 0.8rem;
+        color: #6c757d;
+    }
+    
+    .notification-icon {
+        font-size: 1.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        color: white;
+    }
+    
+    .icon-booking {
+        background-color: #2196F3;
+    }
+    
+    .icon-payment {
+        background-color: #FF9800;
+    }
+    
+    .icon-system {
+        background-color: #9C27B0;
+    }
+    
+    .empty-notifications {
+        text-align: center;
+        padding: 4rem 0;
+    }
+    
+    .empty-notifications i {
+        font-size: 4rem;
+        color: #ccc;
+        margin-bottom: 1rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3">Your Notifications</h1>
+                {% if notifications.items %}
+                <button type="button" class="btn btn-outline-primary" onclick="markAllNotificationsAsRead()">
+                    <i class="fas fa-check-double me-2"></i> Mark All as Read
+                </button>
+                {% endif %}
+            </div>
+            
+            <div class="card">
+                <div class="card-header bg-light">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            Notifications 
+                            <span class="badge bg-primary ms-2">{{ notifications.total }}</span>
+                        </h5>
+                    </div>
+                </div>
+                <div class="card-body">
+                    {% if notifications.items %}
+                        <div class="list-group">
+                            {% for notification in notifications.items %}
+                                <div class="list-group-item notification {{ 'unread' if not notification.is_read }} {{ notification.notification_type }}">
+                                    <div class="d-flex">
+                                        <div class="me-3">
+                                            {% if notification.notification_type == 'booking_status' %}
+                                                <div class="notification-icon icon-booking">
+                                                    <i class="fas fa-calendar-check"></i>
+                                                </div>
+                                            {% elif notification.notification_type == 'payment' %}
+                                                <div class="notification-icon icon-payment">
+                                                    <i class="fas fa-money-bill-wave"></i>
+                                                </div>
+                                            {% else %}
+                                                <div class="notification-icon icon-system">
+                                                    <i class="fas fa-bell"></i>
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <div class="d-flex justify-content-between align-items-start">
+                                                <h5 class="mb-1">{{ notification.title }}</h5>
+                                                <small class="notification-time">
+                                                    {{ notification.created_at.strftime('%Y-%m-%d %H:%M') }}
+                                                </small>
+                                            </div>
+                                            <p class="mb-1">{{ notification.message }}</p>
+                                            
+                                            <div class="mt-2">
+                                                {% if notification.booking_id %}
+                                                    <button type="button" class="btn btn-sm btn-outline-primary" onclick="loadBookingDetails({{ notification.booking_id }})">
+                                                        <i class="fas fa-eye me-1"></i> View Booking Details
+                                                    </button>
+                                                {% endif %}
+                                                
+                                                <form action="{{ url_for('notification.delete_notification', notification_id=notification.id) }}" method="POST" class="d-inline-block">
+                                                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                                                        <i class="fas fa-trash me-1"></i> Delete
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                        {% if not notification.is_read %}
+                                            <div class="ms-2">
+                                                <span class="badge bg-success">New</span>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                        
+                        <!-- Pagination -->
+                        {% if notifications.pages > 1 %}
+                            <nav aria-label="Notification pagination" class="mt-4">
+                                <ul class="pagination justify-content-center">
+                                    {% if notifications.has_prev %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="{{ url_for('notification.list_notifications', page=notifications.prev_num) }}">Previous</a>
+                                        </li>
+                                    {% else %}
+                                        <li class="page-item disabled">
+                                            <a class="page-link" href="#">Previous</a>
+                                        </li>
+                                    {% endif %}
+                                    
+                                    {% for page_num in notifications.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2) %}
+                                        {% if page_num %}
+                                            {% if page_num == notifications.page %}
+                                                <li class="page-item active">
+                                                    <a class="page-link" href="#">{{ page_num }}</a>
+                                                </li>
+                                            {% else %}
+                                                <li class="page-item">
+                                                    <a class="page-link" href="{{ url_for('notification.list_notifications', page=page_num) }}">{{ page_num }}</a>
+                                                </li>
+                                            {% endif %}
+                                        {% else %}
+                                            <li class="page-item disabled">
+                                                <a class="page-link" href="#">...</a>
+                                            </li>
+                                        {% endif %}
+                                    {% endfor %}
+                                    
+                                    {% if notifications.has_next %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="{{ url_for('notification.list_notifications', page=notifications.next_num) }}">Next</a>
+                                        </li>
+                                    {% else %}
+                                        <li class="page-item disabled">
+                                            <a class="page-link" href="#">Next</a>
+                                        </li>
+                                    {% endif %}
+                                </ul>
+                            </nav>
+                        {% endif %}
+                    {% else %}
+                        <div class="empty-notifications">
+                            <i class="fas fa-bell-slash"></i>
+                            <h4>No Notifications</h4>
+                            <p class="text-muted">You don't have any notifications at the moment.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const markAllReadBtn = document.getElementById('markAllReadBtn');
+    if (markAllReadBtn) {
+        markAllReadBtn.addEventListener('click', function() {
+            fetch('{{ url_for("notification.mark_all_read") }}', {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Update UI to show all notifications as read
+                    document.querySelectorAll('.notification.unread').forEach(notification => {
+                        notification.classList.remove('unread');
+                        const badge = notification.querySelector('.badge.bg-success');
+                        if (badge) badge.remove();
+                    });
+                }
+            })
+            .catch(error => console.error('Error marking all notifications as read:', error));
+        });
+    }
+});
+</script>
+{% endblock %} 

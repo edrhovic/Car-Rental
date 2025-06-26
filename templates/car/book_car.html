@@ -1,0 +1,240 @@
+{% extends 'base.html' %}
+
+{% block title %}Book {{ car.make }} {{ car.model }} - JDM Car Rentals{% endblock %}
+
+{% block content %}
+<div class="container">
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('home') }}">Home</a></li>
+            <li class="breadcrumb-item"><a href="{{ url_for('car.car_list') }}">Cars</a></li>
+            <li class="breadcrumb-item"><a href="{{ url_for('car.car_details', car_id=car.id) }}">{{ car.make }} {{ car.model }}</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Book</li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="card-title mb-0">Book {{ car.make }} {{ car.model }}</h3>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('car.book_car', car_id=car.id) }}">
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <div class="card h-100">
+                                    {% if car.image_url %}
+                                    <img src="{{ car.image_url }}" class="card-img-top" alt="{{ car.make }} {{ car.model }}">
+                                    {% else %}
+                                    <img src="{{ url_for('static', filename='images/car-placeholder.jpg') }}" class="card-img-top" alt="Car Placeholder">
+                                    {% endif %}
+                                    <div class="card-body">
+                                        <h5 class="card-title">{{ car.make }} {{ car.model }} ({{ car.year }})</h5>
+                                        <p class="card-text">{{ car.description|truncate(100) }}</p>
+                                        <ul class="list-unstyled">
+                                            <li><i class="fas fa-palette me-2"></i> {{ car.color }}</li>
+                                            <li><i class="fas fa-cog me-2"></i> {{ car.transmission }}</li>
+                                            <li><i class="fas fa-gas-pump me-2"></i> {{ car.fuel_type }}</li>
+                                            <li><i class="fas fa-users me-2"></i> {{ car.seats }} seats</li>
+                                        </ul>
+                                        <p class="text-primary fw-bold fs-4" id="daily_rate">₱{{ "%.2f"|format(car.daily_rate) }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="start_date" class="form-label">Start Date</label>
+                                    <input type="date" class="form-control" id="start_date" name="start_date" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="end_date" class="form-label">End Date</label>
+                                    <input type="date" class="form-control" id="end_date" name="end_date" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="branch_location" class="form-label">Branch Location</label>
+                                    <select class="form-select" id="branch_location" name="branch_location" required>
+                                        <option value="">Select a branch</option>
+                                        <!-- 
+                                        To add new branches:
+                                        1. Add a new option here with the exact same value as in routes/car.py
+                                        2. Update the branch dictionaries in routes/car.py with matching information
+                                        -->
+                                        <option value="Main Office - Sta. Cruz">Main Office - Sta. Cruz</option>
+                                        <option value="Victoria Branch">Victoria Branch</option>
+                                        <option value="San Pablo Branch">San Pablo Branch</option>
+                                        <option value="Calamba Branch">Calamba Branch</option>
+                                        <!-- Add new branch options here -->
+                                    </select>
+                                    <div class="form-text">Cars must be returned to the same branch location.</div>
+                                </div>
+                                <div class="alert alert-info">
+                                    <h5 class="alert-heading">Booking Summary</h5>
+                                    <p class="mb-1">Daily Rate: ₱{{ "%.2f"|format(car.daily_rate) }}</p>
+                                    <p class="mb-1">Duration: <span id="days">0</span> days</p>
+                                    <hr>
+                                    <p class="mb-0 fw-bold">Total Cost: <span id="total_cost">₱0.00</span></p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card mb-4">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h4>Rental Terms</h4>
+                                <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#rentalTermsModal">
+                                    View Terms
+                                </button>
+                            </div>
+                            <div class="card-body">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="" id="termsCheck" required>
+                                    <label class="form-check-label" for="termsCheck">
+                                        I agree to the rental terms and conditions
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg">Proceed to Payment</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h4>Booking Information</h4>
+                </div>
+                <div class="card-body">
+                    <h5>Your Information</h5>
+                    <p><strong>Name:</strong> {{ current_user.first_name }} {{ current_user.last_name }}</p>
+                    <p><strong>Email:</strong> {{ current_user.email }}</p>
+                    <p><strong>Phone:</strong> {{ current_user.phone_number }}</p>
+
+                    <hr>
+
+                    <h5>Need Help?</h5>
+                    <p>If you have any questions or need assistance, please contact our customer service team.</p>
+                    <p><i class="fas fa-phone me-2"></i> +63 962 561 5941</p>
+                    <p><i class="fas fa-envelope me-2"></i> bookings@jdmcarrentals.com</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Rental Terms Modal -->
+<div class="modal fade" id="rentalTermsModal" tabindex="-1" aria-labelledby="rentalTermsModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="rentalTermsModalLabel">Rental Terms and Conditions</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <ul>
+                    <li>Renter must be at least 21 years old</li>
+                    <li>Valid driver's license required</li>
+                    <li>Security deposit of ₱500 required</li>
+                    <li>Fuel level must be returned at the same level as pickup</li>
+                    <li>Late returns charged at 150% daily rate</li>
+                    <li>Free cancellation up to 24 hours before pickup</li>
+                    <li><strong>Maximum rental period is 30 days</strong></li>
+                </ul>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">I Understand</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const startDateInput = document.getElementById('start_date');
+        const endDateInput = document.getElementById('end_date');
+        const daysElement = document.getElementById('days');
+        const totalCostElement = document.getElementById('total_cost');
+        const dailyRateElement = document.getElementById('daily_rate');
+        const submitButton = document.querySelector('button[type="submit"]');
+        
+        function calculateTotal() {
+            if (startDateInput.value && endDateInput.value) {
+                const startDate = new Date(startDateInput.value);
+                const endDate = new Date(endDateInput.value);
+                
+                // Calculate days difference (including both start and end days)
+                const timeDiff = endDate.getTime() - startDate.getTime();
+                const daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24)) + 1;
+                
+                if (daysDiff > 0) {
+                    daysElement.textContent = daysDiff;
+                    
+                    // Extract daily rate from the element text
+                    const dailyRateText = dailyRateElement.textContent;
+                    const dailyRate = parseFloat(dailyRateText.replace('₱', ''));
+                    
+                    const totalCost = (dailyRate * daysDiff).toFixed(2);
+                    totalCostElement.textContent = '₱' + totalCost;
+                    
+                    // Validate maximum rental period (30 days)
+                    if (daysDiff > 30) {
+                        // Show warning alert if not already present
+                        if (!document.getElementById('maxRentalWarning')) {
+                            const alertDiv = document.createElement('div');
+                            alertDiv.id = 'maxRentalWarning';
+                            alertDiv.className = 'alert alert-danger mt-3';
+                            alertDiv.innerHTML = '<i class="fas fa-exclamation-triangle me-2"></i> Maximum rental period is 30 days. Please adjust your dates.';
+                            endDateInput.parentNode.appendChild(alertDiv);
+                        }
+                        submitButton.disabled = true;
+                    } else {
+                        // Remove warning if present
+                        const warning = document.getElementById('maxRentalWarning');
+                        if (warning) {
+                            warning.remove();
+                        }
+                        submitButton.disabled = false;
+                    }
+                }
+            }
+        }
+        
+        // Set minimum date to today
+        const today = new Date();
+        const dd = String(today.getDate()).padStart(2, '0');
+        const mm = String(today.getMonth() + 1).padStart(2, '0');
+        const yyyy = today.getFullYear();
+        const todayStr = yyyy + '-' + mm + '-' + dd;
+        
+        startDateInput.min = todayStr;
+        
+        // Update end date minimum when start date changes
+        startDateInput.addEventListener('change', function() {
+            endDateInput.min = startDateInput.value;
+            
+            // If end date is before start date, reset it
+            if (endDateInput.value && endDateInput.value < startDateInput.value) {
+                endDateInput.value = startDateInput.value;
+            }
+            
+            // Calculate maximum date (30 days from start date)
+            if (startDateInput.value) {
+                const maxDate = new Date(startDateInput.value);
+                maxDate.setDate(maxDate.getDate() + 29); // 30 days including start date
+                const maxDateStr = maxDate.toISOString().split('T')[0];
+                endDateInput.max = maxDateStr;
+            }
+            
+            calculateTotal();
+        });
+        
+        endDateInput.addEventListener('change', calculateTotal);
+    });
+</script>
+{% endblock %} 

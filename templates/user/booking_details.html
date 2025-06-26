@@ -1,0 +1,220 @@
+{% extends 'base.html' %}
+
+{% block title %}Booking #{{ booking.id }} - JDM Car Rentals{% endblock %}
+
+{% block content %}
+<div class="container">
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('home') }}">Home</a></li>
+            <li class="breadcrumb-item"><a href="{{ url_for('user.booking_history') }}">My Bookings</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Booking #{{ booking.id }}</li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="card-title mb-0">Booking Details</h3>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h5>Booking Information</h5>
+                            <ul class="list-group mb-4">
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <span>Booking ID:</span>
+                                    <span>{{ booking.id }}</span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <span>Booking Date:</span>
+                                    <span>{{ booking.booking_date.strftime('%B %d, %Y') }}</span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <span>Start Date:</span>
+                                    <span>{{ booking.start_date.strftime('%B %d, %Y') }}</span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <span>End Date:</span>
+                                    <span>{{ booking.end_date.strftime('%B %d, %Y') }}</span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <span>Duration:</span>
+                                    <span>{{ booking.duration_days }} days</span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <span>Status:</span>
+                                    <span>
+                                        {% if booking.status == 'pending' %}
+                                            <span class="badge bg-warning">Pending</span>
+                                        {% elif booking.status == 'confirmed' %}
+                                            <span class="badge bg-success">Confirmed</span>
+                                        {% elif booking.status == 'pending_return' %}
+                                            <span class="badge bg-info">Return Pending Approval</span>
+                                        {% elif booking.status == 'completed' %}
+                                            <span class="badge bg-primary">Completed</span>
+                                        {% elif booking.status == 'cancelled' %}
+                                            <span class="badge bg-danger">Cancelled</span>
+                                        {% endif %}
+                                    </span>
+                                </li>
+                                {% if booking.returned %}
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <span>Return Date:</span>
+                                    <span>{{ booking.return_date.strftime('%B %d, %Y') }}</span>
+                                </li>
+                                {% endif %}
+                            </ul>
+                            
+                            <h5>Payment Information</h5>
+                            <ul class="list-group">
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <span>Daily Rate:</span>
+                                    <span>${{ booking.car.daily_rate }}</span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <span>Total Cost:</span>
+                                    <span>${{ booking.total_cost }}</span>
+                                </li>
+                                {% if booking.payment %}
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <span>Payment Method:</span>
+                                    <span>
+                                        {% if booking.payment.payment_method == 'credit_card' %}
+                                            <i class="fab fa-cc-visa me-1"></i> Credit Card
+                                        {% elif booking.payment.payment_method == 'debit_card' %}
+                                            <i class="fab fa-cc-mastercard me-1"></i> Debit Card
+                                        {% elif booking.payment.payment_method == 'paypal' %}
+                                            <i class="fab fa-paypal me-1"></i> PayPal
+                                        {% else %}
+                                            {{ booking.payment.payment_method }}
+                                        {% endif %}
+                                    </span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <span>Payment Status:</span>
+                                    <span>
+                                        {% if booking.payment.status == 'completed' %}
+                                            <span class="badge bg-success">Completed</span>
+                                        {% elif booking.payment.status == 'pending' %}
+                                            <span class="badge bg-warning text-dark">Pending</span>
+                                        {% elif booking.payment.status == 'failed' %}
+                                            <span class="badge bg-danger">Failed</span>
+                                        {% elif booking.payment.status == 'refunded' %}
+                                            <span class="badge bg-info">Refunded</span>
+                                        {% endif %}
+                                    </span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <span>Payment Date:</span>
+                                    <span>{{ booking.payment.payment_date.strftime('%B %d, %Y') }}</span>
+                                </li>
+                                {% else %}
+                                <li class="list-group-item text-center">
+                                    <span class="text-muted">No payment information available</span>
+                                </li>
+                                {% endif %}
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card h-100">
+                                <div class="card-header">
+                                    <h5 class="mb-0">Car Details</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="text-center mb-3">
+                                        {% if booking.car.image_url %}
+                                        <img src="{{ booking.car.image_url }}" class="img-fluid rounded" style="max-height: 200px;" alt="{{ booking.car.make }} {{ booking.car.model }}">
+                                        {% else %}
+                                        <img src="{{ url_for('static', filename='images/car-placeholder.jpg') }}" class="img-fluid rounded" style="max-height: 200px;" alt="Car Placeholder">
+                                        {% endif %}
+                                    </div>
+                                    <h5 class="card-title">{{ booking.car.make }} {{ booking.car.model }} ({{ booking.car.year }})</h5>
+                                    <p class="card-text">{{ booking.car.description|truncate(100) }}</p>
+                                    <ul class="list-unstyled">
+                                        <li><i class="fas fa-palette me-2"></i> Color: {{ booking.car.color }}</li>
+                                        <li><i class="fas fa-cog me-2"></i> Transmission: {{ booking.car.transmission }}</li>
+                                        <li><i class="fas fa-gas-pump me-2"></i> Fuel Type: {{ booking.car.fuel_type }}</li>
+                                        <li><i class="fas fa-users me-2"></i> Seats: {{ booking.car.seats }}</li>
+                                        <li><i class="fas fa-id-card me-2"></i> License Plate: {{ booking.car.license_plate }}</li>
+                                    </ul>
+                                    <a href="{{ url_for('car.car_details', car_id=booking.car.id) }}" class="btn btn-outline-primary mt-3">View Car Details</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    {% if booking.review %}
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">Your Review</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-2">
+                                {% for _ in range(booking.review.rating) %}
+                                <i class="fas fa-star text-warning"></i>
+                                {% endfor %}
+                                {% for _ in range(5 - booking.review.rating) %}
+                                <i class="far fa-star text-warning"></i>
+                                {% endfor %}
+                                <span class="text-muted ms-2">{{ booking.review.review_date.strftime('%B %d, %Y') }}</span>
+                            </div>
+                            <p>{{ booking.review.comment }}</p>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="card-title mb-0">Actions</h4>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        {% if booking.status == 'confirmed' and not booking.returned %}
+                            <a href="{{ url_for('car.return_car', booking_id=booking.id) }}" class="btn btn-success">Return Car</a>
+                        {% elif booking.status == 'pending_return' %}
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle me-2"></i>
+                                <strong>Your return request is being processed.</strong>
+                                <p class="mb-0 mt-1">An admin will inspect the car and approve your return.</p>
+                            </div>
+                        {% endif %}
+                        
+                        {% if (booking.status == 'pending' or booking.status == 'confirmed') and booking.start_date > now.date() %}
+                            <form action="{{ url_for('booking.cancel_booking', booking_id=booking.id) }}" method="POST">
+                                <button type="submit" class="btn btn-danger w-100" onclick="return confirm('Are you sure you want to cancel this booking?');">Cancel Booking</button>
+                            </form>
+                        {% endif %}
+                        
+                        {% if booking.status == 'completed' and booking.returned and not booking.review %}
+                            <a href="{{ url_for('user.add_review', booking_id=booking.id) }}" class="btn btn-primary">Write Review</a>
+                        {% endif %}
+                        
+                        <a href="{{ url_for('user.booking_history') }}" class="btn btn-outline-secondary">Back to All Bookings</a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h4 class="card-title mb-0">Need Help?</h4>
+                </div>
+                <div class="card-body">
+                    <p>If you need assistance with your booking, please contact our customer service team.</p>
+                    <ul class="list-unstyled">
+                        <li><i class="fas fa-phone me-2"></i> +63 962 561 5941</li>
+                        <li><i class="fas fa-envelope me-2"></i> support@jdmcarrentals.com</li>
+                    </ul>
+                    <hr>
+                    <p class="mb-0"><i class="fas fa-info-circle me-2"></i> Reference your booking ID ({{ booking.id }}) when contacting support.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

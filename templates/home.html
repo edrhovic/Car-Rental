@@ -1,0 +1,275 @@
+{% extends 'base.html' %}
+
+{% block title %}Home - JDM Car Rentals{% endblock %}
+
+{% block content %}
+<!-- Hero Banner -->
+<div class="hero-banner">
+    <div class="container">
+        <div class="hero-content">
+            <h1 class="hero-title">Experience Premium JDM Cars in the Philippines</h1>
+            <p class="hero-text">Discover our collection of authentic Japanese Domestic Market vehicles available for rent. From classic Skylines to modern sports cars, we have the perfect ride for your journey.</p>
+            <a href="{{ url_for('car.car_list') }}" class="btn btn-primary btn-lg">Browse Our Fleet</a>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <!-- Featured Cars -->
+    <section class="mb-5">
+        <h2 class="text-center mb-4">Featured Cars</h2>
+        <div class="row">
+            {% for car in featured_cars %}
+            <div class="col-md-4 mb-4">
+                <div class="card car-card h-100">
+                    <div class="position-relative">
+                        {% if car.image_url %}
+                        <img src="{{ car.image_url }}" class="card-img-top" alt="{{ car.make }} {{ car.model }}">
+                        {% else %}
+                        <img src="{{ url_for('static', filename='images/car-placeholder.jpg') }}" class="card-img-top" alt="Car Placeholder">
+                        {% endif %}
+                        <span class="badge bg-primary position-absolute top-0 end-0 m-2">Featured</span>
+                    </div>
+                    <div class="card-body">
+                        <h5 class="card-title">{{ car.year }} {{ car.make }} {{ car.model }}</h5>
+                        <ul class="car-specs">
+                            <li><i class="fas fa-cog me-2"></i> {{ car.transmission }}</li>
+                            <li><i class="fas fa-gas-pump me-2"></i> {{ car.fuel_type }}</li>
+                            <li><i class="fas fa-users me-2"></i> {{ car.seats }} seats</li>
+                        </ul>
+                        <p class="car-price">₱{{ "%.2f"|format(car.daily_rate) }}/day</p>
+                        <a href="{{ url_for('car.car_details', car_id=car.id) }}" class="btn btn-outline-primary">View Details</a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        <div class="text-center mt-4">
+            <a href="{{ url_for('car.car_list') }}" class="btn btn-outline-primary">View All Cars</a>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="mb-5">
+        <h2 class="text-center mb-4">Why Choose Us</h2>
+        <div class="row">
+            <div class="col-md-4 mb-4">
+                <div class="card feature-card h-100">
+                    <div class="icon">
+                        <i class="fas fa-car"></i>
+                    </div>
+                    <h4>Premium JDM Collection</h4>
+                    <p>Experience authentic Japanese performance with our carefully maintained collection of iconic JDM vehicles.</p>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="card feature-card h-100">
+                    <div class="icon">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <h4>Comprehensive Insurance</h4>
+                    <p>Drive with peace of mind knowing you're covered with our comprehensive insurance for all rentals.</p>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="card feature-card h-100">
+                    <div class="icon">
+                        <i class="fas fa-map-marker-alt"></i>
+                    </div>
+                    <h4>Convenient Locations</h4>
+                    <p>Pick up and return vehicles at our convenient locations throughout Laguna, Cebu, and more.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works -->
+    <section class="mb-5">
+        <h2 class="text-center mb-4">How It Works</h2>
+        <div class="row booking-progress">
+            <div class="col-md-3 booking-step active">
+                <div class="step-number">1</div>
+                <div class="step-text">Choose Your Car</div>
+                <p class="small text-muted">Browse our collection and select the perfect JDM vehicle.</p>
+            </div>
+            <div class="col-md-3 booking-step">
+                <div class="step-number">2</div>
+                <div class="step-text">Book Online</div>
+                <p class="small text-muted">Select your dates and complete the booking form.</p>
+            </div>
+            <div class="col-md-3 booking-step">
+                <div class="step-number">3</div>
+                <div class="step-text">Confirm & Pay</div>
+                <p class="small text-muted">Receive confirmation and make secure payment.</p>
+            </div>
+            <div class="col-md-3 booking-step">
+                <div class="step-number">4</div>
+                <div class="step-text">Enjoy Your Ride</div>
+                <p class="small text-muted">Pick up your car and enjoy the premium JDM experience.</p>
+            </div>
+        </div>
+        <div class="text-center">
+            <a href="{{ url_for('car.car_list') }}" class="btn btn-primary">Rent a Car Now</a>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section class="mb-5" id="contact">
+        <h2 class="text-center mb-4">Have Questions?</h2>
+        <p class="text-center lead mb-5">We're here to help! Contact our team for any inquiries about our services.</p>
+        
+        <div class="row">
+            <div class="col-md-6 mb-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h4 class="mb-4">Send Us a Message</h4>
+                        <form action="{{ url_for('contact_submit') }}" method="POST" id="contactForm">
+                            <div class="mb-3">
+                                <label for="name" class="form-label">Your Name</label>
+                                <input type="text" class="form-control" id="name" name="name" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="email" class="form-label">Email Address</label>
+                                <input type="email" class="form-control" id="email" name="email" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="phone" class="form-label">Phone Number</label>
+                                <input type="tel" class="form-control" id="phone" name="phone">
+                            </div>
+                            <div class="mb-3">
+                                <label for="message" class="form-label">Your Message</label>
+                                <textarea class="form-control" id="message" name="message" rows="5" required></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Send Message</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 mb-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h4 class="mb-4">Contact Information</h4>
+                        <div class="d-flex mb-4">
+                            <div class="icon-box me-3">
+                                <i class="fas fa-map-marker-alt fa-2x text-primary"></i>
+                            </div>
+                            <div>
+                                <h5>Our Location</h5>
+                                <p>Block 8 Lot 35 Bria Homes, San Jose, Santa Cruz, Laguna</p>
+                            </div>
+                        </div>
+                        <div class="d-flex mb-4">
+                            <div class="icon-box me-3">
+                                <i class="fas fa-phone fa-2x text-primary"></i>
+                            </div>
+                            <div>
+                                <h5>Phone Number</h5>
+                                <p>+63 962 561 5941</p>
+                            </div>
+                        </div>
+                        <div class="d-flex mb-4">
+                            <div class="icon-box me-3">
+                                <i class="fas fa-envelope fa-2x text-primary"></i>
+                            </div>
+                            <div>
+                                <h5>Email Address</h5>
+                                <p>info@jdmcarrentals.com</p>
+                            </div>
+                        </div>
+                        <div class="d-flex mb-4">
+                            <div class="icon-box me-3">
+                                <i class="fas fa-clock fa-2x text-primary"></i>
+                            </div>
+                            <div>
+                                <h5>Business Hours</h5>
+                                <p>Monday - Sunday: 9:00 AM - 6:00 PM</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const startDateInput = document.getElementById('start_date');
+        const endDateInput = document.getElementById('end_date');
+        const daysElement = document.getElementById('days');
+        const totalCostElement = document.getElementById('total_cost');
+        const dailyRateElement = document.getElementById('daily_rate');
+        
+        function calculateTotal() {
+            if (startDateInput.value && endDateInput.value) {
+                const startDate = new Date(startDateInput.value);
+                const endDate = new Date(endDateInput.value);
+                
+                // Calculate days difference (including both start and end days)
+                const timeDiff = endDate.getTime() - startDate.getTime();
+                const daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24)) + 1;
+                
+                if (daysDiff > 0) {
+                    daysElement.textContent = daysDiff;
+                    
+                    // Extract daily rate from the element text
+                    const dailyRateText = dailyRateElement.textContent;
+                    const dailyRate = parseFloat(dailyRateText.replace('₱', ''));
+                    
+                    const totalCost = (dailyRate * daysDiff).toFixed(2);
+                    totalCostElement.textContent = '₱' + totalCost;
+                }
+            }
+        }
+        
+        // Set minimum date to today
+        const today = new Date();
+        const dd = String(today.getDate()).padStart(2, '0');
+        const mm = String(today.getMonth() + 1).padStart(2, '0');
+        const yyyy = today.getFullYear();
+        const todayStr = yyyy + '-' + mm + '-' + dd;
+        
+        startDateInput.min = todayStr;
+        
+        // Update end date minimum when start date changes
+        startDateInput.addEventListener('change', function() {
+            endDateInput.min = startDateInput.value;
+            
+            // If end date is before start date, reset it
+            if (endDateInput.value && endDateInput.value < startDateInput.value) {
+                endDateInput.value = startDateInput.value;
+            }
+            
+            calculateTotal();
+        });
+        
+        endDateInput.addEventListener('change', calculateTotal);
+    });
+    
+    // Scroll to contact section if the URL contains the contact anchor
+    document.addEventListener('DOMContentLoaded', function() {
+        // Check for URL hash
+        const shouldScroll = window.location.hash === '#contact' || sessionStorage.getItem('scrollToContact') === 'true';
+        
+        if (shouldScroll) {
+            // Clear the session storage flag if it was set
+            sessionStorage.removeItem('scrollToContact');
+            
+            const contactSection = document.getElementById('contact');
+            if (contactSection) {
+                // Wait a bit for the page to fully render before scrolling
+                setTimeout(function() {
+                    contactSection.scrollIntoView({ behavior: 'smooth' });
+                    
+                    // If we navigated here without a hash, add one for consistency
+                    if (window.location.hash !== '#contact') {
+                        history.pushState(null, null, '#contact');
+                    }
+                }, 100);
+            }
+        }
+    });
+</script>
+{% endblock %} 

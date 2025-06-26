@@ -1,0 +1,125 @@
+{% extends 'base.html' %}
+
+{% block title %}Payment History - JDM Car Rentals{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <h1 class="mb-4">My Payment History</h1>
+    
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+    
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Payment Records</h5>
+            <a href="{{ url_for('user.late_fees') }}" class="btn btn-outline-light btn-sm">
+                <i class="fas fa-exclamation-circle me-1"></i> View Late Fees
+            </a>
+        </div>
+        <div class="card-body">
+            {% if payments %}
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Booking Reference</th>
+                                <th>Amount</th>
+                                <th>Date</th>
+                                <th>Method</th>
+                                <th>Transaction ID</th>
+                                <th>Type</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for payment in payments %}
+                                <tr>
+                                    <td>{{ payment.id }}</td>
+                                    <td>
+                                        {% if payment.booking %}
+                                            {{ payment.booking.get_reference() }}
+                                        {% else %}
+                                            N/A
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if payment.is_late_fee %}
+                                            <span class="text-danger">₱{{ payment.amount }}</span>
+                                        {% else %}
+                                            <span>₱{{ payment.amount }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ payment.payment_date.strftime('%Y-%m-%d') }}</td>
+                                    <td>{{ payment.payment_method|replace('_', ' ')|title if payment.payment_method else 'N/A' }}</td>
+                                    <td>{{ payment.transaction_id if payment.transaction_id else 'N/A' }}</td>
+                                    <td>
+                                        {% if payment.is_late_fee %}
+                                            <span class="badge bg-warning">Late Fee</span>
+                                        {% else %}
+                                            <span class="badge bg-info">Rental Payment</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if payment.status == 'paid' %}
+                                            <span class="badge bg-success">{{ payment.status|title }}</span>
+                                        {% elif payment.status == 'pending' %}
+                                            <span class="badge bg-warning">{{ payment.status|title }}</span>
+                                            {% if payment.is_late_fee %}
+                                                <a href="{{ url_for('user.pay_late_fee', payment_id=payment.id) }}" class="btn btn-primary btn-sm ms-2">
+                                                    <i class="fas fa-credit-card"></i> Pay
+                                                </a>
+                                            {% endif %}
+                                        {% else %}
+                                            <span class="badge bg-secondary">{{ payment.status|title }}</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="alert alert-info mb-0">
+                    <i class="fas fa-info-circle me-2"></i> You don't have any payment records yet.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div class="card shadow-sm">
+        <div class="card-header bg-dark text-white">
+            <h5 class="mb-0">Payment Information</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <h6 class="mb-3">Payment Methods Accepted</h6>
+                    <ul>
+                        <li>Credit cards (Visa, MasterCard, American Express)</li>
+                        <li>Debit cards</li>
+                        <li>PayPal</li>
+                        <li>Bank transfers</li>
+                    </ul>
+                </div>
+                <div class="col-md-6">
+                    <h6 class="mb-3">Need Help?</h6>
+                    <p>If you have questions about a payment or need assistance, please contact our customer service:</p>
+                    <p>
+                        <i class="fas fa-phone me-2"></i> (123) 456-7890<br>
+                        <i class="fas fa-envelope me-2"></i> support@jdmcarrentals.com
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

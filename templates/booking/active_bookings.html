@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+
+{% block title %}Active Rentals - JDM Car Rentals{% endblock %}
+
+{% block content %}
+<div class="container">
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('home') }}">Home</a></li>
+            <li class="breadcrumb-item"><a href="{{ url_for('user.booking_history') }}">My Bookings</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Active Rentals</li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        <div class="col-md-3">
+            <div class="card mb-4">
+                <div class="card-header bg-success text-white">
+                    <h5 class="card-title mb-0">Booking Navigation</h5>
+                </div>
+                <div class="list-group list-group-flush">
+                    <a href="{{ url_for('booking.active_bookings') }}" class="list-group-item list-group-item-action active">
+                        <i class="fas fa-car me-2"></i> Active Rentals
+                    </a>
+                    <a href="{{ url_for('booking.past_bookings') }}" class="list-group-item list-group-item-action">
+                        <i class="fas fa-history me-2"></i> Past Bookings
+                    </a>
+                    <a href="{{ url_for('user.booking_history') }}" class="list-group-item list-group-item-action">
+                        <i class="fas fa-list me-2"></i> All Bookings
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-9">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h3 class="card-title mb-0">Active Rentals</h3>
+                </div>
+                <div class="card-body">
+                    {% if bookings %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Car</th>
+                                        <th>Start Date</th>
+                                        <th>End Date</th>
+                                        <th>Total Cost</th>
+                                        <th>Days Remaining</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for booking in bookings %}
+                                        <tr>
+                                            <td>{{ booking.id }}</td>
+                                            <td>
+                                                <a href="{{ url_for('car.car_details', car_id=booking.car_id) }}">
+                                                    {{ booking.car.make }} {{ booking.car.model }}
+                                                </a>
+                                            </td>
+                                            <td>{{ booking.start_date.strftime('%m/%d/%Y') }}</td>
+                                            <td>{{ booking.end_date.strftime('%m/%d/%Y') }}</td>
+                                            <td>₱{{ booking.total_cost }}</td>
+                                            <td>
+                                                {% set days_remaining = (booking.end_date - now.date()).days %}
+                                                {% if days_remaining > 0 %}
+                                                    {{ days_remaining }} day{% if days_remaining > 1 %}s{% endif %}
+                                                {% else %}
+                                                    <span class="text-danger">Due today</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <a href="{{ url_for('user.booking_details', booking_id=booking.id) }}" class="btn btn-sm btn-info d-block mb-2">
+                                                    <i class="fas fa-eye"></i> View
+                                                </a>
+                                                <a href="{{ url_for('car.return_car', booking_id=booking.id) }}" class="btn btn-sm btn-success d-block">
+                                                    <i class="fas fa-undo"></i> Return Car
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-car fa-4x text-muted mb-3"></i>
+                            <h4>No Active Rentals</h4>
+                            <p class="text-muted">You don't have any active rentals at the moment.</p>
+                            <a href="{{ url_for('car.car_list') }}" class="btn btn-primary mt-3">Browse Cars</a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

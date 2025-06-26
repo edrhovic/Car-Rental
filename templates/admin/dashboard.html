@@ -1,0 +1,403 @@
+{% extends 'admin/layout.html' %}
+
+{% block title %}Admin Dashboard - JDM Car Rentals{% endblock %}
+
+{% block admin_content %}
+<!-- Header -->
+<div class="dashboard-header">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h1 class="h3 mb-0">Dashboard Overview</h1>
+            <p class="text-muted mb-0">Welcome back, Admin</p>
+        </div>
+        <div class="action-btns">
+            <div class="btn-group">
+                <button type="button" class="btn btn-outline-primary" id="export-btn">
+                    <i class="fas fa-download me-2"></i>Export Data
+                </button>
+                <div class="dropdown ms-2">
+                    <button type="button" class="btn btn-primary dropdown-toggle" id="time-period-dropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fas fa-calendar me-2"></i>
+                        <span id="selected-period">This month</span>
+                    </button>
+                    <ul class="dropdown-menu" aria-labelledby="time-period-dropdown">
+                        <li><a class="dropdown-item period-item" href="#" data-period="day">Today</a></li>
+                        <li><a class="dropdown-item period-item" href="#" data-period="week">This week</a></li>
+                        <li><a class="dropdown-item period-item" href="#" data-period="month">This month</a></li>
+                        <li><a class="dropdown-item period-item" href="#" data-period="quarter">This quarter</a></li>
+                        <li><a class="dropdown-item period-item" href="#" data-period="year">This year</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Stats Cards -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card stats-card text-white bg-primary mb-3">
+            <div class="card-body">
+                <div class="d-flex flex-column align-items-center text-center">
+                    <div class="icon-circle">
+                        <i class="fas fa-car fa-2x"></i>
+                    </div>
+                    <h2 class="counter">{{ stats.total_cars }}</h2>
+                    <p class="label">Total Cars</p>
+                </div>
+            </div>
+            <div class="card-footer d-flex align-items-center justify-content-between">
+                <a href="{{ url_for('admin.car_list') }}" class="text-white">View Details</a>
+                <span class="text-white"><i class="fas fa-arrow-circle-right"></i></span>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stats-card text-white bg-success mb-3">
+            <div class="card-body">
+                <div class="d-flex flex-column align-items-center text-center">
+                    <div class="icon-circle">
+                        <i class="fas fa-calendar-check fa-2x"></i>
+                    </div>
+                    <h2 class="counter active-bookings-count">{{ stats.active_bookings }}</h2>
+                    <p class="label">Active Bookings</p>
+                </div>
+            </div>
+            <div class="card-footer d-flex align-items-center justify-content-between">
+                <a href="{{ url_for('admin.booking_list') }}" class="text-white">View Details</a>
+                <span class="text-white"><i class="fas fa-arrow-circle-right"></i></span>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stats-card text-white bg-warning mb-3">
+            <div class="card-body">
+                <div class="d-flex flex-column align-items-center text-center">
+                    <div class="icon-circle">
+                        <i class="fas fa-users fa-2x"></i>
+                    </div>
+                    <h2 class="counter">{{ stats.total_users }}</h2>
+                    <p class="label">Registered Users</p>
+                </div>
+            </div>
+            <div class="card-footer d-flex align-items-center justify-content-between">
+                <a href="{{ url_for('admin.user_list') }}" class="text-white">View Details</a>
+                <span class="text-white"><i class="fas fa-arrow-circle-right"></i></span>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stats-card text-white bg-info mb-3">
+            <div class="card-body">
+                <div class="d-flex flex-column align-items-center text-center">
+                    <div class="icon-circle">
+                        <i class="fas fa-money-bill-wave fa-2x"></i>
+                    </div>
+                    <h2 class="counter monthly-revenue">₱{{ stats.monthly_revenue|float|round(2) }}</h2>
+                    <p class="label">Monthly Revenue</p>
+                </div>
+            </div>
+            <div class="card-footer d-flex align-items-center justify-content-between">
+                <a href="{{ url_for('admin.payment_list') }}" class="text-white">View Details</a>
+                <span class="text-white"><i class="fas fa-arrow-circle-right"></i></span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Revenue Chart -->
+    <div class="col-md-6">
+        <div class="card chart-card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Monthly Revenue</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="revenueChart" height="300"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Popular Cars -->
+    <div class="col-md-6">
+        <div class="card chart-card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Most Popular Cars</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="popularCarsChart" height="300"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- System Activity -->
+<div class="card chart-card mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">Recent System Activity</h5>
+    </div>
+    <div class="card-body p-0">
+        <ul class="list-group list-group-flush activity-list">
+            {% if recent_activities %}
+                {% for activity in recent_activities %}
+                <li class="list-group-item">
+                    <div class="d-flex align-items-center">
+                        {% if 'booking' in activity.description.lower() %}
+                            <div class="activity-icon bg-primary text-white">
+                                <i class="fas fa-calendar-alt"></i>
+                            </div>
+                        {% elif 'car' in activity.description.lower() %}
+                            <div class="activity-icon bg-success text-white">
+                                <i class="fas fa-car"></i>
+                            </div>
+                        {% elif 'user' in activity.description.lower() %}
+                            <div class="activity-icon bg-warning text-white">
+                                <i class="fas fa-user"></i>
+                            </div>
+                        {% elif 'payment' in activity.description.lower() %}
+                            <div class="activity-icon bg-info text-white">
+                                <i class="fas fa-money-bill"></i>
+                            </div>
+                        {% else %}
+                            <div class="activity-icon bg-secondary text-white">
+                                <i class="fas fa-bell"></i>
+                            </div>
+                        {% endif %}
+                        <div class="ms-3">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1">{{ activity.description }}</h6>
+                                <small class="text-muted">{{ activity.timestamp.strftime('%m/%d/%Y %H:%M') }}</small>
+                            </div>
+                            <p class="mb-1">{{ activity.details }}</p>
+                            <small class="text-muted">{{ activity.user }}</small>
+                        </div>
+                    </div>
+                </li>
+                {% endfor %}
+            {% else %}
+                <li class="list-group-item text-center py-5">
+                    <i class="fas fa-info-circle fa-2x text-muted mb-3"></i>
+                    <p class="mb-0">No recent activities to display</p>
+                </li>
+            {% endif %}
+        </ul>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Monthly Revenue Chart
+        const revenueCtx = document.getElementById('revenueChart').getContext('2d');
+        const revenueChart = new Chart(revenueCtx, {
+            type: 'line',
+            data: {
+                labels: [{% for month in revenue_data.months %}"{{ month }}",{% endfor %}],
+                datasets: [{
+                    label: 'Revenue (₱)',
+                    data: [{% for value in revenue_data.data %}{{ value }},{% endfor %}],
+                    backgroundColor: 'rgba(0, 150, 136, 0.2)',
+                    borderColor: 'rgba(0, 150, 136, 1)',
+                    borderWidth: 2,
+                    tension: 0.4,
+                    fill: true,
+                    pointBackgroundColor: '#fff',
+                    pointBorderColor: 'rgba(0, 150, 136, 1)',
+                    pointBorderWidth: 2,
+                    pointRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        labels: {
+                            usePointStyle: true,
+                            boxWidth: 8
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 105, 92, 0.9)',
+                        titleFont: {
+                            size: 14,
+                            weight: 'bold'
+                        },
+                        bodyFont: {
+                            size: 13
+                        },
+                        padding: 12,
+                        cornerRadius: 6,
+                        callbacks: {
+                            label: function(context) {
+                                return '₱' + context.raw.toLocaleString();
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            drawBorder: false,
+                            color: 'rgba(0, 0, 0, 0.05)'
+                        },
+                        ticks: {
+                            callback: function(value) {
+                                return '₱' + value;
+                            }
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        }
+                    }
+                }
+            }
+        });
+        
+        // Popular Cars Chart
+        const carsCtx = document.getElementById('popularCarsChart').getContext('2d');
+        const carsChart = new Chart(carsCtx, {
+            type: 'bar',
+            data: {
+                labels: [{% for name in popular_cars.names %}"{{ name }}",{% endfor %}],
+                datasets: [{
+                    label: 'Number of Bookings',
+                    data: [{% for booking in popular_cars.bookings %}{{ booking }},{% endfor %}],
+                    backgroundColor: [
+                        'rgba(0, 150, 136, 0.7)',
+                        'rgba(38, 166, 154, 0.7)',
+                        'rgba(77, 182, 172, 0.7)',
+                        'rgba(0, 121, 107, 0.7)',
+                        'rgba(0, 105, 92, 0.7)'
+                    ],
+                    borderColor: [
+                        'rgba(0, 150, 136, 1)',
+                        'rgba(38, 166, 154, 1)',
+                        'rgba(77, 182, 172, 1)',
+                        'rgba(0, 121, 107, 1)',
+                        'rgba(0, 105, 92, 1)'
+                    ],
+                    borderWidth: 1,
+                    borderRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 105, 92, 0.9)',
+                        titleFont: {
+                            size: 14,
+                            weight: 'bold'
+                        },
+                        bodyFont: {
+                            size: 13
+                        },
+                        padding: 12,
+                        cornerRadius: 6
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            drawBorder: false,
+                            color: 'rgba(0, 0, 0, 0.05)'
+                        },
+                        ticks: {
+                            stepSize: 1
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        }
+                    }
+                }
+            }
+        });
+        
+        // Export functionality
+        const exportBtn = document.getElementById('export-btn');
+        if (exportBtn) {
+            exportBtn.addEventListener('click', function() {
+                // Create CSV content
+                let csvContent = "data:text/csv;charset=utf-8,";
+                
+                // Add headers
+                csvContent += "Month,Revenue (₱)\n";
+                
+                // Add data rows
+                const months = [{% for month in revenue_data.months %}"{{ month }}",{% endfor %}];
+                const revenues = [{% for value in revenue_data.data %}{{ value }},{% endfor %}];
+                
+                for (let i = 0; i < months.length; i++) {
+                    csvContent += months[i] + "," + revenues[i] + "\n";
+                }
+                
+                // Create download link
+                const encodedUri = encodeURI(csvContent);
+                const link = document.createElement("a");
+                link.setAttribute("href", encodedUri);
+                link.setAttribute("download", "revenue_report_" + new Date().toISOString().slice(0,10) + ".csv");
+                document.body.appendChild(link);
+                
+                // Trigger download and remove link
+                link.click();
+                document.body.removeChild(link);
+            });
+        }
+        
+        // Time period filtering
+        const periodItems = document.querySelectorAll('.period-item');
+        const selectedPeriod = document.getElementById('selected-period');
+        
+        if (periodItems.length && selectedPeriod) {
+            periodItems.forEach(item => {
+                item.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const period = this.getAttribute('data-period');
+                    selectedPeriod.textContent = this.textContent;
+                    
+                    // Show loading indication
+                    document.body.style.cursor = 'wait';
+                    
+                    // Make AJAX request to get filtered data
+                    fetch(`/admin/dashboard/filter?period=${period}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            // Update revenue chart
+                            revenueChart.data.labels = data.chart.labels;
+                            revenueChart.data.datasets[0].data = data.chart.data;
+                            revenueChart.update();
+                            
+                            // Update stats
+                            document.querySelector('.monthly-revenue').textContent = 
+                                '₱' + data.stats.filtered_revenue.toFixed(2);
+                            document.querySelector('.active-bookings-count').textContent = 
+                                data.stats.active_bookings;
+                            
+                            // Reset cursor
+                            document.body.style.cursor = 'default';
+                        })
+                        .catch(error => {
+                            console.error('Error fetching filtered data:', error);
+                            alert('Failed to fetch filtered data. Please try again.');
+                            document.body.style.cursor = 'default';
+                        });
+                });
+            });
+        }
+    });
+</script>
+{% endblock %} 

@@ -1,0 +1,277 @@
+{% extends 'base.html' %}
+
+{% block title %}Car Management - JDM Car Rentals{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar -->
+        {% include 'admin/partials/sidebar.html' %}
+
+        <!-- Main content -->
+        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                <h1 class="h2">Car Management</h1>
+                <div class="btn-toolbar mb-2 mb-md-0">
+                    <div class="btn-group me-2">
+                        <a href="{{ url_for('admin.add_car') }}" class="btn btn-sm btn-outline-primary">
+                            <i class="fas fa-plus me-1"></i> Add New Car
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Search Bar -->
+            <div class="card mb-4">
+                <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Search & Filter</h5>
+                    {% if search_query or request.args.get('make') or request.args.get('model') or request.args.get('year') or request.args.get('availability') or request.args.get('transmission') or request.args.get('fuel_type') %}
+                    <a href="{{ url_for('admin.car_list') }}" class="btn btn-sm btn-outline-secondary">
+                        <i class="fas fa-times me-1"></i> Clear All Filters
+                    </a>
+                    {% endif %}
+                </div>
+                <div class="card-body">
+                    <form id="admin-car-filter-form" method="GET" action="{{ url_for('admin.car_list') }}" class="row g-3">
+                        <div class="col-md-6 mb-3">
+                            <div class="input-group">
+                                <input type="text" class="form-control" placeholder="Search by make, model, license plate..." 
+                                       name="search" value="{{ search_query }}">
+                                <button class="btn btn-primary" type="submit">
+                                    <i class="fas fa-search"></i> Search
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-12">
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <label for="make" class="form-label">Make</label>
+                                    <select class="form-select immediate-filter" id="make" name="make">
+                                        <option value="">All Makes</option>
+                                        {% for make_option in available_makes %}
+                                        <option value="{{ make_option }}" {% if request.args.get('make') == make_option %}selected{% endif %}>{{ make_option }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="model" class="form-label">Model</label>
+                                    <input type="text" class="form-control" id="model" name="model" value="{{ request.args.get('model', '') }}">
+                                </div>
+                                <div class="col-md-2">
+                                    <label for="year" class="form-label">Year</label>
+                                    <input type="number" class="form-control" id="year" name="year" value="{{ request.args.get('year', '') }}">
+                                </div>
+                                <div class="col-md-2">
+                                    <label for="availability" class="form-label">Availability</label>
+                                    <select class="form-select immediate-filter" id="availability" name="availability">
+                                        <option value="">All</option>
+                                        <option value="available" {% if request.args.get('availability') == 'available' %}selected{% endif %}>Available</option>
+                                        <option value="rented" {% if request.args.get('availability') == 'rented' %}selected{% endif %}>Rented</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-2">
+                                    <label for="transmission" class="form-label">Transmission</label>
+                                    <select class="form-select immediate-filter" id="transmission" name="transmission">
+                                        <option value="">All</option>
+                                        {% for transmission_option in available_transmissions %}
+                                        <option value="{{ transmission_option }}" {% if request.args.get('transmission') == transmission_option %}selected{% endif %}>{{ transmission_option }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-12">
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <label for="fuel_type" class="form-label">Fuel Type</label>
+                                    <select class="form-select immediate-filter" id="fuel_type" name="fuel_type">
+                                        <option value="">All</option>
+                                        {% for fuel_type_option in available_fuel_types %}
+                                        <option value="{{ fuel_type_option }}" {% if request.args.get('fuel_type') == fuel_type_option %}selected{% endif %}>{{ fuel_type_option }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="sort" class="form-label">Sort By</label>
+                                    <select class="form-select immediate-filter" id="sort" name="sort">
+                                        <option value="id_desc" {% if current_sort == 'id_desc' %}selected{% endif %}>Newest First</option>
+                                        <option value="id_asc" {% if current_sort == 'id_asc' %}selected{% endif %}>Oldest First</option>
+                                        <option value="price_asc" {% if current_sort == 'price_asc' %}selected{% endif %}>Price: Low to High</option>
+                                        <option value="price_desc" {% if current_sort == 'price_desc' %}selected{% endif %}>Price: High to Low</option>
+                                        <option value="year_desc" {% if current_sort == 'year_desc' %}selected{% endif %}>Year: Newest</option>
+                                        <option value="year_asc" {% if current_sort == 'year_asc' %}selected{% endif %}>Year: Oldest</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6 d-flex align-items-end">
+                                    <button type="submit" class="btn btn-primary me-2">
+                                        <i class="fas fa-filter me-1"></i> Apply Filters
+                                    </button>
+                                    <button type="button" class="btn btn-outline-secondary clear-filters-btn">
+                                        <i class="fas fa-times me-1"></i> Clear All
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Active Filters -->
+            <div id="active-filters-container" class="mb-4 {% if not search_query and not request.args.get('make') and not request.args.get('model') and not request.args.get('year') and not request.args.get('availability') and not request.args.get('transmission') and not request.args.get('fuel_type') %}d-none{% endif %}">
+                <h6>Active Filters:</h6>
+                <div>
+                    {% if search_query %}
+                    <span class="badge bg-primary me-2">Search: {{ search_query }}</span>
+                    {% endif %}
+                    
+                    {% if request.args.get('make') %}
+                    <span class="badge bg-primary me-2">Make: {{ request.args.get('make') }}</span>
+                    {% endif %}
+                    
+                    {% if request.args.get('model') %}
+                    <span class="badge bg-primary me-2">Model: {{ request.args.get('model') }}</span>
+                    {% endif %}
+                    
+                    {% if request.args.get('year') %}
+                    <span class="badge bg-primary me-2">Year: {{ request.args.get('year') }}</span>
+                    {% endif %}
+                    
+                    {% if request.args.get('availability') %}
+                    <span class="badge bg-primary me-2">
+                        Status: {{ 'Available' if request.args.get('availability') == 'available' else 'Rented' }}
+                    </span>
+                    {% endif %}
+                    
+                    {% if request.args.get('transmission') %}
+                    <span class="badge bg-primary me-2">Transmission: {{ request.args.get('transmission') }}</span>
+                    {% endif %}
+                    
+                    {% if request.args.get('fuel_type') %}
+                    <span class="badge bg-primary me-2">Fuel Type: {{ request.args.get('fuel_type') }}</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Car List -->
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 id="filter-stats" class="card-title mb-0">
+                        {% if search_query or request.args.get('make') or request.args.get('model') or request.args.get('year') or request.args.get('availability') or request.args.get('transmission') or request.args.get('fuel_type') %}
+                            Filtered Cars ({{ cars|length }})
+                        {% else %}
+                            All Cars ({{ cars|length }})
+                        {% endif %}
+                    </h5>
+                    <div>
+                        <small id="car-count-display" class="text-muted">
+                            {% if cars|length == 0 %}
+                                No cars found
+                            {% elif cars|length == 1 %}
+                                Showing 1 car
+                            {% else %}
+                                Showing {{ cars|length }} cars
+                            {% endif %}
+                        </small>
+                    </div>
+                </div>
+                <div id="car-table-container">
+                    {% if cars %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Make & Model</th>
+                                    <th>Year</th>
+                                    <th>License Plate</th>
+                                    <th>Status</th>
+                                    <th>Rate/Day</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for car in cars %}
+                                <tr>
+                                    <td>{{ car.id }}</td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="car-thumbnail me-2">
+                                                {% if car.image_url %}
+                                                <img src="{{ car.image_url }}" alt="{{ car.make }} {{ car.model }}" width="50">
+                                                {% else %}
+                                                <div class="placeholder-thumbnail"><i class="fas fa-car"></i></div>
+                                                {% endif %}
+                                            </div>
+                                            <div>
+                                                <strong>{{ car.make }} {{ car.model }}</strong><br>
+                                                <small class="text-muted">{{ car.transmission }} - {{ car.fuel_type }}</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>{{ car.year }}</td>
+                                    <td>{{ car.license_plate }}</td>
+                                    <td>
+                                        {% if car.is_available %}
+                                        <span class="badge bg-success">Available</span>
+                                        {% else %}
+                                        <span class="badge bg-danger">Rented</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>₱{{ "%.2f"|format(car.daily_rate) }}</td>
+                                    <td>
+                                        <div class="btn-group">
+                                            <a href="{{ url_for('car.car_details', car_id=car.id) }}" class="btn btn-sm btn-outline-primary">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <a href="{{ url_for('admin.edit_car', car_id=car.id) }}" class="btn btn-sm btn-outline-secondary">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="card-body text-center py-5">
+                        <i class="fas fa-car fa-3x mb-3 text-muted"></i>
+                        <h4>No cars found</h4>
+                        <p class="mb-0">Try adjusting your filters or search term.</p>
+                        <a href="{{ url_for('admin.car_list') }}" class="btn btn-outline-primary mt-3 clear-filters-btn">Reset Filters</a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+
+<!-- Delete Car Modal -->
+<div class="modal fade" id="deleteCarModal" tabindex="-1" aria-labelledby="deleteCarModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteCarModalLabel">Confirm Deletion</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete this car? This action cannot be undone.</p>
+                <p>Note: Cars with active bookings cannot be deleted.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form id="deleteCarForm" method="POST" action="">
+                    <button type="submit" class="btn btn-danger">Delete Car</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/admin-car-filters.js') }}"></script>
+{% endblock %} 

@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }} - JDM Car Rentals{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>{{ title }}</h1>
+    <p class="text-muted">Examine how location data is stored in the database</p>
+
+    <div class="mb-3">
+        <a href="{{ url_for('admin.booking_list') }}" class="btn btn-outline-primary">
+            <i class="fas fa-arrow-left me-2"></i> Back to Booking List
+        </a>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h5 class="card-title mb-0">Booking Locations ({{ bookings|length }} bookings found)</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped table-hover">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Raw Locations Data</th>
+                            <th>Pickup Location Property</th>
+                            <th>Return Location Property</th>
+                            <th>JSON Extract Test</th>
+                            <th>Debug Info</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for booking in bookings %}
+                        <tr>
+                            <td>{{ booking.id }}</td>
+                            <td><pre class="small">{{ booking.raw_locations }}</pre></td>
+                            <td>{{ booking.pickup_location_property }}</td>
+                            <td>{{ booking.return_location_property }}</td>
+                            <td>{{ booking.json_extract_test }}</td>
+                            <td>{{ booking.debug_locations }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

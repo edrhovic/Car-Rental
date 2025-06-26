@@ -1,0 +1,132 @@
+{% extends 'base.html' %}
+
+{% block title %}Return {{ booking.car.make }} {{ booking.car.model }} - JDM Car Rentals{% endblock %}
+
+{% block content %}
+<div class="container">
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('home') }}">Home</a></li>
+            <li class="breadcrumb-item"><a href="{{ url_for('user.booking_history') }}">My Bookings</a></li>
+            <li class="breadcrumb-item"><a href="{{ url_for('user.booking_details', booking_id=booking.id) }}">Booking #{{ booking.id }}</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Return Car</li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="card-title mb-0">Return {{ booking.car.make }} {{ booking.car.model }}</h3>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info mb-4">
+                        <h5 class="alert-heading">Return Instructions</h5>
+                        <p>Please complete this form to initiate the return of your rental vehicle. Once submitted, an admin will verify the car's condition before finalizing the return.</p>
+                        <p class="mb-0">The return will be pending approval until an admin confirms the car is in an acceptable condition. If any damage or issues are found, additional charges may apply.</p>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="card h-100">
+                                {% if booking.car.image_url %}
+                                <img src="{{ booking.car.image_url }}" class="card-img-top" alt="{{ booking.car.make }} {{ booking.car.model }}">
+                                {% else %}
+                                <img src="{{ url_for('static', filename='images/car-placeholder.jpg') }}" class="card-img-top" alt="Car Placeholder">
+                                {% endif %}
+                                <div class="card-body">
+                                    <h5 class="card-title">{{ booking.car.make }} {{ booking.car.model }} ({{ booking.car.year }})</h5>
+                                    <p class="card-text">{{ booking.car.color }} • {{ booking.car.transmission }} • {{ booking.car.fuel_type }}</p>
+                                    <p class="card-text"><strong>License Plate:</strong> {{ booking.car.license_plate }}</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <h5>Booking Details</h5>
+                            <ul class="list-group">
+                                <li class="list-group-item"><strong>Booking ID:</strong> {{ booking.id }}</li>
+                                <li class="list-group-item"><strong>Start Date:</strong> {{ booking.start_date.strftime('%B %d, %Y') }}</li>
+                                <li class="list-group-item"><strong>End Date:</strong> {{ booking.end_date.strftime('%B %d, %Y') }}</li>
+                                <li class="list-group-item"><strong>Duration:</strong> {{ booking.duration_days }} days</li>
+                                <li class="list-group-item"><strong>Total Cost:</strong> ₱{{ booking.total_cost }}</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    {% if is_late %}
+                    <div class="alert alert-warning">
+                        <h5 class="alert-heading"><i class="fas fa-exclamation-triangle me-2"></i> Late Return</h5>
+                        <p>Your return is <strong>{{ days_late }} day{% if days_late != 1 %}s{% endif %}</strong> past the agreed return date.</p>
+                        <hr>
+                        <p class="mb-0"><strong>Late Fee:</strong> ₱{{ late_fee|round(2) }}</p>
+                        <small class="text-muted">Late fees are charged at 150% of the daily rate for each day past the agreed return date.</small>
+                    </div>
+                    {% endif %}
+
+                    <form method="POST" action="{{ url_for('car.return_car', booking_id=booking.id) }}">
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h4>Return Checklist</h4>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3 form-check">
+                                    <input type="checkbox" class="form-check-input" id="keys_returned" required>
+                                    <label class="form-check-label" for="keys_returned">I have returned the keys</label>
+                                </div>
+                                <div class="mb-3 form-check">
+                                    <input type="checkbox" class="form-check-input" id="fuel_level" required>
+                                    <label class="form-check-label" for="fuel_level">The fuel level is the same as when I received the car</label>
+                                </div>
+                                <div class="mb-3 form-check">
+                                    <input type="checkbox" class="form-check-input" id="personal_items" required>
+                                    <label class="form-check-label" for="personal_items">I have removed all personal items from the car</label>
+                                </div>
+                                <div class="mb-3 form-check">
+                                    <input type="checkbox" class="form-check-input" id="damage_check" required>
+                                    <label class="form-check-label" for="damage_check">I have inspected the car for any damages</label>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="return_notes" class="form-label">Additional Notes (optional)</label>
+                                    <textarea class="form-control" id="return_notes" name="return_notes" rows="3" placeholder="Any comments about the condition of the car or the return process"></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg">Request Return Approval</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h4>Return Information</h4>
+                </div>
+                <div class="card-body">
+                    <h5>Return Location</h5>
+                    <p><i class="fas fa-map-marker-alt me-2"></i> JDM Car Rentals Main Office<br>Block 8 Lot 35, Bria Homes San Jose, Santa Cruz, Laguna</p>
+                    
+                    <hr>
+                    
+                    <h5>Return Policy</h5>
+                    <ul>
+                        <li>The car should be returned in the same condition it was rented</li>
+                        <li>Late returns will incur additional charges</li>
+                        <li>Any damage not reported will be charged to your account</li>
+                        <li>Fuel should be at the same level as when picked up</li>
+                    </ul>
+                    
+                    <hr>
+                    
+                    <h5>Need Help?</h5>
+                    <p>If you have any questions or need assistance with your return, please contact our customer service team.</p>
+                    <p><i class="fas fa-phone me-2"></i> +63-962-561-5941</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

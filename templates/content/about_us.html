@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ about_content.title }} - JDM Car Rentals{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card shadow-sm rounded-3 border-0 overflow-hidden mb-5">
+                <div class="card-body">
+                    <!-- Simple Text Header -->
+                    <div class="text-center py-4 mb-4" style="background-color: var(--primary-very-light);">
+                        <h1 class="display-4 fw-bold text-primary">{{ about_content.title }}</h1>
+                    </div>
+                    
+                    <!-- Content -->
+                    <div class="p-4 p-md-5">
+                        <div class="about-content">
+                            {% if about_content is mapping %}
+                                {{ about_content.content|safe }}
+                            {% else %}
+                                {{ about_content.content|safe }}
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Team section -->
+                        <div class="mt-5">
+                            <h2 class="text-center mb-4">Our Team</h2>
+                            <div class="row g-4">
+                                <div class="col-md-4 col-sm-6">
+                                    <div class="text-center">
+                                        <div class="rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center bg-light" style="width: 120px; height: 120px;">
+                                            <i class="fas fa-user fa-3x text-primary"></i>
+                                        </div>
+                                        <h5>Bien Aaron Asistio</h5>
+                                        <p class="text-muted">Founder & CEO</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 col-sm-6">
+                                    <div class="text-center">
+                                        <div class="rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center bg-light" style="width: 120px; height: 120px;">
+                                            <i class="fas fa-user fa-3x text-primary"></i>
+                                        </div>
+                                        <h5>Kobe Javiniar</h5>
+                                        <p class="text-muted">Operations Manager</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 col-sm-6">
+                                    <div class="text-center">
+                                        <div class="rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center bg-light" style="width: 120px; height: 120px;">
+                                            <i class="fas fa-user fa-3x text-primary"></i>
+                                        </div>
+                                        <h5>Jhosua Domingo</h5>
+                                        <p class="text-muted">Fleet Manager</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Contact CTA -->
+                        <div class="mt-5 text-center">
+                            <h3>Have Questions?</h3>
+                            <p class="lead">We're here to help! Contact our team for any inquiries about our services.</p>
+                            <a href="{{ url_for('contact') }}" class="btn btn-primary btn-lg mt-2">Contact Us</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Improve Contact Us button behavior
+    document.addEventListener('DOMContentLoaded', function() {
+        const contactButtons = document.querySelectorAll('a[href="{{ url_for("home") }}#contact"]');
+        
+        contactButtons.forEach(button => {
+            button.addEventListener('click', function(e) {
+                // Let the default navigation happen, but make sure the hash is preserved
+                sessionStorage.setItem('scrollToContact', 'true');
+            });
+        });
+    });
+</script>
+{% endblock %} 

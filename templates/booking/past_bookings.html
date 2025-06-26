@@ -1,0 +1,145 @@
+{% extends 'base.html' %}
+
+{% block title %}Past Bookings - JDM Car Rentals{% endblock %}
+
+{% block content %}
+<div class="container">
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('home') }}">Home</a></li>
+            <li class="breadcrumb-item"><a href="{{ url_for('user.booking_history') }}">My Bookings</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Past Bookings</li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        <div class="col-md-3">
+            <div class="card mb-4">
+                <div class="card-header bg-success text-white">
+                    <h5 class="card-title mb-0">Booking Navigation</h5>
+                </div>
+                <div class="list-group list-group-flush">
+                    <a href="{{ url_for('booking.active_bookings') }}" class="list-group-item list-group-item-action">
+                        <i class="fas fa-car me-2"></i> Active Rentals
+                    </a>
+                    <a href="{{ url_for('booking.past_bookings') }}" class="list-group-item list-group-item-action active">
+                        <i class="fas fa-history me-2"></i> Past Bookings
+                    </a>
+                    <a href="{{ url_for('user.booking_history') }}" class="list-group-item list-group-item-action">
+                        <i class="fas fa-list me-2"></i> All Bookings
+                    </a>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header bg-success text-white">
+                    <h5 class="card-title mb-0">Filter</h5>
+                </div>
+                <div class="card-body">
+                    <form method="GET" action="{{ url_for('booking.past_bookings') }}">
+                        <div class="mb-3">
+                            <label for="status" class="form-label">Status</label>
+                            <select class="form-select" id="status" name="status">
+                                <option value="all" {% if request.args.get('status') == 'all' or not request.args.get('status') %}selected{% endif %}>All</option>
+                                <option value="completed" {% if request.args.get('status') == 'completed' %}selected{% endif %}>Completed</option>
+                                <option value="cancelled" {% if request.args.get('status') == 'cancelled' %}selected{% endif %}>Cancelled</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="sort" class="form-label">Sort By</label>
+                            <select class="form-select" id="sort" name="sort">
+                                <option value="date_desc" {% if request.args.get('sort') == 'date_desc' or not request.args.get('sort') %}selected{% endif %}>Date (Newest First)</option>
+                                <option value="date_asc" {% if request.args.get('sort') == 'date_asc' %}selected{% endif %}>Date (Oldest First)</option>
+                                <option value="car" {% if request.args.get('sort') == 'car' %}selected{% endif %}>Car Name</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">Apply Filters</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-9">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h3 class="card-title mb-0">Past Bookings</h3>
+                </div>
+                <div class="card-body">
+                    {% if bookings %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Car</th>
+                                        <th>Dates</th>
+                                        <th>Total Cost</th>
+                                        <th>Status</th>
+                                        <th>Review</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for booking in bookings %}
+                                        <tr>
+                                            <td>{{ booking.id }}</td>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    {% if booking.car.image_url %}
+                                                    <img src="{{ booking.car.image_url }}" width="40" height="30" class="me-2" style="object-fit: cover;">
+                                                    {% else %}
+                                                    <img src="{{ url_for('static', filename='images/car-placeholder.jpg') }}" width="40" height="30" class="me-2" style="object-fit: cover;">
+                                                    {% endif %}
+                                                    <a href="{{ url_for('car.car_details', car_id=booking.car_id) }}">
+                                                        {{ booking.car.make }} {{ booking.car.model }}
+                                                    </a>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                {{ booking.start_date.strftime('%m/%d/%Y') }} to {{ booking.end_date.strftime('%m/%d/%Y') }}
+                                            </td>
+                                            <td>₱{{ booking.total_cost }}</td>
+                                            <td>
+                                                {% if booking.status == 'completed' %}
+                                                    <span class="badge bg-success">Completed</span>
+                                                {% elif booking.status == 'cancelled' %}
+                                                    <span class="badge bg-danger">Cancelled</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                {% if booking.status == 'completed' %}
+                                                    {% if booking.has_review %}
+                                                        <span class="badge bg-info">Reviewed</span>
+                                                    {% else %}
+                                                        <a href="{{ url_for('user.add_review', booking_id=booking.id) }}" class="btn btn-sm btn-outline-primary d-block">
+                                                            <i class="fas fa-star me-1"></i> Write Review
+                                                        </a>
+                                                    {% endif %}
+                                                {% else %}
+                                                    <span class="text-muted">N/A</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <a href="{{ url_for('user.booking_details', booking_id=booking.id) }}" class="btn btn-sm btn-info d-block">
+                                                    <i class="fas fa-eye"></i> View
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-history fa-4x text-muted mb-3"></i>
+                            <h4>No Past Bookings</h4>
+                            <p class="text-muted">You don't have any completed or cancelled bookings.</p>
+                            <a href="{{ url_for('car.car_list') }}" class="btn btn-primary mt-3">Browse Cars</a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

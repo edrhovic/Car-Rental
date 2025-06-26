@@ -1,0 +1,130 @@
+/* Custom CSS for JDM Car Rentals */
+
+/* General Styles */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #333;
+}
+
+.text-primary {
+    color: #0d6efd !important;
+}
+
+.bg-primary {
+    background-color: #0d6efd !important;
+}
+
+.btn-primary {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+}
+
+.btn-primary:hover {
+    background-color: #0b5ed7;
+    border-color: #0a58ca;
+}
+
+/* Header and Navigation */
+.navbar-brand {
+    font-weight: bold;
+    font-size: 1.5rem;
+}
+
+/* Car Cards */
+.card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+.card-img-top {
+    height: 200px;
+    object-fit: cover;
+}
+
+/* Star Ratings */
+.star-rating .fa-star {
+    color: #ffc107;
+}
+
+.star-rating .fa-star-o {
+    color: #e4e5e9;
+}
+
+/* Booking Form */
+.booking-form {
+    background-color: #f8f9fa;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+}
+
+/* Car Details Page */
+.car-features {
+    list-style-type: none;
+    padding-left: 0;
+}
+
+.car-features li {
+    margin-bottom: 10px;
+    padding-left: 25px;
+    position: relative;
+}
+
+.car-features li i {
+    position: absolute;
+    left: 0;
+    top: 3px;
+    color: #0d6efd;
+}
+
+/* Reviews */
+.review-card {
+    border-left: 5px solid #0d6efd;
+    padding-left: 15px;
+    margin-bottom: 20px;
+}
+
+/* Profile Page */
+.profile-img {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid #0d6efd;
+}
+
+/* Admin Dashboard */
+.stats-card {
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.stats-card-icon {
+    font-size: 3rem;
+    margin-bottom: 15px;
+}
+
+/* Footer */
+footer {
+    margin-top: 50px;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .card-img-top {
+        height: 150px;
+    }
+    
+    .profile-img {
+        width: 80px;
+        height: 80px;
+    }
+} 
