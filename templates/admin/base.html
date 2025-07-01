@@ -1,6 +1,8 @@
+
 {% extends 'base.html' %}
 
 {% block content %}
+
 <div class="sb-nav-fixed">
     <nav class="sb-topnav navbar navbar-expand navbar-dark bg-dark">
         <!-- Navbar Brand-->
@@ -57,6 +59,7 @@
                             <nav class="sb-sidenav-menu-nested nav">
                                 <a class="nav-link" href="{{ url_for('admin.cars') }}">All Cars</a>
                                 <a class="nav-link" href="{{ url_for('admin.add_car') }}">Add New Car</a>
+                                <a class="nav-link" href="{{ url_for('admin.loan_cars') }}">Loan Cars</a>
                             </nav>
                         </div>
                         
@@ -65,10 +68,16 @@
                             Bookings
                         </a>
                         
+                        <a class="nav-link" href="{{ url_for('admin.manage_loan_cars') }}">
+                            <div class="sb-nav-link-icon"><i class="fas fa-calendar-check"></i></div>
+                            Manage Car for Loan
+                        </a>
+
                         <a class="nav-link" href="{{ url_for('admin.payments') }}">
                             <div class="sb-nav-link-icon"><i class="fas fa-money-bill-wave"></i></div>
                             Payments
                         </a>
+
                         
                         <a class="nav-link" href="{{ url_for('contact.admin_messages') }}">
                             <div class="sb-nav-link-icon"><i class="fas fa-envelope"></i></div>
@@ -119,4 +128,4 @@
         }
     });
 </script>
-{% endblock %} 
+{% endblock %}

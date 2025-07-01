@@ -6,7 +6,8 @@ import calendar
 from functools import wraps
 from sqlalchemy import func, desc, asc, or_, and_, extract
 from sqlalchemy.sql import text
-
+import time
+from sqlalchemy.exc import IntegrityError
 from models import db
 from models.user import User
 from models.car import Car
@@ -14,6 +15,7 @@ from models.booking import Booking
 from models.payment import Payment
 from models.review import Review
 from models.content import PageContent
+from models.loan_car import LoanCar
 import uuid
 import os
 from werkzeug.utils import secure_filename
@@ -23,7 +25,19 @@ import random
 import string
 import threading
 
+import cloudinary
+import cloudinary.uploader
+
 admin = Blueprint('admin', __name__)
+
+cloudinary.config(
+    cloud_name=os.getenv('CLOUDINARY_CLOUD_NAME'),
+    api_key=os.getenv('CLOUDINARY_API_KEY'),
+    api_secret=os.getenv('CLOUDINARY_API_SECRET')
+)
+
+admin = Blueprint('admin', __name__)
+
 
 # Helper function to convert booking locations JSON to a searchable text format
 def booking_to_text(locations_json):
@@ -55,40 +69,7 @@ def booking_to_text(locations_json):
     except:
         return ""
 
-# Configure upload folder
-UPLOAD_FOLDER = 'static/uploads/cars'
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp', 'tiff', 'svg', 'ico', 'heic', 'heif', 'avif', 'jfif', 'pjpeg', 'pjp'}
 
-# Create upload folder if it doesn't exist
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-
-# Function to check if file extension is allowed
-def allowed_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
-
-# Function to save uploaded file
-def save_image(file):
-    if not file or not file.filename:
-        return None
-        
-    if not allowed_file(file.filename):
-        print(f"File type not allowed: {file.filename}")
-        flash(f"File type not allowed. Supported formats: {', '.join(ALLOWED_EXTENSIONS)}", 'danger')
-        return None
-        
-    try:
-        # Generate a unique filename to avoid collisions
-        filename = secure_filename(file.filename)
-        unique_filename = f"{uuid.uuid4().hex}_{filename}"
-        file_path = os.path.join(UPLOAD_FOLDER, unique_filename)
-        file.save(file_path)
-        
-        # Return the path relative to static folder for use in templates
-        return f"/{UPLOAD_FOLDER}/{unique_filename}"
-    except Exception as e:
-        print(f"Error saving image: {str(e)}")
-        flash(f"Error saving image: {str(e)}", 'danger')
-        return None
 
 # Admin middleware to check if user is admin
 def admin_required(f):
@@ -119,6 +100,74 @@ def admin_required(f):
         
         return f(*args, **kwargs)
     return decorated_function
+
+
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp', 'tiff', 'svg', 'ico', 'heic', 'heif', 'avif', 'jfif', 'pjpeg', 'pjp'}
+
+def allowed_file(filename):
+    """Check if file extension is allowed"""
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+def upload_image_to_cloudinary(file, folder="car_images"):
+    """
+    Upload image to Cloudinary and return the secure URL
+    """
+    if not file or not file.filename:
+        return None
+        
+    if not allowed_file(file.filename):
+        flash(f"File type not allowed. Supported formats: {', '.join(ALLOWED_EXTENSIONS)}", 'danger')
+        return None
+    try:
+        # Generate a unique public_id
+        filename = secure_filename(file.filename)
+        name_without_extension = os.path.splitext(filename)[0]
+        
+        # Upload to Cloudinary
+        result = cloudinary.uploader.upload(
+            file,
+            folder=folder,
+            public_id=f"{name_without_extension}_{int(time.time())}",
+            overwrite=True,
+            resource_type="image",
+            transformation=[
+                {'width': 1000, 'height': 900, 'crop': 'fill', 'quality': 'auto'},
+                {'format': 'webp'}  # Convert to WebP for better compression
+            ]
+        )
+        
+        return result['secure_url']
+        
+    except Exception as e:
+        print(f"Error uploading image to Cloudinary: {str(e)}")
+        flash(f"Error uploading image: {str(e)}", 'danger')
+        return None
+
+def delete_image_from_cloudinary(image_url):
+    """
+    Delete image from Cloudinary using the image URL
+    """
+    try:
+        if not image_url or 'cloudinary.com' not in image_url:
+            return True  # Not a Cloudinary URL, nothing to delete
+            
+        # Extract public_id from URL
+        # Example URL: https://res.cloudinary.com/demo/image/upload/v1571218039/sample.jpg
+        parts = image_url.split('/')
+        if len(parts) >= 2:
+            # Get the public_id (filename without extension)
+            public_id_with_folder = '/'.join(parts[parts.index('upload')+2:])
+            public_id = os.path.splitext(public_id_with_folder)[0]
+            
+            # Delete from Cloudinary
+            result = cloudinary.uploader.destroy(public_id)
+            return result.get('result') == 'ok'
+    except Exception as e:
+        print(f"Error deleting image from Cloudinary: {str(e)}")
+        return False
+    
+
+
 
 @admin.route('/admin/login', methods=['GET', 'POST'])
 def admin_login():
@@ -856,6 +905,7 @@ def car_list():
                           available_transmissions=available_transmissions,
                           available_fuel_types=available_fuel_types)
 
+
 @admin.route('/admin/cars/add', methods=['GET', 'POST'])
 @login_required
 @admin_required
@@ -902,15 +952,14 @@ def add_car():
                 flash(error, 'danger')
             return redirect(url_for('admin.add_car'))
         
-        # Handle image upload
+        # Handle image upload to Cloudinary
         if 'car_image' in request.files:
             file = request.files['car_image']
             if file and file.filename:  # Check if a file was actually selected
-                file_path = save_image(file)
-                if file_path:
-                    image_url = file_path  # Override the image_url with uploaded file path
-                elif file.filename:  # If file was selected but save_image returned None
-                    # Error message has already been flashed in save_image function
+                cloudinary_url = upload_image_to_cloudinary(file)
+                if cloudinary_url:
+                    image_url = cloudinary_url  # Use Cloudinary URL
+                elif file.filename:  # If file was selected but upload failed
                     return redirect(url_for('admin.add_car'))
         
         # Check if license plate or VIN already exists
@@ -933,7 +982,7 @@ def add_car():
                 fuel_type=fuel_type,
                 seats=seats,
                 description=description,
-                image_url=image_url,
+                image_url=image_url,  # Store Cloudinary URL in database
                 is_available=True
             )
             
@@ -1006,6 +1055,9 @@ def edit_car(car_id):
             return redirect(url_for('admin.edit_car', car_id=car_id))
         
         try:
+            # Store old image URL for potential deletion
+            old_image_url = car.image_url
+            
             # Update car details
             car.make = make
             car.model = model
@@ -1021,20 +1073,26 @@ def edit_car(car_id):
             
             # Handle image URL first (will be overridden by uploaded file if present)
             image_url = request.form.get('image_url')
-            # Only update the image_url if a new one is provided and it's not empty
-            if image_url and image_url.strip():
-                car.image_url = image_url
-                
-            # Handle image upload
+            new_image_uploaded = False
+            
+            # Handle image upload to Cloudinary
             if 'car_image' in request.files:
                 file = request.files['car_image']
                 if file and file.filename:  # Check if a file was actually selected
-                    file_path = save_image(file)
-                    if file_path:
-                        car.image_url = file_path  # Override the image_url with uploaded file path
-                    elif file.filename:  # If file was selected but save_image returned None
-                        # Error message has already been flashed in save_image function
+                    cloudinary_url = upload_image_to_cloudinary(file)
+                    if cloudinary_url:
+                        image_url = cloudinary_url  # Use Cloudinary URL
+                        new_image_uploaded = True
+                    elif file.filename:  # If file was selected but upload failed
                         return redirect(url_for('admin.edit_car', car_id=car_id))
+            
+            # Only update the image_url if a new one is provided
+            if image_url and image_url.strip():
+                car.image_url = image_url
+                
+                # Delete old image from Cloudinary if a new one was uploaded
+                if new_image_uploaded and old_image_url and old_image_url != image_url:
+                    delete_image_from_cloudinary(old_image_url)
                     
             car.is_available = True if request.form.get('is_available') else False
             
@@ -1054,50 +1112,86 @@ def edit_car(car_id):
 @admin_required
 def delete_car(car_id):
     car = Car.query.get_or_404(car_id)
+    image_url = car.image_url  # Store image URL for potential deletion
     
-    # Check if the car has active bookings
-    active_bookings = Booking.query.filter(
-        Booking.car_id == car_id,
-        Booking.status.in_(['pending', 'confirmed']),
-        Booking.returned == False
-    ).first()
-    
-    if active_bookings:
-        flash('Cannot delete car with active bookings.', 'danger')
-        return redirect(url_for('admin.car_list'))
-    
-    # Find all bookings associated with this car
-    related_bookings = Booking.query.filter_by(car_id=car_id).all()
-    
-    for booking in related_bookings:
-        # First, find and delete any reviews associated with this booking
-        reviews = Review.query.filter_by(booking_id=booking.id).all()
-        for review in reviews:
+    try:
+        # Check if the car is currently offered on loan
+        active_loan_offers = LoanCar.query.filter(
+            LoanCar.car_id == car_id,
+            LoanCar.status == 'available'  # Based on your loan car system
+        ).first()
+        
+        if active_loan_offers:
+            flash('Cannot delete car that is currently offered for loan. Please withdraw the loan offer first.', 'danger')
+            return redirect(url_for('admin.car_list'))
+        
+        # Check if the car has active bookings
+        active_bookings = Booking.query.filter(
+            Booking.car_id == car_id,
+            Booking.status.in_(['pending', 'confirmed']),
+            Booking.returned == False
+        ).first()
+        
+        if active_bookings:
+            flash('Cannot delete car with active bookings.', 'danger')
+            return redirect(url_for('admin.car_list'))
+        
+        # If no active loans or bookings, proceed with deletion
+        # Delete completed/inactive loan records
+        LoanCar.query.filter_by(car_id=car_id).delete()
+        
+        # Find all bookings associated with this car
+        related_bookings = Booking.query.filter_by(car_id=car_id).all()
+        
+        # Delete in proper order to avoid foreign key constraint errors
+        for booking in related_bookings:
+            # First, delete reviews associated with this booking
+            reviews = Review.query.filter_by(booking_id=booking.id).all()
+            for review in reviews:
+                db.session.delete(review)
+                
+            # Then delete payments associated with this booking
+            payments = Payment.query.filter_by(booking_id=booking.id).all()
+            for payment in payments:
+                db.session.delete(payment)
+        
+        # Delete any direct reviews associated with this car
+        direct_reviews = Review.query.filter_by(car_id=car_id).all()
+        for review in direct_reviews:
             db.session.delete(review)
-            
-        # Then find and delete any payments associated with this booking
-        payments = Payment.query.filter_by(booking_id=booking.id).all()
-        for payment in payments:
-            db.session.delete(payment)
-    
-    # Also directly delete any reviews associated with this car
-    # (in case there are any that aren't associated with a booking)
-    direct_reviews = Review.query.filter_by(car_id=car_id).all()
-    for review in direct_reviews:
-        db.session.delete(review)
-    
-    # Now handle the bookings
-    for booking in related_bookings:
-        db.session.delete(booking)
-    
-    # Finally delete the car
-    db.session.delete(car)
-    
-    # Commit all changes
-    db.session.commit()
-    
-    flash('Car deleted successfully!', 'success')
-    return redirect(url_for('admin.car_list'))
+        
+        # Delete the bookings
+        for booking in related_bookings:
+            db.session.delete(booking)
+        
+        # Finally delete the car
+        db.session.delete(car)
+        
+        # Commit all changes
+        db.session.commit()
+        
+        # Delete image from Cloudinary after successful database deletion
+        if image_url:
+            try:
+                delete_image_from_cloudinary(image_url)
+            except Exception as img_error:
+                # Log the error but don't fail the deletion
+                print(f"Warning: Could not delete image from Cloudinary: {img_error}")
+        
+        flash('Car deleted successfully!', 'success')
+        return redirect(url_for('admin.car_list'))
+        
+    except IntegrityError as e:
+        db.session.rollback()
+        print(f"Integrity Error: {e}")
+        flash('Cannot delete car due to database constraints. Please contact support.', 'danger')
+        return redirect(url_for('admin.car_list'))
+        
+    except Exception as e:
+        db.session.rollback()
+        print(f"Unexpected error during car deletion: {e}")
+        flash('An unexpected error occurred while deleting the car. Please try again.', 'danger')
+        return redirect(url_for('admin.car_list'))
 
 @admin.route('/api/admin/cars')
 @login_required
@@ -2679,3 +2773,99 @@ def reject_car_return(booking_id):
 
 MAILGUN_DOMAIN = 'your-domain.com'  # Replace with your actual domain
 MAILGUN_SENDER = 'JDM Car Rentals <noreply@your-domain.com>'  # Replace with your domain
+
+
+
+
+@admin.route('/loan-cars')
+@login_required
+@admin_required
+def manage_loan_cars():
+
+    available_cars = Car.query.filter_by(is_available=True).all()
+
+    loan_cars = db.session.query(LoanCar, Car).join(Car).all()
+
+    return render_template('admin/loan_cars.html',  
+                         available_cars=available_cars, 
+                         loan_cars=loan_cars)
+
+@admin.route('/offer-car-for-loan', methods=['POST'])
+@login_required
+@admin_required
+def offer_car_for_loan():
+    try:
+        car_id = request.form.get('car_id')
+        loan_sale_price = float(request.form.get('loan_sale_price'))
+        commission_rate = float(request.form.get('commission_rate', 5.0))
+
+        car = Car.query.get(car_id)
+        if not car or not car.is_available:
+            flash('Car not found or not available', 'error')
+            return redirect(url_for('admin.manage_loan_cars'))
+        
+        existing_offer = LoanCar.query.filter_by(car_id=car_id, status='available').first()
+        if existing_offer:
+            flash('Car is already offered for loan', 'error')
+            return redirect(url_for('admin.manage_loan_cars'))
+        
+        loan_car = LoanCar(
+            car_id=car_id,
+            loan_sale_price=loan_sale_price,
+            commission_rate=commission_rate,
+            offered_by=current_user.id
+        )
+        
+        db.session.add(loan_car)
+        db.session.commit()
+        flash(f'Car {car.make} {car.model} successfully offered for loan', 'success')
+
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error offering car for loan: {str(e)}', 'error')
+        
+    return redirect(url_for('admin.manage_loan_cars'))
+
+
+@admin.route('/update-loan-car/<int:loan_car_id>', methods=['POST'])
+@login_required
+@admin_required
+def update_loan_car(loan_car_id):
+    """API endpoint for modal updates"""
+    try:
+        loan_car = LoanCar.query.get_or_404(loan_car_id)
+        loan_car.loan_sale_price = float(request.form['loan_sale_price'])
+        loan_car.commission_rate = float(request.form['commission_rate'])
+        db.session.commit()
+        return jsonify({'success': True, 'message': 'Loan car updated successfully'})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+@admin.route('/withdraw-loan-car/<int:loan_car_id>', methods=['POST'])
+@login_required
+@admin_required
+def withdraw_loan_car(loan_car_id):
+    """Withdraw a loan car offering"""
+    try:
+        loan_car = LoanCar.query.get_or_404(loan_car_id)
+        loan_car.status = 'withdrawn'
+        loan_car.date_withdrawn = datetime.utcnow()  # Add this field to your model if needed
+        db.session.commit()
+        flash('Loan car withdrawn successfully!', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error withdrawing loan car: {str(e)}', 'error')
+    return redirect(url_for('admin.manage_loan_cars'))
+
+@admin.route('/loan-sale-details/<int:sale_id>')
+@login_required
+@admin_required
+def loan_sale_details(sale_id):
+    """View loan sale details"""
+    loan_car = LoanCar.query.get_or_404(sale_id)
+    car = Car.query.get_or_404(loan_car.car_id)
+    
+    return render_template('admin/loan_details.html', 
+                         loan_car=loan_car, 
+                         car=car)

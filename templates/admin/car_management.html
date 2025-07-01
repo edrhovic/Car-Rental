@@ -85,9 +85,16 @@
                                         <td>{{ car.id }}</td>
                                         <td>
                                             {% if car.image_url %}
-                                            <img src="{{ car.image_url }}" alt="{{ car.make }} {{ car.model }}" class="img-thumbnail" style="width: 80px; height: 60px; object-fit: cover;">
+                                            <img src="{{ car.image_url }}" 
+                                                alt="{{ car.make }} {{ car.model }}" 
+                                                class="img-thumbnail" 
+                                                style="width: 80px; height: 60px; object-fit: cover;"
+                                                loading="lazy">
                                             {% else %}
-                                            <img src="{{ url_for('static', filename='images/car-placeholder.jpg') }}" alt="Car Placeholder" class="img-thumbnail" style="width: 80px; height: 60px; object-fit: cover;">
+                                            <img src="https://via.placeholder.com/80x60/e9ecef/6c757d?text=No+Image" 
+                                                alt="Car Placeholder" 
+                                                class="img-thumbnail" 
+                                                style="width: 80px; height: 60px; object-fit: cover;">
                                             {% endif %}
                                         </td>
                                         <td>

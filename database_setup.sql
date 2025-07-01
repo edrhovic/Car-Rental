@@ -2,6 +2,23 @@
 CREATE DATABASE IF NOT EXISTS jdm_car_rentals;
 USE jdm_car_rentals;
 
+-- Create Loan Cars Table
+CREATE TABLE IF NOT EXISTS loan_cars (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    car_id INT NOT NULL,
+    loan_sale_price FLOAT NOT NULL,
+    is_sold_via_loan BOOLEAN DEFAULT FALSE,
+    date_offered DATETIME DEFAULT CURRENT_TIMESTAMP,
+    date_sold DATETIME,
+    loan_system_id VARCHAR(50),
+    commission_rate FLOAT DEFAULT 5.0,
+    status VARCHAR(20) DEFAULT 'available',
+    offered_by INT NOT NULL,
+    FOREIGN KEY (car_id) REFERENCES cars(id),
+    FOREIGN KEY (offered_by) REFERENCES users(id)
+);
+
+
 -- Create Users Table
 CREATE TABLE IF NOT EXISTS users (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -124,17 +141,6 @@ CREATE TABLE IF NOT EXISTS notifications (
 );
 
 -- Create an admin user
-INSERT INTO users (username, email, password_hash, first_name, last_name, phone_number, address, driver_license, date_of_birth, is_admin)
-VALUES ('admin', 'admin@jdmcarrentals.com', 'pbkdf2:sha256:600000$CIAhXbFKI2mXH3wG$9e8b51ccdcbb92daf6a2a82ff4dfcfafe91c979f62236e95f44c87d6f3db3c27', 'Admin', 'User', '555-123-4567', '123 Admin St', 'ADMIN123', '1990-01-01', TRUE);
-
--- Insert sample cars
-INSERT INTO cars (make, model, year, color, license_plate, vin, daily_rate, transmission, fuel_type, seats, description, is_available)
-VALUES 
-('Toyota', 'Supra MK4', 1998, 'Red', 'JDM-001', 'JT2JA82J6W0012345', 150.00, 'Manual', 'Gasoline', 2, 'Iconic JDM sports car with twin-turbo engine', TRUE),
-('Nissan', 'Skyline GT-R R34', 1999, 'Bayside Blue', 'JDM-002', 'BNR34-000789', 200.00, 'Manual', 'Gasoline', 4, 'Legendary Godzilla R34 GT-R with all-wheel drive', TRUE),
-('Mazda', 'RX-7 FD', 1995, 'Yellow', 'JDM-003', 'JM1FD3318P0200456', 125.00, 'Manual', 'Gasoline', 2, 'Rotary-powered sports car with sequential twin turbochargers', TRUE),
-('Honda', 'NSX', 1997, 'Black', 'JDM-004', 'JH4NA1157VT000789', 175.00, 'Manual', 'Gasoline', 2, 'Mid-engine supercar developed with input from Ayrton Senna', TRUE),
-('Subaru', 'Impreza WRX STI', 2004, 'World Rally Blue', 'JDM-005', 'JF1GD70645L012345', 100.00, 'Manual', 'Gasoline', 5, 'Rally-inspired AWD performance sedan', TRUE);
 
 -- Insert default page contents
 INSERT INTO page_contents (page_name, title, content, last_updated_by)

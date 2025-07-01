@@ -23,6 +23,11 @@
                             <i class="fas fa-car me-2"></i>
                             Car Management
                         </a>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'admin.manage_loan_cars' %}active{% endif %}" href="{{ url_for('admin.manage_loan_cars') }}">
+                            <i class="fas fa-envelope me-2"></i>
+                            Manage Cars for Loan
+                        </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('admin.booking_list') }}">
@@ -30,6 +35,7 @@
                             Bookings
                         </a>
                     </li>
+                
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('admin.user_list') }}">
                             <i class="fas fa-users me-2"></i>
@@ -199,7 +205,7 @@
                             <div class="col-md-6 mb-3">
                                 <label class="form-label">Preview</label>
                                 <div class="border rounded p-2 text-center" style="height: 200px; background-color: #f8f9fa;">
-                                    <img id="image_preview" src="/static/img/car-placeholder.jpg" class="img-fluid" style="max-height: 180px;" alt="Car preview">
+                                    <img id="image_preview" src="https://via.placeholder.com/300x180/e9ecef/6c757d?text=Car+Preview" class="img-fluid" style="max-height: 180px;" alt="Car preview">
                                 </div>
                             </div>
                         </div>

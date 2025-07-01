@@ -1,18 +1,20 @@
-
-
+<!-- Mobile Toggle Button -->
 <button class="btn btn-outline-info d-md-none end-0 m-3" type="button"
         data-bs-toggle="collapse" data-bs-target="#sidebarMenu" style="max-width: 10%; position: fixed;"
         aria-controls="sidebarMenu" aria-expanded="false" aria-label="Toggle navigation">
     <i class="fas fa-bars"></i>
 </button>
 
-
-<nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block bg-dark sidebar collapse vh-100 overflow-auto">
+<!-- Sidebar Navigation -->
+<nav id="sidebarMenu" class="col-md-4 col-lg-2 d-md-block bg-dark sidebar collapse vh-100 overflow-auto">
     <div class="position-sticky pt-4">
-        <div class="d-flex align-items-center justify-content-center mb-4">
+        <div class="d-flex align-items-center justify-content-center mb-4\">
             <h4 class="text-white mb-0" style="font-size: 1.5rem; padding: 0.5rem 0;">JDM Admin Panel</h4>
         </div>
 
+        <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-2 text-white">
+            <span>Content</span>
+        </h6>
 
         <ul class="nav flex-column">
             <li class="nav-item">
@@ -22,9 +24,15 @@
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link {% if 'car' in request.endpoint %}active{% endif %}" href="{{ url_for('admin.car_list') }}">
+                <a class="nav-link {% if request.endpoint == 'admin.car_list' %}active{% endif %}" href="{{ url_for('admin.car_list') }}">
                     <i class="fas fa-car me-2"></i>
                     Car Management
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if request.endpoint == 'admin.manage_loan_cars' %}active{% endif %}" href="{{ url_for('admin.manage_loan_cars') }}">
+                    <i class="fas fa-envelope me-2"></i>
+                    Manage Cars for Loan
                 </a>
             </li>
             <li class="nav-item">
@@ -59,9 +67,6 @@
             </li>
         </ul>
         
-        <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-2 text-white">
-            <span>Content</span>
-        </h6>
         <ul class="nav flex-column">
             <li class="nav-item">
                 <a class="nav-link {% if request.endpoint == 'admin.edit_about_us' %}active{% endif %}" href="{{ url_for('admin.edit_about_us') }}">
@@ -83,4 +88,4 @@
             </li>
         </ul>
     </div>
-</nav> 
+</nav>

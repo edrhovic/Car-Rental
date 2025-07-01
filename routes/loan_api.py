@@ -4,6 +4,7 @@ from models import db
 from models.loan_car import LoanCar
 from models.car import Car
 
+# Fixed Blueprint declaration
 loan_api = Blueprint('loan_api', __name__, url_prefix='/api/loan')
 
 @loan_api.route('/available-cars', methods=['GET'])
@@ -11,6 +12,7 @@ loan_api = Blueprint('loan_api', __name__, url_prefix='/api/loan')
 def get_available_cars():
     """API endpoint for loan management system to fetch available cars"""
     try:
+        # Add error handling for database connection
         loan_cars = db.session.query(LoanCar, Car).join(Car).filter(
             LoanCar.status == 'available'
         ).all()
@@ -25,8 +27,8 @@ def get_available_cars():
                 'year': car.year,
                 'color': car.color,
                 'license_plate': car.license_plate,
-                'loan_sale_price': loan_car.loan_sale_price,
-                'commission_rate': loan_car.commission_rate,
+                'loan_sale_price': float(loan_car.loan_sale_price),
+                'commission_rate': float(loan_car.commission_rate),
                 'date_offered': loan_car.date_offered.isoformat(),
                 'description': car.description,
                 'image_url': car.image_url
@@ -37,6 +39,12 @@ def get_available_cars():
             'cars': cars_data,
             'total': len(cars_data)
         })
+        
     except Exception as e:
-        return jsonify({'success': False, 'error': str(e)}), 500
-    
+        # Log the error for debugging
+        print(f"Error in get_available_cars: {str(e)}")
+        return jsonify({
+            'success': False, 
+            'error': 'Failed to fetch available cars',
+            'message': str(e)
+        }), 500

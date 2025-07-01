@@ -26,40 +26,40 @@ class LoanCar(db.Model):
         return f"<LoanCar CarID={self.car_id}, Price={self.loan_sale_price}, Status={self.status}>"
     
 
-# class LoanSale(db.Model):
-#     __tablename__ = 'loan_sales'
+class LoanSale(db.Model):
+    __tablename__ = 'loan_sales'
     
-#     id = db.Column(db.Integer, primary_key=True)
-#     loan_car_id = db.Column(db.Integer, db.ForeignKey('loan_cars.id'), nullable=False)
-#     customer_name = db.Column(db.String(100), nullable=False)
-#     customer_email = db.Column(db.String(120), nullable=False)
-#     loan_amount = db.Column(db.Float, nullable=False)
-#     loan_term_months = db.Column(db.Integer, nullable=False)
-#     monthly_payment = db.Column(db.Float, nullable=False)
-#     sale_date = db.Column(db.DateTime, default=datetime.utcnow)
-#     loan_system_reference = db.Column(db.String(100), nullable=True)
+    id = db.Column(db.Integer, primary_key=True)
+    loan_car_id = db.Column(db.Integer, db.ForeignKey('loan_cars.id'), nullable=False)
+    customer_name = db.Column(db.String(100), nullable=False)
+    customer_email = db.Column(db.String(120), nullable=False)
+    loan_amount = db.Column(db.Float, nullable=False)
+    loan_term_months = db.Column(db.Integer, nullable=False)
+    monthly_payment = db.Column(db.Float, nullable=False)
+    sale_date = db.Column(db.DateTime, default=datetime.utcnow)
+    loan_system_reference = db.Column(db.String(100), nullable=True)
     
-#     # Commission tracking
-#     total_commission_expected = db.Column(db.Float, nullable=False)
-#     commission_received = db.Column(db.Float, default=0.0)
-#     last_commission_payment = db.Column(db.DateTime, nullable=True)
+    # Commission tracking
+    total_commission_expected = db.Column(db.Float, nullable=False)
+    commission_received = db.Column(db.Float, default=0.0)
+    last_commission_payment = db.Column(db.DateTime, nullable=True)
     
-#     def __repr__(self):
-#         return f"<LoanSale {self.id} - {self.customer_name}>"
+    def __repr__(self):
+        return f"<LoanSale {self.id} - {self.customer_name}>"
     
 
-# class LoanCommission(db.Model):
-#     __tablename__ = 'loan_commissions'
+class LoanCommission(db.Model):
+    __tablename__ = 'loan_commissions'
     
-#     id = db.Column(db.Integer, primary_key=True)
-#     loan_sale_id = db.Column(db.Integer, db.ForeignKey('loan_sales.id'), nullable=False)
-#     payment_date = db.Column(db.DateTime, default=datetime.utcnow)
-#     amount = db.Column(db.Float, nullable=False)
-#     payment_month = db.Column(db.String(7), nullable=False)  # YYYY-MM format
-#     loan_system_reference = db.Column(db.String(100), nullable=True)
+    id = db.Column(db.Integer, primary_key=True)
+    loan_sale_id = db.Column(db.Integer, db.ForeignKey('loan_sales.id'), nullable=False)
+    payment_date = db.Column(db.DateTime, default=datetime.utcnow)
+    amount = db.Column(db.Float, nullable=False)
+    payment_month = db.Column(db.String(7), nullable=False)  # YYYY-MM format
+    loan_system_reference = db.Column(db.String(100), nullable=True)
     
-#     # Relationship
-#     loan_sale = db.relationship('LoanSale', backref='commission_payments', lazy=True)
+    # Relationship
+    loan_sale = db.relationship('LoanSale', backref='commission_payments', lazy=True)
     
-#     def __repr__(self):
-#         return f"<LoanCommission {self.id} - ${self.amount}>"
+    def __repr__(self):
+        return f"<LoanCommission {self.id} - ${self.amount}>"
