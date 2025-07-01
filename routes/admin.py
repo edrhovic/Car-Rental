@@ -2737,7 +2737,6 @@ def reject_car_return(booking_id):
         )
         db.session.add(damage_payment)
         
-        # Create notification for the user about the rejected return and damage charges
         from models.notification import Notification
         user = User.query.get(booking.user_id)
         user_name = f"{user.first_name} {user.last_name}"
@@ -2750,7 +2749,6 @@ def reject_car_return(booking_id):
             booking_reference=booking.get_reference()
         )
         
-        # Create admin notifications
         Notification.create_admin_damage_notification(
             booking_id=booking.id,
             user_name=user_name,
@@ -2759,9 +2757,8 @@ def reject_car_return(booking_id):
             booking_reference=booking.get_reference()
         )
         
-        # Keep the booking in confirmed status
-        booking.status = 'confirmed'  # Set back to confirmed status
-        booking.return_date = None  # Clear return date since it wasn't accepted
+        booking.status = 'confirmed'  
+        booking.return_date = None  
         
         db.session.commit()
         flash(f'Return rejected. Customer has been charged ₱{damage_fee:.2f} for damages.', 'success')
@@ -2770,11 +2767,6 @@ def reject_car_return(booking_id):
         flash(f'Error processing return rejection: {str(e)}', 'danger')
     
     return redirect(url_for('admin.booking_details', booking_id=booking_id))
-
-MAILGUN_DOMAIN = 'your-domain.com'  # Replace with your actual domain
-MAILGUN_SENDER = 'JDM Car Rentals <noreply@your-domain.com>'  # Replace with your domain
-
-
 
 
 @admin.route('/loan-cars')
@@ -2850,7 +2842,7 @@ def withdraw_loan_car(loan_car_id):
     try:
         loan_car = LoanCar.query.get_or_404(loan_car_id)
         loan_car.status = 'withdrawn'
-        loan_car.date_withdrawn = datetime.utcnow()  # Add this field to your model if needed
+        loan_car.date_withdrawn = datetime.utcnow() 
         db.session.commit()
         flash('Loan car withdrawn successfully!', 'success')
     except Exception as e:
