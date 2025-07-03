@@ -50,7 +50,7 @@ def get_available_cars():
         }), 500
     
 
-@loan_api.route('/cars-in-loan/<int:car_id>', methods=['GET'])
+@loan_api.route('/cars-loan-details/<int:car_id>', methods=['GET'])
 @login_required
 def get_car(car_id):
     
@@ -84,7 +84,7 @@ def get_car(car_id):
             'error': 'Failed to fetch car details'
         }), 500
     
-@loan_api.route('/loan-car-status/<int:car_id>', methods=['GET'])
+@loan_api.route('/car-loan-status/<int:car_id>', methods=['GET'])
 @login_required
 def get_status(car_id):
 
@@ -125,13 +125,15 @@ def get_status(car_id):
         
 
         data = response.json()
+        pending = data.get('pending')
         approved = data.get('approved')
         get_car_id = data.get('car_id')
 
         if(approved not in [True, False] or get_car_id != car_id):
             return jsonify({'success': False, 'error': 'Invalid response from loan management system'}), 400
-
-        loan_car.status = 'active' if approved else 'rejected'
+        
+        loan_car.status = 'approved' if approved else ('pending' if pending else 'rejected')
+        
         try:
             db.session.commit()
         except Exception as e:
