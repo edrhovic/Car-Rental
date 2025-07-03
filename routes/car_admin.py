@@ -72,7 +72,7 @@ def offer_car_for_loan():
                 flash('Car is already offered for loan', 'error')
                 return redirect(url_for('car_admin.manage_loan_cars'))
             
-            elif existing_loan_car.status in ['withdrawn', 'rejected']:
+            elif existing_loan_car.status in ['withdrawn']:
                 existing_loan_car.status = 'available'
                 existing_loan_car.loan_sale_price = loan_sale_price
                 existing_loan_car.commission_rate = commission_rate
@@ -82,7 +82,7 @@ def offer_car_for_loan():
                 loan_car_to_commit = existing_loan_car
         
         else:
-            # Create new loan car record
+
             loan_car_to_commit = LoanCar(
                 car_id=car_id,
                 loan_sale_price=loan_sale_price,
@@ -160,7 +160,7 @@ def withdraw_loan_car(loan_car_id):
             flash('Loan car not found', 'error')
             return redirect(url_for('car_admin.manage_loan_cars'))
         
-        if loan_car.status in ['pending', 'active']:
+        if loan_car.status != 'available':
             flash(f'Cannot withdraw loan car. Current status: {loan_car.status}', 'error')
             return redirect(url_for('car_admin.manage_loan_cars'))
         
