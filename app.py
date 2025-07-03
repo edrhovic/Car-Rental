@@ -199,7 +199,7 @@ from routes.booking import booking
 from routes.notification import notification_bp
 from routes.contact import contact_bp
 from routes.loan_api import loan_api
-
+from routes.car_admin import car_admin
 # Register blueprints
 # We don't need the main blueprint since it appears not to exist
 app.register_blueprint(auth)
@@ -210,7 +210,7 @@ app.register_blueprint(booking)
 app.register_blueprint(notification_bp, url_prefix='/notification', name='notification')
 app.register_blueprint(contact_bp)
 app.register_blueprint(loan_api)
-
+app.register_blueprint(car_admin)
 # Session security settings
 @app.before_request
 def before_request():

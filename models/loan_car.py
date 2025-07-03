@@ -11,10 +11,9 @@ class LoanCar(db.Model):
     date_offered = db.Column(db.DateTime, default=datetime.utcnow)
     date_sold = db.Column(db.DateTime, nullable=True)
     
-    # New fields for loan management integration
-    loan_system_id = db.Column(db.String(50), nullable=True)  # ID from loan management system
-    commission_rate = db.Column(db.Float, default=5.0)  # Commission percentage
-    status = db.Column(db.String(20), default='available')  # available, sold, withdrawn
+    loan_system_id = db.Column(db.String(50), nullable=True)
+    commission_rate = db.Column(db.Float, default=5.0)  
+    status = db.Column(db.String(20), default='offered')
     offered_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     
     # Relationships
@@ -39,7 +38,6 @@ class LoanSale(db.Model):
     sale_date = db.Column(db.DateTime, default=datetime.utcnow)
     loan_system_reference = db.Column(db.String(100), nullable=True)
     
-    # Commission tracking
     total_commission_expected = db.Column(db.Float, nullable=False)
     commission_received = db.Column(db.Float, default=0.0)
     last_commission_payment = db.Column(db.DateTime, nullable=True)

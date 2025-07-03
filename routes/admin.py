@@ -28,8 +28,6 @@ import threading
 import cloudinary
 import cloudinary.uploader
 
-admin = Blueprint('admin', __name__)
-
 cloudinary.config(
     cloud_name=os.getenv('CLOUDINARY_CLOUD_NAME'),
     api_key=os.getenv('CLOUDINARY_API_KEY'),
@@ -1118,14 +1116,22 @@ def delete_car(car_id):
         # Check if the car is currently offered on loan
         active_loan_offers = LoanCar.query.filter(
             LoanCar.car_id == car_id,
-            LoanCar.status == 'available'  # Based on your loan car system
+            LoanCar.status == 'active'  # Based on your loan car system
         ).first()
         
         if active_loan_offers:
-            flash('Cannot delete car that is currently offered for loan. Please withdraw the loan offer first.', 'danger')
+            flash('Cannot delete car that is currently active for loan.', 'danger')
             return redirect(url_for('admin.car_list'))
         
-        # Check if the car has active bookings
+        pending_loan_offer = LoanCar.query.filter(
+            LoanCar.car_id == car_id,
+            LoanCar.status == 'pending'
+        ).first()
+
+        if(pending_loan_offer):
+            flash('Cannot delete car that is currently offered for loan. Please withdraw the offer first before deleting this car.', 'danger')
+            return redirect(url_for('admin.car_list'))
+        
         active_bookings = Booking.query.filter(
             Booking.car_id == car_id,
             Booking.status.in_(['pending', 'confirmed']),
@@ -2769,95 +2775,3 @@ def reject_car_return(booking_id):
     return redirect(url_for('admin.booking_details', booking_id=booking_id))
 
 
-@admin.route('/loan-cars')
-@login_required
-@admin_required
-def manage_loan_cars():
-
-    available_cars = Car.query.filter_by(is_available=True).all()
-
-    loan_cars = db.session.query(LoanCar, Car).join(Car).all()
-
-    return render_template('admin/loan_cars.html',  
-                         available_cars=available_cars, 
-                         loan_cars=loan_cars)
-
-@admin.route('/offer-car-for-loan', methods=['POST'])
-@login_required
-@admin_required
-def offer_car_for_loan():
-    try:
-        car_id = request.form.get('car_id')
-        loan_sale_price = float(request.form.get('loan_sale_price'))
-        commission_rate = float(request.form.get('commission_rate', 5.0))
-
-        car = Car.query.get(car_id)
-        if not car or not car.is_available:
-            flash('Car not found or not available', 'error')
-            return redirect(url_for('admin.manage_loan_cars'))
-        
-        existing_offer = LoanCar.query.filter_by(car_id=car_id, status='available').first()
-        if existing_offer:
-            flash('Car is already offered for loan', 'error')
-            return redirect(url_for('admin.manage_loan_cars'))
-        
-        loan_car = LoanCar(
-            car_id=car_id,
-            loan_sale_price=loan_sale_price,
-            commission_rate=commission_rate,
-            offered_by=current_user.id
-        )
-        
-        db.session.add(loan_car)
-        db.session.commit()
-        flash(f'Car {car.make} {car.model} successfully offered for loan', 'success')
-
-    except Exception as e:
-        db.session.rollback()
-        flash(f'Error offering car for loan: {str(e)}', 'error')
-        
-    return redirect(url_for('admin.manage_loan_cars'))
-
-
-@admin.route('/update-loan-car/<int:loan_car_id>', methods=['POST'])
-@login_required
-@admin_required
-def update_loan_car(loan_car_id):
-    """API endpoint for modal updates"""
-    try:
-        loan_car = LoanCar.query.get_or_404(loan_car_id)
-        loan_car.loan_sale_price = float(request.form['loan_sale_price'])
-        loan_car.commission_rate = float(request.form['commission_rate'])
-        db.session.commit()
-        return jsonify({'success': True, 'message': 'Loan car updated successfully'})
-    except Exception as e:
-        db.session.rollback()
-        return jsonify({'success': False, 'message': str(e)}), 500
-
-@admin.route('/withdraw-loan-car/<int:loan_car_id>', methods=['POST'])
-@login_required
-@admin_required
-def withdraw_loan_car(loan_car_id):
-    """Withdraw a loan car offering"""
-    try:
-        loan_car = LoanCar.query.get_or_404(loan_car_id)
-        loan_car.status = 'withdrawn'
-        loan_car.date_withdrawn = datetime.utcnow() 
-        db.session.commit()
-        flash('Loan car withdrawn successfully!', 'success')
-    except Exception as e:
-        db.session.rollback()
-        flash(f'Error withdrawing loan car: {str(e)}', 'error')
-    return redirect(url_for('admin.manage_loan_cars'))
-
-@admin.route('/loan-sale-details/<int:sale_id>')
-@login_required
-@admin_required
-def loan_sale_details(sale_id):
-    """View loan sale details"""
-    loan_car = LoanCar.query.get_or_404(sale_id)
-    car = Car.query.get_or_404(loan_car.car_id)
-    
-    return render_template('admin/loan_details.html', 
-                         loan_car=loan_car, 
-                         car=car)
