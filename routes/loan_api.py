@@ -93,7 +93,7 @@ def get_status(car_id):
         if not loan_car:
             return jsonify({'success': False, 'error': 'LoanCar not found'}), 404
         
-        if loan_car.status != 'pending':
+        if loan_car.status != 'available':
             return jsonify({
                 'success': False, 
                 'error': f'Cannot update status. Current status: {loan_car.status}'
