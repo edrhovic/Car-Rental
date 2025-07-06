@@ -10,7 +10,12 @@
 
         <!-- Main content -->
         <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+<<<<<<< HEAD
             <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+=======
+            <div
+                class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+>>>>>>> 8a8ec6c (fixed some bugs on status, modified the api, fixed some routings, and some logics)
                 <h1 class="h2">Car Management</h1>
                 <div class="btn-toolbar mb-2 mb-md-0">
                     <div class="btn-group me-2">
@@ -25,24 +30,44 @@
             <div class="card mb-4">
                 <div class="card-header bg-light d-flex justify-content-between align-items-center">
                     <h5 class="mb-0">Search & Filter</h5>
+<<<<<<< HEAD
                     {% if search_query or request.args.get('make') or request.args.get('model') or request.args.get('year') or request.args.get('availability') or request.args.get('transmission') or request.args.get('fuel_type') %}
+=======
+                    {% if search_query or request.args.get('make') or request.args.get('model') or
+                    request.args.get('year') or request.args.get('availability') or request.args.get('transmission') or
+                    request.args.get('fuel_type') %}
+>>>>>>> 8a8ec6c (fixed some bugs on status, modified the api, fixed some routings, and some logics)
                     <a href="{{ url_for('admin.car_list') }}" class="btn btn-sm btn-outline-secondary">
                         <i class="fas fa-times me-1"></i> Clear All Filters
                     </a>
                     {% endif %}
                 </div>
                 <div class="card-body">
+<<<<<<< HEAD
                     <form id="admin-car-filter-form" method="GET" action="{{ url_for('admin.car_list') }}" class="row g-3">
                         <div class="col-md-6 mb-3">
                             <div class="input-group">
                                 <input type="text" class="form-control" placeholder="Search by make, model, license plate..." 
                                        name="search" value="{{ search_query }}">
+=======
+                    <form id="admin-car-filter-form" method="GET" action="{{ url_for('admin.car_list') }}"
+                        class="row g-3">
+                        <div class="col-md-6 mb-3">
+                            <div class="input-group">
+                                <input type="text" class="form-control"
+                                    placeholder="Search by make, model, license plate..." name="search"
+                                    value="{{ search_query }}">
+>>>>>>> 8a8ec6c (fixed some bugs on status, modified the api, fixed some routings, and some logics)
                                 <button class="btn btn-primary" type="submit">
                                     <i class="fas fa-search"></i> Search
                                 </button>
                             </div>
                         </div>
+<<<<<<< HEAD
                         
+=======
+
+>>>>>>> 8a8ec6c (fixed some bugs on status, modified the api, fixed some routings, and some logics)
                         <div class="col-md-12">
                             <div class="row">
                                 <div class="col-md-3">
@@ -50,24 +75,52 @@
                                     <select class="form-select immediate-filter" id="make" name="make">
                                         <option value="">All Makes</option>
                                         {% for make_option in available_makes %}
+<<<<<<< HEAD
                                         <option value="{{ make_option }}" {% if request.args.get('make') == make_option %}selected{% endif %}>{{ make_option }}</option>
+=======
+                                        <option value="{{ make_option }}" {% if request.args.get('make')==make_option
+                                            %}selected{% endif %}>{{ make_option }}</option>
+>>>>>>> 8a8ec6c (fixed some bugs on status, modified the api, fixed some routings, and some logics)
                                         {% endfor %}
                                     </select>
                                 </div>
                                 <div class="col-md-3">
                                     <label for="model" class="form-label">Model</label>
+<<<<<<< HEAD
                                     <input type="text" class="form-control" id="model" name="model" value="{{ request.args.get('model', '') }}">
                                 </div>
                                 <div class="col-md-2">
                                     <label for="year" class="form-label">Year</label>
                                     <input type="number" class="form-control" id="year" name="year" value="{{ request.args.get('year', '') }}">
+=======
+                                    <input type="text" class="form-control" id="model" name="model"
+                                        value="{{ request.args.get('model', '') }}">
+                                </div>
+                                <div class="col-md-2">
+                                    <label for="year" class="form-label">Year</label>
+                                    <input type="number" class="form-control" id="year" name="year"
+                                        value="{{ request.args.get('year', '') }}">
+>>>>>>> 8a8ec6c (fixed some bugs on status, modified the api, fixed some routings, and some logics)
                                 </div>
                                 <div class="col-md-2">
                                     <label for="availability" class="form-label">Availability</label>
                                     <select class="form-select immediate-filter" id="availability" name="availability">
                                         <option value="">All</option>
+<<<<<<< HEAD
                                         <option value="available" {% if request.args.get('availability') == 'available' %}selected{% endif %}>Available</option>
                                         <option value="rented" {% if request.args.get('availability') == 'rented' %}selected{% endif %}>Rented</option>
+=======
+                                        <option value="available" {% if request.args.get('availability')=='available'
+                                            %}selected{% endif %}>Available</option>
+                                        <option value="rented" {% if request.args.get('availability')=='rented'
+                                            %}selected{% endif %}>Rented</option>
+                                        <option value="maintenance" {% if
+                                            request.args.get('availability')=='maintenance' %}selected{% endif %}>In
+                                            Maintenance</option>
+                                        <option value="offered_for_loan" {% if
+                                            request.args.get('availability')=='offered_for_loan' %}selected{% endif %}>
+                                            Offered for Loan</option>
+>>>>>>> 8a8ec6c (fixed some bugs on status, modified the api, fixed some routings, and some logics)
                                     </select>
                                 </div>
                                 <div class="col-md-2">
@@ -75,13 +128,23 @@
                                     <select class="form-select immediate-filter" id="transmission" name="transmission">
                                         <option value="">All</option>
                                         {% for transmission_option in available_transmissions %}
+<<<<<<< HEAD
                                         <option value="{{ transmission_option }}" {% if request.args.get('transmission') == transmission_option %}selected{% endif %}>{{ transmission_option }}</option>
+=======
+                                        <option value="{{ transmission_option }}" {% if
+                                            request.args.get('transmission')==transmission_option %}selected{% endif %}>
+                                            {{ transmission_option }}</option>
+>>>>>>> 8a8ec6c (fixed some bugs on status, modified the api, fixed some routings, and some logics)
                                         {% endfor %}
                                     </select>
                                 </div>
                             </div>
                         </div>
+<<<<<<< HEAD
                         
+=======
+
+>>>>>>> 8a8ec6c (fixed some bugs on status, modified the api, fixed some routings, and some logics)
                         <div class="col-md-12">
                             <div class="row">
                                 <div class="col-md-3">
@@ -89,19 +152,40 @@
                                     <select class="form-select immediate-filter" id="fuel_type" name="fuel_type">
                                         <option value="">All</option>
                                         {% for fuel_type_option in available_fuel_types %}
+<<<<<<< HEAD
                                         <option value="{{ fuel_type_option }}" {% if request.args.get('fuel_type') == fuel_type_option %}selected{% endif %}>{{ fuel_type_option }}</option>
+=======
+                                        <option value="{{ fuel_type_option }}" {% if
+                                            request.args.get('fuel_type')==fuel_type_option %}selected{% endif %}>{{
+                                            fuel_type_option }}</option>
+>>>>>>> 8a8ec6c (fixed some bugs on status, modified the api, fixed some routings, and some logics)
                                         {% endfor %}
                                     </select>
                                 </div>
                                 <div class="col-md-3">
                                     <label for="sort" class="form-label">Sort By</label>
                                     <select class="form-select immediate-filter" id="sort" name="sort">
+<<<<<<< HEAD
                                         <option value="id_desc" {% if current_sort == 'id_desc' %}selected{% endif %}>Newest First</option>
                                         <option value="id_asc" {% if current_sort == 'id_asc' %}selected{% endif %}>Oldest First</option>
                                         <option value="price_asc" {% if current_sort == 'price_asc' %}selected{% endif %}>Price: Low to High</option>
                                         <option value="price_desc" {% if current_sort == 'price_desc' %}selected{% endif %}>Price: High to Low</option>
                                         <option value="year_desc" {% if current_sort == 'year_desc' %}selected{% endif %}>Year: Newest</option>
                                         <option value="year_asc" {% if current_sort == 'year_asc' %}selected{% endif %}>Year: Oldest</option>
+=======
+                                        <option value="id_desc" {% if current_sort=='id_desc' %}selected{% endif %}>
+                                            Newest First</option>
+                                        <option value="id_asc" {% if current_sort=='id_asc' %}selected{% endif %}>Oldest
+                                            First</option>
+                                        <option value="price_asc" {% if current_sort=='price_asc' %}selected{% endif %}>
+                                            Price: Low to High</option>
+                                        <option value="price_desc" {% if current_sort=='price_desc' %}selected{% endif
+                                            %}>Price: High to Low</option>
+                                        <option value="year_desc" {% if current_sort=='year_desc' %}selected{% endif %}>
+                                            Year: Newest</option>
+                                        <option value="year_asc" {% if current_sort=='year_asc' %}selected{% endif %}>
+                                            Year: Oldest</option>
+>>>>>>> 8a8ec6c (fixed some bugs on status, modified the api, fixed some routings, and some logics)
                                     </select>
                                 </div>
                                 <div class="col-md-6 d-flex align-items-end">
@@ -119,12 +203,18 @@
             </div>
 
             <!-- Active Filters -->
+<<<<<<< HEAD
             <div id="active-filters-container" class="mb-4 {% if not search_query and not request.args.get('make') and not request.args.get('model') and not request.args.get('year') and not request.args.get('availability') and not request.args.get('transmission') and not request.args.get('fuel_type') %}d-none{% endif %}">
+=======
+            <div id="active-filters-container"
+                class="mb-4 {% if not search_query and not request.args.get('make') and not request.args.get('model') and not request.args.get('year') and not request.args.get('availability') and not request.args.get('transmission') and not request.args.get('fuel_type') %}d-none{% endif %}">
+>>>>>>> 8a8ec6c (fixed some bugs on status, modified the api, fixed some routings, and some logics)
                 <h6>Active Filters:</h6>
                 <div>
                     {% if search_query %}
                     <span class="badge bg-primary me-2">Search: {{ search_query }}</span>
                     {% endif %}
+<<<<<<< HEAD
                     
                     {% if request.args.get('make') %}
                     <span class="badge bg-primary me-2">Make: {{ request.args.get('make') }}</span>
@@ -148,6 +238,36 @@
                     <span class="badge bg-primary me-2">Transmission: {{ request.args.get('transmission') }}</span>
                     {% endif %}
                     
+=======
+
+                    {% if request.args.get('make') %}
+                    <span class="badge bg-primary me-2">Make: {{ request.args.get('make') }}</span>
+                    {% endif %}
+
+                    {% if request.args.get('model') %}
+                    <span class="badge bg-primary me-2">Model: {{ request.args.get('model') }}</span>
+                    {% endif %}
+
+                    {% if request.args.get('year') %}
+                    <span class="badge bg-primary me-2">Year: {{ request.args.get('year') }}</span>
+                    {% endif %}
+                    {% if request.args.get('availability') %}
+                        {% if request.args.get('availability') == 'available' %}
+                        <span class="badge bg-success">Status: Available</span>
+                        {% elif request.args.get('availability') == 'rented' %}
+                        <span class="badge bg-warning ">Status: Rented</span>
+                        {% elif request.args.get('availability') == 'maintenance' %}
+                        <span class="badge bg-danger">Status: Maintenance</span>
+                        {% elif request.args.get('availability') == 'offered_for_loan' %}
+                        <span class="badge bg-info">Status: Offered for Loan</span>
+                        {% endif %}
+                    {% endif %}
+
+                    {% if request.args.get('transmission') %}
+                    <span class="badge bg-primary me-2">Transmission: {{ request.args.get('transmission') }}</span>
+                    {% endif %}
+
+>>>>>>> 8a8ec6c (fixed some bugs on status, modified the api, fixed some routings, and some logics)
                     {% if request.args.get('fuel_type') %}
                     <span class="badge bg-primary me-2">Fuel Type: {{ request.args.get('fuel_type') }}</span>
                     {% endif %}
@@ -158,20 +278,37 @@
             <div class="card">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h5 id="filter-stats" class="card-title mb-0">
+<<<<<<< HEAD
                         {% if search_query or request.args.get('make') or request.args.get('model') or request.args.get('year') or request.args.get('availability') or request.args.get('transmission') or request.args.get('fuel_type') %}
                             Filtered Cars ({{ cars|length }})
                         {% else %}
                             All Cars ({{ cars|length }})
+=======
+                        {% if search_query or request.args.get('make') or request.args.get('model') or
+                        request.args.get('year') or request.args.get('availability') or request.args.get('transmission')
+                        or request.args.get('fuel_type') %}
+                        Filtered Cars ({{ cars|length }})
+                        {% else %}
+                        All Cars ({{ cars|length }})
+>>>>>>> 8a8ec6c (fixed some bugs on status, modified the api, fixed some routings, and some logics)
                         {% endif %}
                     </h5>
                     <div>
                         <small id="car-count-display" class="text-muted">
                             {% if cars|length == 0 %}
+<<<<<<< HEAD
                                 No cars found
                             {% elif cars|length == 1 %}
                                 Showing 1 car
                             {% else %}
                                 Showing {{ cars|length }} cars
+=======
+                            No cars found
+                            {% elif cars|length == 1 %}
+                            Showing 1 car
+                            {% else %}
+                            Showing {{ cars|length }} cars
+>>>>>>> 8a8ec6c (fixed some bugs on status, modified the api, fixed some routings, and some logics)
                             {% endif %}
                         </small>
                     </div>
@@ -199,33 +336,65 @@
                                         <div class="d-flex align-items-center">
                                             <div class="car-thumbnail me-2">
                                                 {% if car.image_url %}
+<<<<<<< HEAD
                                                 <img src="{{ car.image_url }}" alt="{{ car.make }} {{ car.model }}" width="50">
+=======
+                                                <img src="{{ car.image_url }}" alt="{{ car.make }} {{ car.model }}"
+                                                    width="50">
+>>>>>>> 8a8ec6c (fixed some bugs on status, modified the api, fixed some routings, and some logics)
                                                 {% else %}
                                                 <div class="placeholder-thumbnail"><i class="fas fa-car"></i></div>
                                                 {% endif %}
                                             </div>
                                             <div>
                                                 <strong>{{ car.make }} {{ car.model }}</strong><br>
+<<<<<<< HEAD
                                                 <small class="text-muted">{{ car.transmission }} - {{ car.fuel_type }}</small>
+=======
+                                                <small class="text-muted">{{ car.transmission }} - {{ car.fuel_type
+                                                    }}</small>
+>>>>>>> 8a8ec6c (fixed some bugs on status, modified the api, fixed some routings, and some logics)
                                             </div>
                                         </div>
                                     </td>
                                     <td>{{ car.year }}</td>
                                     <td>{{ car.license_plate }}</td>
                                     <td>
+<<<<<<< HEAD
                                         {% if car.is_available %}
                                         <span class="badge bg-success">Available</span>
                                         {% else %}
                                         <span class="badge bg-danger">Rented</span>
+=======
+                                        {% if car.status == 'available' %}
+                                        <span class="badge bg-success">Available</span>
+                                        {% elif car.status == 'rented' %}
+                                        <span class="badge bg-danger">Rented</span>
+                                        {% elif car.status == 'maintenance' %}
+                                        <span class="badge bg-secondary">In Maintenance</span>
+                                        {% elif car.status == 'offered_for_loan' %}
+                                        <span class="badge bg-info">Offered for Loan</span>
+                                        {% else %}
+                                        <span class="badge bg-dark">Unavailable</span>
+>>>>>>> 8a8ec6c (fixed some bugs on status, modified the api, fixed some routings, and some logics)
                                         {% endif %}
                                     </td>
                                     <td>₱{{ "%.2f"|format(car.daily_rate) }}</td>
                                     <td>
                                         <div class="btn-group">
+<<<<<<< HEAD
                                             <a href="{{ url_for('car.car_details', car_id=car.id) }}" class="btn btn-sm btn-outline-primary">
                                                 <i class="fas fa-eye"></i>
                                             </a>
                                             <a href="{{ url_for('admin.edit_car', car_id=car.id) }}" class="btn btn-sm btn-outline-secondary">
+=======
+                                            <a href="{{ url_for('car.car_details', car_id=car.id) }}"
+                                                class="btn btn-sm btn-outline-primary">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <a href="{{ url_for('admin.edit_car', car_id=car.id) }}"
+                                                class="btn btn-sm btn-outline-secondary">
+>>>>>>> 8a8ec6c (fixed some bugs on status, modified the api, fixed some routings, and some logics)
                                                 <i class="fas fa-edit"></i>
                                             </a>
                                         </div>
@@ -240,7 +409,12 @@
                         <i class="fas fa-car fa-3x mb-3 text-muted"></i>
                         <h4>No cars found</h4>
                         <p class="mb-0">Try adjusting your filters or search term.</p>
+<<<<<<< HEAD
                         <a href="{{ url_for('admin.car_list') }}" class="btn btn-outline-primary mt-3 clear-filters-btn">Reset Filters</a>
+=======
+                        <a href="{{ url_for('admin.car_list') }}"
+                            class="btn btn-outline-primary mt-3 clear-filters-btn">Reset Filters</a>
+>>>>>>> 8a8ec6c (fixed some bugs on status, modified the api, fixed some routings, and some logics)
                     </div>
                     {% endif %}
                 </div>
@@ -274,4 +448,8 @@
 
 {% block scripts %}
 <script src="{{ url_for('static', filename='js/admin-car-filters.js') }}"></script>
+<<<<<<< HEAD
 {% endblock %} 
+=======
+{% endblock %}
+>>>>>>> 8a8ec6c (fixed some bugs on status, modified the api, fixed some routings, and some logics)

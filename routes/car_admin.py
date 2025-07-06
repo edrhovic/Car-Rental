@@ -41,7 +41,11 @@ def admin_required(f):
 @admin_required
 def manage_loan_cars():
 
+<<<<<<< HEAD
     available_cars = Car.query.filter_by(is_available=True).all()
+=======
+    available_cars = Car.query.filter_by(is_available=True, status= 'available').all()
+>>>>>>> 8a8ec6c (fixed some bugs on status, modified the api, fixed some routings, and some logics)
 
     loan_cars = db.session.query(LoanCar, Car).join(Car).filter(
         LoanCar.status.in_(['pending', 'active', 'available'])
@@ -61,7 +65,11 @@ def offer_car_for_loan():
         commission_rate = float(request.form.get('commission_rate', 30.0))
 
         car = Car.query.get(car_id)
+<<<<<<< HEAD
         if not car or not car.is_available:
+=======
+        if not car or not car.is_available or car.status != 'available':
+>>>>>>> 8a8ec6c (fixed some bugs on status, modified the api, fixed some routings, and some logics)
             flash('Car not found or not available', 'error')
             return redirect(url_for('car_admin.manage_loan_cars'))
         
@@ -80,6 +88,11 @@ def offer_car_for_loan():
                 existing_loan_car.date_withdrawn = None
                 existing_loan_car.offered_by = current_user.id
                 loan_car_to_commit = existing_loan_car
+<<<<<<< HEAD
+=======
+                car.status = 'offered_for_loan'
+                car.is_available = False
+>>>>>>> 8a8ec6c (fixed some bugs on status, modified the api, fixed some routings, and some logics)
         
         else:
 
@@ -92,6 +105,11 @@ def offer_car_for_loan():
                 date_offered=datetime.utcnow()
             )
             db.session.add(loan_car_to_commit)
+<<<<<<< HEAD
+=======
+            car.status = 'offered_for_loan'
+            car.is_available = False
+>>>>>>> 8a8ec6c (fixed some bugs on status, modified the api, fixed some routings, and some logics)
 
         db.session.commit()
         flash(f'Car {car.make} {car.model} successfully offered for loan', 'success')
@@ -155,17 +173,31 @@ def withdraw_loan_car(loan_car_id):
     """Withdraw a loan car offering"""
     try:
         loan_car = LoanCar.query.get(loan_car_id)
+<<<<<<< HEAD
+=======
+ 
+>>>>>>> 8a8ec6c (fixed some bugs on status, modified the api, fixed some routings, and some logics)
         
         if not loan_car:
             flash('Loan car not found', 'error')
             return redirect(url_for('car_admin.manage_loan_cars'))
         
+<<<<<<< HEAD
+=======
+        car = Car.query.get(loan_car.car_id)
+        
+>>>>>>> 8a8ec6c (fixed some bugs on status, modified the api, fixed some routings, and some logics)
         if loan_car.status != 'available':
             flash(f'Cannot withdraw loan car. Current status: {loan_car.status}', 'error')
             return redirect(url_for('car_admin.manage_loan_cars'))
         
         loan_car.status = 'withdrawn'
         loan_car.date_withdrawn = datetime.utcnow()
+<<<<<<< HEAD
+=======
+        car.status = 'available'
+        car.is_available = True
+>>>>>>> 8a8ec6c (fixed some bugs on status, modified the api, fixed some routings, and some logics)
 
         try:
             db.session.commit()

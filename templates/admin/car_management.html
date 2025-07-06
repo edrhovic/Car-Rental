@@ -40,6 +40,10 @@
                                     <option value="available" {% if request.args.get('status') == 'available' %}selected{% endif %}>Available</option>
                                     <option value="rented" {% if request.args.get('status') == 'rented' %}selected{% endif %}>Rented</option>
                                     <option value="maintenance" {% if request.args.get('status') == 'maintenance' %}selected{% endif %}>Maintenance</option>
+<<<<<<< HEAD
+=======
+                                    <option value="offered for loan" {% if request.args.get('status') == 'offered for loan' %}selected{% endif %}>Offered for Loan</option>
+>>>>>>> 8a8ec6c (fixed some bugs on status, modified the api, fixed some routings, and some logics)
                                 </select>
                             </div>
                             <div class="col-md-3 mb-3">
@@ -111,6 +115,13 @@
                                             <span class="badge bg-warning">Rented</span>
                                             {% elif car.status == 'maintenance' %}
                                             <span class="badge bg-danger">Maintenance</span>
+<<<<<<< HEAD
+=======
+                                            {% elif car.status == 'offered_for_loan' %}
+                                            <span class="badge bg-info">Offered for Loan</span>
+                                            {% else %}
+                                            <span class="badge bg-secondary">Unavailable</span>
+>>>>>>> 8a8ec6c (fixed some bugs on status, modified the api, fixed some routings, and some logics)
                                             {% endif %}
                                         </td>
                                         <td>

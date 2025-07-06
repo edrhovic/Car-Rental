@@ -16,9 +16,19 @@ class Car(db.Model):
     transmission = db.Column(db.String(20), nullable=False)
     fuel_type = db.Column(db.String(20), nullable=False)
     seats = db.Column(db.Integer, nullable=False)
+<<<<<<< HEAD
     description = db.Column(db.Text)
     image_url = db.Column(db.String(255))
     is_available = db.Column(db.Boolean, default=True)
+=======
+    horsepower = db.Column(db.Integer, nullable=False, default=150)  # Horsepower of the car
+    mileage = db.Column(db.Integer, nullable=False, default=0)  # in kilometers
+    body_type = db.Column(db.String(20), nullable=False, default='SEDAN')  # e.g., 'sedan', 'SUV', 'hatchback'
+    description = db.Column(db.Text)
+    image_url = db.Column(db.String(255))
+    is_available = db.Column(db.Boolean, default=True)
+    status = db.Column(db.String(20), default='available')  # e.g., 'available', 'booked', 'maintenance', 'offered for loan
+>>>>>>> 8a8ec6c (fixed some bugs on status, modified the api, fixed some routings, and some logics)
     date_added = db.Column(db.DateTime, default=datetime.utcnow)
     
     # Relationships

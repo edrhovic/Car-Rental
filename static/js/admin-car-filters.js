@@ -252,9 +252,19 @@ document.addEventListener('DOMContentLoaded', function() {
                     <td>${car.year}</td>
                     <td>${car.license_plate}</td>
                     <td>
+<<<<<<< HEAD
                         ${car.is_available ? 
                             `<span class="badge bg-success">Available</span>` : 
                             `<span class="badge bg-danger">Rented</span>`
+=======
+                        ${car.status === 'available' ?
+                            `<span class="badge bg-success">Available</span>` :
+                            car.status === 'rented' ?
+                            `<span class="badge bg-warning">Rented</span>` :
+                            car.status === 'maintenance' ?
+                            `<span class="badge bg-secondary">In Maintenance</span>` :
+                            `<span class="badge bg-info">Offered for Loan</span>`
+>>>>>>> 8a8ec6c (fixed some bugs on status, modified the api, fixed some routings, and some logics)
                         }
                     </td>
                     <td>₱${car.daily_rate}</td>

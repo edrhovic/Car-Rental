@@ -854,10 +854,16 @@ def car_list():
     if year:
         query = query.filter(Car.year == year)
     
+<<<<<<< HEAD
     if availability == 'available':
         query = query.filter(Car.is_available == True)
     elif availability == 'rented':
         query = query.filter(Car.is_available == False)
+=======
+    # Replace the availability filtering section with:
+    if availability:
+        query = query.filter(Car.status == availability)
+>>>>>>> 8a8ec6c (fixed some bugs on status, modified the api, fixed some routings, and some logics)
     
     if transmission:
         query = query.filter(Car.transmission == transmission)
@@ -921,7 +927,15 @@ def add_car():
         fuel_type = request.form.get('fuel_type')
         seats = request.form.get('seats')
         description = request.form.get('description')
+<<<<<<< HEAD
         image_url = request.form.get('image_url')
+=======
+        horsepower = request.form.get('horsepower')
+        mileage = request.form.get('mileage')
+        body_type = request.form.get('body_type')
+        image_url = request.form.get('image_url')
+        status = request.form.get('status', 'available') 
+>>>>>>> 8a8ec6c (fixed some bugs on status, modified the api, fixed some routings, and some logics)
         
         # Validate fields
         errors = []
@@ -980,8 +994,17 @@ def add_car():
                 fuel_type=fuel_type,
                 seats=seats,
                 description=description,
+<<<<<<< HEAD
                 image_url=image_url,  # Store Cloudinary URL in database
                 is_available=True
+=======
+                horsepower=horsepower,
+                mileage=mileage,
+                body_type=body_type,
+                image_url=image_url,  # Store Cloudinary URL in database
+                is_available=(status == 'available'),  # Default availability
+                status='available'  # Default status
+>>>>>>> 8a8ec6c (fixed some bugs on status, modified the api, fixed some routings, and some logics)
             )
             
             db.session.add(new_car)
@@ -1015,6 +1038,12 @@ def edit_car(car_id):
         fuel_type = request.form.get('fuel_type')
         seats = request.form.get('seats')
         description = request.form.get('description')
+<<<<<<< HEAD
+=======
+        horsepower = request.form.get('horsepower')
+        mileage = request.form.get('mileage')
+        body_type = request.form.get('body_type')
+>>>>>>> 8a8ec6c (fixed some bugs on status, modified the api, fixed some routings, and some logics)
         
         # Validate fields
         errors = []
@@ -1056,6 +1085,22 @@ def edit_car(car_id):
             # Store old image URL for potential deletion
             old_image_url = car.image_url
             
+<<<<<<< HEAD
+=======
+            # Check if the car is currently offered on loan BEFORE making changes
+            active_loan_offers = LoanCar.query.filter(
+                LoanCar.car_id == car_id,
+                LoanCar.status.in_(['available', 'pending', 'active'])
+            ).first()
+            
+            if active_loan_offers:
+                flash('Cannot edit car that is currently offered for loan.', 'danger')
+                return redirect(url_for('admin.edit_car', car_id=car_id))
+            
+            
+                
+            
+>>>>>>> 8a8ec6c (fixed some bugs on status, modified the api, fixed some routings, and some logics)
             # Update car details
             car.make = make
             car.model = model
@@ -1068,11 +1113,31 @@ def edit_car(car_id):
             car.fuel_type = fuel_type
             car.seats = seats
             car.description = description
+<<<<<<< HEAD
+=======
+            horsepower = horsepower
+            if horsepower:
+                car.horsepower = int(horsepower)
+            mileage = mileage
+            if mileage:
+                car.mileage = int(mileage)
+            car.body_type = body_type
+            car.status = request.form.get('status')
+            
+            if car.status == 'offered_for_loan':
+                loan_offer = LoanCar.query.filter_by(car_id=car.id).first()
+                if loan_offer:
+                    loan_offer.status = 'available'
+            car.is_available = (car.status == 'available')
+>>>>>>> 8a8ec6c (fixed some bugs on status, modified the api, fixed some routings, and some logics)
             
             # Handle image URL first (will be overridden by uploaded file if present)
             image_url = request.form.get('image_url')
             new_image_uploaded = False
+<<<<<<< HEAD
             
+=======
+>>>>>>> 8a8ec6c (fixed some bugs on status, modified the api, fixed some routings, and some logics)
             # Handle image upload to Cloudinary
             if 'car_image' in request.files:
                 file = request.files['car_image']
@@ -1091,8 +1156,11 @@ def edit_car(car_id):
                 # Delete old image from Cloudinary if a new one was uploaded
                 if new_image_uploaded and old_image_url and old_image_url != image_url:
                     delete_image_from_cloudinary(old_image_url)
+<<<<<<< HEAD
                     
             car.is_available = True if request.form.get('is_available') else False
+=======
+>>>>>>> 8a8ec6c (fixed some bugs on status, modified the api, fixed some routings, and some logics)
             
             db.session.commit()
             
@@ -1239,9 +1307,22 @@ def car_list_api():
         query = query.filter(Car.year == year)
     
     if availability == 'available':
+<<<<<<< HEAD
         query = query.filter(Car.is_available == True)
     elif availability == 'rented':
         query = query.filter(Car.is_available == False)
+=======
+        query = query.filter(
+            (Car.status == 'available') & 
+            (Car.is_available == True)
+        )
+    elif availability == 'rented':
+        query = query.filter(Car.status == 'rented')
+    elif availability == 'maintenance':
+        query = query.filter(Car.status == 'maintenance')
+    elif availability == 'offered_for_loan':
+        query = query.filter(Car.status == 'offered_for_loan')
+>>>>>>> 8a8ec6c (fixed some bugs on status, modified the api, fixed some routings, and some logics)
     
     if transmission:
         query = query.filter(Car.transmission == transmission)
@@ -1281,7 +1362,11 @@ def car_list_api():
         'seats': car.seats,
         'image_url': car.image_url,
         'is_available': car.is_available,
+<<<<<<< HEAD
         'status': 'available' if car.is_available else 'rented'
+=======
+        'status': car.status
+>>>>>>> 8a8ec6c (fixed some bugs on status, modified the api, fixed some routings, and some logics)
     } for car in cars]
     
     # Get all available makes, transmissions, and fuel types for filter dropdowns
@@ -1535,6 +1620,10 @@ def booking_list():
     status = request.args.get('status', '')
     date_range = request.args.get('date_range', '')
     location = request.args.get('location', '')
+<<<<<<< HEAD
+=======
+    
+>>>>>>> 8a8ec6c (fixed some bugs on status, modified the api, fixed some routings, and some logics)
 
     query = Booking.query
 
@@ -1610,9 +1699,19 @@ def booking_details(booking_id):
 def update_booking_status(booking_id):
     booking = Booking.query.get_or_404(booking_id)
     status = request.form.get('status')
+<<<<<<< HEAD
     
     print(f"Updating booking #{booking_id} status to {status}")
     
+=======
+    car = Car.query.get(booking.car_id)
+    print(f"Updating booking #{booking_id} status to {status}")
+    
+    if car.status == 'offered_for_loan':
+        flash('Cannot update booking status for a car that is currently offered for loan. Please withdraw the offer first.', 'danger')
+        return redirect(url_for('admin.booking_details', booking_id=booking_id))
+    
+>>>>>>> 8a8ec6c (fixed some bugs on status, modified the api, fixed some routings, and some logics)
     if status in ['pending', 'pending_approval', 'confirmed', 'pending_return', 'completed', 'cancelled']:
         old_status = booking.status
         booking.status = status

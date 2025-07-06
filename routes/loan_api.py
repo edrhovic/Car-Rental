@@ -27,12 +27,27 @@ def get_available_cars():
                 'model': car.model,
                 'year': car.year,
                 'color': car.color,
+<<<<<<< HEAD
                 'license_plate': car.license_plate,
                 'loan_sale_price': float(loan_car.loan_sale_price),
                 'commission_rate': float(loan_car.commission_rate),
                 'date_offered': loan_car.date_offered.isoformat(),
                 'description': car.description,
                 'image_url': car.image_url
+=======
+                'horsepower': car.horsepower,
+                'mileage': car.mileage,
+                'body_type': car.body_type,
+                'transmission': car.transmission,
+                'fuel_type': car.fuel_type,
+                'seats': car.seats,
+                'image_url': car.image_url,
+                'license_plate': car.license_plate,
+                'description': car.description,
+                'loan_sale_price': float(loan_car.loan_sale_price),
+                'commission_rate': float(loan_car.commission_rate),
+                'date_offered': loan_car.date_offered.isoformat(),
+>>>>>>> 8a8ec6c (fixed some bugs on status, modified the api, fixed some routings, and some logics)
             })
         
         return jsonify({
@@ -69,6 +84,12 @@ def get_car(car_id):
             'model': car.model,
             'year': car.year,
             'color': car.color,
+<<<<<<< HEAD
+=======
+            'horsepower': car.horsepower,
+            'mileage': car.mileage,
+            'body_type': car.body_type,
+>>>>>>> 8a8ec6c (fixed some bugs on status, modified the api, fixed some routings, and some logics)
             'license_plate': car.license_plate,
             'loan_sale_price': float(loan.loan_sale_price),
             'description': car.description,

@@ -7,6 +7,10 @@ from models.car import Car
 from models.booking import Booking
 from models.payment import Payment
 from models.review import Review
+<<<<<<< HEAD
+=======
+from models.loan_car import LoanCar
+>>>>>>> 8a8ec6c (fixed some bugs on status, modified the api, fixed some routings, and some logics)
 import os
 import uuid
 from werkzeug.utils import secure_filename
@@ -25,7 +29,11 @@ def car_list():
     make = request.args.get('make', '')
     
     # Start with base query
+<<<<<<< HEAD
     query = Car.query.filter_by(is_available=True)
+=======
+    query = Car.query.filter_by(is_available=True, status='available')
+>>>>>>> 8a8ec6c (fixed some bugs on status, modified the api, fixed some routings, and some logics)
     
     # Apply search filter if provided
     if search_query:
@@ -110,9 +118,20 @@ def book_car(car_id):
         return redirect(url_for('car.car_details', car_id=car_id))
     
     car = Car.query.get_or_404(car_id)
+<<<<<<< HEAD
     
     if not car.is_available:
         flash('This car is not available for booking.', 'danger')
+=======
+    if not car.is_available or car.status != 'available':
+        status_messages = {
+            'booked': 'This car is currently booked by another customer.',
+            'offered_for_loan': 'This car is currently offered for loan and not available for rental.',  # Changed key
+            'maintenance': 'This car is currently under maintenance.',
+        }
+        message = status_messages.get(car.status, 'This car is not available for booking.')
+        flash(message, 'danger')
+>>>>>>> 8a8ec6c (fixed some bugs on status, modified the api, fixed some routings, and some logics)
         return redirect(url_for('car.car_details', car_id=car_id))
     
     if request.method == 'POST':
@@ -192,6 +211,10 @@ def book_car(car_id):
 @car.route('/booking/<int:booking_id>/payment', methods=['GET', 'POST'])
 def payment(booking_id):
     booking = Booking.query.get_or_404(booking_id)
+<<<<<<< HEAD
+=======
+    car = Car.query.get(car.car_id)
+>>>>>>> 8a8ec6c (fixed some bugs on status, modified the api, fixed some routings, and some logics)
     
     # Ensure the booking belongs to the current user
     if current_user.is_authenticated and current_user.is_admin:
@@ -202,6 +225,13 @@ def payment(booking_id):
         flash('You do not have permission to access this booking.', 'danger')
         return redirect(url_for('user.bookings'))
     
+<<<<<<< HEAD
+=======
+    if not car.is_available or car.status != 'available':
+        flash('This car is no longer available for booking.', 'danger')
+        return redirect(url_for('car.car_details', car_id=booking.car_id))
+    
+>>>>>>> 8a8ec6c (fixed some bugs on status, modified the api, fixed some routings, and some logics)
     if request.method == 'POST':
         booking_ref = booking.get_reference()
         print(f"Processing payment for booking {booking.id} with reference {booking_ref}")

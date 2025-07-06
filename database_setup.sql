@@ -2,6 +2,7 @@
 CREATE DATABASE IF NOT EXISTS jdm_car_rentals;
 USE jdm_car_rentals;
 
+<<<<<<< HEAD
 -- Create Loan Cars Table
 CREATE TABLE IF NOT EXISTS loan_cars (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -20,6 +21,9 @@ CREATE TABLE IF NOT EXISTS loan_cars (
 
 
 -- Create Users Table
+=======
+-- Create Users Table (moved first since it's referenced by other tables)
+>>>>>>> 8a8ec6c (fixed some bugs on status, modified the api, fixed some routings, and some logics)
 CREATE TABLE IF NOT EXISTS users (
     id INT AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(50) NOT NULL UNIQUE,
@@ -41,7 +45,11 @@ CREATE TABLE IF NOT EXISTS users (
     card_expiry VARCHAR(5)
 );
 
+<<<<<<< HEAD
 -- Create Cars Table
+=======
+-- Create Cars Table (moved before loan_cars since it's referenced)
+>>>>>>> 8a8ec6c (fixed some bugs on status, modified the api, fixed some routings, and some logics)
 CREATE TABLE IF NOT EXISTS cars (
     id INT AUTO_INCREMENT PRIMARY KEY,
     make VARCHAR(50) NOT NULL,
@@ -55,11 +63,39 @@ CREATE TABLE IF NOT EXISTS cars (
     fuel_type VARCHAR(20) NOT NULL,
     seats INT NOT NULL,
     description TEXT,
+<<<<<<< HEAD
     image_url VARCHAR(255),
     is_available BOOLEAN DEFAULT TRUE,
     date_added DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
+=======
+    horsepower INT NOT NULL,
+    mileage INT NOT NULL,  -- in kilometers
+    body_type VARCHAR(20) NOT NULL,  -- e.g., 'sedan', 'SUV', 'hatchback'
+    image_url VARCHAR(255),
+    is_available BOOLEAN DEFAULT TRUE,
+    status VARCHAR(20) DEFAULT 'available',  -- e.g., 'available', 'booked', 'maintenance', 'offered for loan'
+    date_added DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Create Loan Cars Table
+CREATE TABLE IF NOT EXISTS loan_cars (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    car_id INT NOT NULL,
+    loan_sale_price FLOAT NOT NULL,
+    is_sold_via_loan BOOLEAN DEFAULT FALSE,
+    date_offered DATETIME DEFAULT CURRENT_TIMESTAMP,
+    date_sold DATETIME,
+    loan_system_id VARCHAR(50),
+    commission_rate FLOAT DEFAULT 5.0,
+    status VARCHAR(20) DEFAULT 'available',
+    offered_by INT NOT NULL,
+    FOREIGN KEY (car_id) REFERENCES cars(id),
+    FOREIGN KEY (offered_by) REFERENCES users(id)
+);
+
+>>>>>>> 8a8ec6c (fixed some bugs on status, modified the api, fixed some routings, and some logics)
 -- Create Bookings Table
 CREATE TABLE IF NOT EXISTS bookings (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -140,7 +176,24 @@ CREATE TABLE IF NOT EXISTS notifications (
     FOREIGN KEY (booking_id) REFERENCES bookings(id)
 );
 
+<<<<<<< HEAD
 -- Create an admin user
+=======
+CREATE TABLE IF NOT EXISTS contact_messages (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(120) NOT NULL,
+    phone VARCHAR(20),
+    message TEXT NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    is_read BOOLEAN DEFAULT FALSE,
+    admin_reply TEXT,
+    replied_at DATETIME,
+    replied_by INT,
+    FOREIGN KEY (replied_by) REFERENCES users(id)
+);
+
+>>>>>>> 8a8ec6c (fixed some bugs on status, modified the api, fixed some routings, and some logics)
 
 -- Insert default page contents
 INSERT INTO page_contents (page_name, title, content, last_updated_by)
@@ -151,4 +204,8 @@ VALUES
 ('privacy', 'Privacy Policy', 'Your privacy is important to us. This policy explains how we collect, use, and protect your personal information.', 1);
 
 -- Commit changes
+<<<<<<< HEAD
 COMMIT; 
+=======
+COMMIT;
+>>>>>>> 8a8ec6c (fixed some bugs on status, modified the api, fixed some routings, and some logics)
