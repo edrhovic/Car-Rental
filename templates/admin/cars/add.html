@@ -6,79 +6,8 @@
 <div class="container-fluid">
     <div class="row">
         <!-- Sidebar -->
-        <nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse">
-            <div class="position-sticky pt-3">
-                <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
-                    <span>Admin Panel</span>
-                </h6>
-                <ul class="nav flex-column">
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('admin.dashboard') }}">
-                            <i class="fas fa-tachometer-alt me-2"></i>
-                            Dashboard
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link active" href="{{ url_for('admin.car_list') }}">
-                            <i class="fas fa-car me-2"></i>
-                            Car Management
-                        </a>
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.endpoint == 'car_admin.manage_loan_cars' %}active{% endif %}" href="{{ url_for('car_admin.manage_loan_cars') }}">
-                            <i class="fas fa-envelope me-2"></i>
-                            Manage Cars for Loan
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('admin.booking_list') }}">
-                            <i class="fas fa-calendar-alt me-2"></i>
-                            Bookings
-                        </a>
-                    </li>
-                
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('admin.user_list') }}">
-                            <i class="fas fa-users me-2"></i>
-                            User Management
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('admin.review_list') }}">
-                            <i class="fas fa-star me-2"></i>
-                            Reviews
-                        </a>
-                    </li>
-                    <!-- 
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">
-                            <i class="fas fa-money-bill-wave me-2"></i>
-                            Payments
-                        </a>
-                    </li>
-                    -->
-                </ul>
-
-                <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
-                    <span>System</span>
-                </h6>
-                <ul class="nav flex-column mb-2">
-                    <!--
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">
-                            <i class="fas fa-cog me-2"></i>
-                            Settings
-                        </a>
-                    </li>
-                    -->
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('home') }}">
-                            <i class="fas fa-arrow-left me-2"></i>
-                            Return to Site
-                        </a>
-                    </li>
-                </ul>
-            </div>
-        </nav>
+        
+    {% include 'admin/partials/sidebar.html' %}
 
         <!-- Main content -->
         <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
@@ -147,14 +76,57 @@
                             </div>
                             
                             <div class="col-md-4 mb-3">
+                                <label for="body_type" class="form-label">Body Type <span class="text-danger">*</span></label>
+                                <select class="form-select" id="body_type" name="body_type" required>
+                                    <option value="">Select Body Type</option>
+                                    <option value="Sedan">Sedan</option>
+                                    <option value="Hatchback">Hatchback</option>
+                                    <option value="SUV">SUV</option>
+                                    <option value="Coupe">Coupe</option>
+                                    <option value="Convertible">Convertible</option>
+                                    <option value="Wagon">Wagon</option>
+                                    <option value="Pickup">Pickup</option>
+                                    <option value="Van">Van</option>
+                                    <option value="Minivan">Minivan</option>
+                                    <option value="Crossover">Crossover</option>
+                                    <option value="Sports Car">Sports Car</option>
+                                    <option value="Luxury">Luxury</option>
+                                </select>
+                                <div class="invalid-feedback">Please select a body type.</div>
+                            </div>
+                            
+                            <div class="col-md-4 mb-3">
                                 <label for="seats" class="form-label">Seats <span class="text-danger">*</span></label>
                                 <input type="number" class="form-control" id="seats" name="seats" min="1" max="12" required>
+                                <div class="invalid-feedback">Please enter the number of seats (1-12).</div>
                             </div>
                             
                             <div class="col-md-4 mb-3">
                                 <label for="daily_rate" class="form-label">Daily Rate (₱) <span class="text-danger">*</span></label>
                                 <input type="number" class="form-control" id="daily_rate" name="daily_rate" min="0" step="0.01" required>
                                 <div class="invalid-feedback">Please enter a valid daily rate (must be a positive number).</div>
+                            </div>
+                        </div>
+                        
+                        <!-- Performance & Specifications -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="card-title">Performance & Specifications</h5>
+                                <hr>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="horsepower" class="form-label">Horsepower (HP) <span class="text-danger">*</span></label>
+                                <input type="number" class="form-control" id="horsepower" name="horsepower" min="50" max="2000" required>
+                                <div class="invalid-feedback">Please enter a valid horsepower (50-2000 HP).</div>
+                                <div class="form-text">Enter the engine horsepower rating.</div>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="mileage" class="form-label">Mileage (km) <span class="text-danger">*</span></label>
+                                <input type="number" class="form-control" id="mileage" name="mileage" min="0" max="999999" required>
+                                <div class="invalid-feedback">Please enter a valid mileage (0-999,999 km).</div>
+                                <div class="form-text">Enter the current odometer reading in kilometers.</div>
                             </div>
                         </div>
                         
@@ -193,7 +165,8 @@
                             
                             <div class="col-md-12 mb-3">
                                 <label for="description" class="form-label">Description</label>
-                                <textarea class="form-control" id="description" name="description" rows="4"></textarea>
+                                <textarea class="form-control" id="description" name="description" rows="4" maxlength="1000"></textarea>
+                                <div class="form-text">Optional description of the car (max 1000 characters).</div>
                             </div>
                             
                             <div class="col-md-6 mb-3">
@@ -233,4 +206,60 @@
 {% block scripts %}
 <script src="/static/js/validation/form-utils.js"></script>
 <script src="/static/js/validation/car-form.js"></script>
-{% endblock %} 
+<script>
+// Additional validation for new fields
+document.addEventListener('DOMContentLoaded', function() {
+    const horsepowerInput = document.getElementById('horsepower');
+    const mileageInput = document.getElementById('mileage');
+    const bodyTypeSelect = document.getElementById('body_type');
+    
+    // Horsepower validation
+    horsepowerInput.addEventListener('input', function() {
+        const value = parseInt(this.value);
+        if (value && (value < 50 || value > 2000)) {
+            this.setCustomValidity('Horsepower must be between 50 and 2000 HP');
+        } else {
+            this.setCustomValidity('');
+        }
+    });
+    
+    // Mileage validation
+    mileageInput.addEventListener('input', function() {
+        const value = parseInt(this.value);
+        if (value && (value < 0 || value > 999999)) {
+            this.setCustomValidity('Mileage must be between 0 and 999,999 km');
+        } else {
+            this.setCustomValidity('');
+        }
+    });
+    
+    // Body type validation
+    bodyTypeSelect.addEventListener('change', function() {
+        if (!this.value) {
+            this.setCustomValidity('Please select a body type');
+        } else {
+            this.setCustomValidity('');
+        }
+    });
+    
+    // Format numbers with commas for better readability
+    function formatNumber(input) {
+        input.addEventListener('blur', function() {
+            if (this.value) {
+                const num = parseInt(this.value.replace(/,/g, ''));
+                if (!isNaN(num)) {
+                    this.value = num.toLocaleString();
+                }
+            }
+        });
+        
+        input.addEventListener('focus', function() {
+            this.value = this.value.replace(/,/g, '');
+        });
+    }
+    
+    // Apply number formatting to mileage field
+    formatNumber(mileageInput);
+});
+</script>
+{% endblock %}

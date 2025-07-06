@@ -5,8 +5,9 @@ from models.notification import Notification
 from models.user import User
 from routes.admin import admin_required
 import email_utils
-from datetime import datetime
+from datetime import datetime, timedelta
 from models import db
+from sqlalchemy import or_
 
 contact_bp = Blueprint('contact', __name__, url_prefix='/contact')
 
@@ -132,9 +133,58 @@ def contact_submit():
 @login_required
 @admin_required
 def admin_messages():
-    """Display all contact messages for admin"""
-    messages = ContactMessage.query.order_by(ContactMessage.created_at.desc()).all()
-    return render_template('admin/contact_messages.html', messages=messages)
+    """Display all contact messages for admin with filtering support"""
+    # Get filter parameters
+    status_filter = request.args.get('status', '')
+    date_filter = request.args.get('date', '')
+    search_query = request.args.get('search', '')
+    
+    # Base query
+    query = ContactMessage.query
+    
+    # Apply status filter
+    if status_filter == 'unread':
+        query = query.filter(ContactMessage.is_read == False)
+    elif status_filter == 'read':
+        query = query.filter(ContactMessage.is_read == True)
+    elif status_filter == 'replied':
+        query = query.filter(ContactMessage.admin_reply.isnot(None))
+    
+    # Apply date filter
+    if date_filter == 'today':
+        today = datetime.utcnow().date()
+        query = query.filter(ContactMessage.created_at >= today)
+    elif date_filter == 'week':
+        week_ago = datetime.utcnow() - timedelta(days=7)
+        query = query.filter(ContactMessage.created_at >= week_ago)
+    elif date_filter == 'month':
+        month_ago = datetime.utcnow() - timedelta(days=30)
+        query = query.filter(ContactMessage.created_at >= month_ago)
+    
+    # Apply search filter
+    if search_query:
+        query = query.filter(
+            or_(
+                ContactMessage.name.ilike(f'%{search_query}%'),
+                ContactMessage.email.ilike(f'%{search_query}%')
+            )
+        )
+    
+    # Get filtered messages
+    messages = query.order_by(ContactMessage.created_at.desc()).all()
+    
+    # Calculate statistics for template
+    total_messages = len(messages)
+    unread_messages = len([m for m in messages if not m.is_read])
+    replied_messages = len([m for m in messages if m.admin_reply])
+    pending_replies = len([m for m in messages if not m.admin_reply])
+    
+    return render_template('admin/contact_messages.html', 
+                         messages=messages,
+                         total_messages=total_messages,
+                         unread_messages=unread_messages,
+                         replied_messages=replied_messages,
+                         pending_replies=pending_replies)
 
 @contact_bp.route('/admin/messages/<int:message_id>')
 @login_required
@@ -203,4 +253,169 @@ def mark_as_read(message_id):
     message = ContactMessage.query.get_or_404(message_id)
     message.is_read = True
     db.session.commit()
-    return jsonify({'success': True}) 
+    return jsonify({'success': True})
+
+@contact_bp.route('/admin/messages/<int:message_id>/delete', methods=['POST'])
+@login_required
+@admin_required
+def delete_message(message_id):
+    """Delete a specific message"""
+    message = ContactMessage.query.get_or_404(message_id)
+    
+    try:
+        db.session.delete(message)
+        db.session.commit()
+        flash('Message deleted successfully!', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash('Error deleting message. Please try again.', 'danger')
+        print(f"Error deleting message {message_id}: {str(e)}")
+    
+    return redirect(url_for('contact.admin_messages'))
+
+@contact_bp.route('/admin/messages/mark-all-read', methods=['POST'])
+@login_required
+@admin_required
+def mark_all_as_read():
+    """Mark all unread messages as read"""
+    try:
+        unread_count = ContactMessage.query.filter_by(is_read=False).count()
+        ContactMessage.query.filter_by(is_read=False).update({'is_read': True})
+        db.session.commit()
+        flash(f'{unread_count} messages marked as read!', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash('Error marking messages as read. Please try again.', 'danger')
+        print(f"Error marking all messages as read: {str(e)}")
+    
+    return redirect(url_for('contact.admin_messages'))
+
+@contact_bp.route('/admin/messages/delete-selected', methods=['POST'])
+@login_required
+@admin_required
+def delete_selected_messages():
+    """Delete selected messages"""
+    message_ids = request.form.getlist('message_ids')
+    
+    if not message_ids:
+        flash('No messages selected for deletion.', 'warning')
+        return redirect(url_for('contact.admin_messages'))
+    
+    try:
+        deleted_count = ContactMessage.query.filter(ContactMessage.id.in_(message_ids)).delete(synchronize_session='fetch')
+        db.session.commit()
+        flash(f'{deleted_count} messages deleted successfully!', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash('Error deleting selected messages. Please try again.', 'danger')
+        print(f"Error deleting selected messages: {str(e)}")
+    
+    return redirect(url_for('contact.admin_messages'))
+
+@contact_bp.route('/admin/messages/bulk-action', methods=['POST'])
+@login_required
+@admin_required
+def bulk_action():
+    """Handle bulk actions on messages"""
+    action = request.form.get('action')
+    message_ids = request.form.getlist('message_ids')
+    
+    if not message_ids:
+        flash('No messages selected.', 'warning')
+        return redirect(url_for('contact.admin_messages'))
+    
+    try:
+        if action == 'mark_read':
+            updated_count = ContactMessage.query.filter(ContactMessage.id.in_(message_ids)).update({'is_read': True})
+            db.session.commit()
+            flash(f'{updated_count} messages marked as read!', 'success')
+        elif action == 'mark_unread':
+            updated_count = ContactMessage.query.filter(ContactMessage.id.in_(message_ids)).update({'is_read': False})
+            db.session.commit()
+            flash(f'{updated_count} messages marked as unread!', 'success')
+        elif action == 'delete':
+            deleted_count = ContactMessage.query.filter(ContactMessage.id.in_(message_ids)).delete(synchronize_session='fetch')
+            db.session.commit()
+            flash(f'{deleted_count} messages deleted successfully!', 'success')
+        else:
+            flash('Invalid action selected.', 'danger')
+    except Exception as e:
+        db.session.rollback()
+        flash('Error performing bulk action. Please try again.', 'danger')
+        print(f"Error in bulk action {action}: {str(e)}")
+    
+    return redirect(url_for('contact.admin_messages'))
+
+@contact_bp.route('/admin/messages/stats')
+@login_required
+@admin_required
+def message_stats():
+    """Get message statistics (AJAX endpoint)"""
+    try:
+        total_messages = ContactMessage.query.count()
+        unread_messages = ContactMessage.query.filter_by(is_read=False).count()
+        replied_messages = ContactMessage.query.filter(ContactMessage.admin_reply.isnot(None)).count()
+        pending_replies = ContactMessage.query.filter(ContactMessage.admin_reply.is_(None)).count()
+        
+        # Recent messages (last 7 days)
+        week_ago = datetime.utcnow() - timedelta(days=7)
+        recent_messages = ContactMessage.query.filter(ContactMessage.created_at >= week_ago).count()
+        
+        return jsonify({
+            'success': True,
+            'stats': {
+                'total_messages': total_messages,
+                'unread_messages': unread_messages,
+                'replied_messages': replied_messages,
+                'pending_replies': pending_replies,
+                'recent_messages': recent_messages
+            }
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+@contact_bp.route('/admin/messages/export')
+@login_required
+@admin_required
+def export_messages():
+    """Export messages to CSV"""
+    try:
+        from io import StringIO
+        import csv
+        from flask import make_response
+        
+        # Get all messages
+        messages = ContactMessage.query.order_by(ContactMessage.created_at.desc()).all()
+        
+        # Create CSV content
+        output = StringIO()
+        writer = csv.writer(output)
+        
+        # Write headers
+        writer.writerow(['ID', 'Name', 'Email', 'Phone', 'Message', 'Created At', 'Is Read', 'Admin Reply', 'Replied At'])
+        
+        # Write data
+        for message in messages:
+            writer.writerow([
+                message.id,
+                message.name,
+                message.email,
+                message.phone,
+                message.message,
+                message.created_at.strftime('%Y-%m-%d %H:%M:%S'),
+                'Yes' if message.is_read else 'No',
+                message.admin_reply or '',
+                message.replied_at.strftime('%Y-%m-%d %H:%M:%S') if message.replied_at else ''
+            ])
+        
+        # Create response
+        response = make_response(output.getvalue())
+        response.headers['Content-Type'] = 'text/csv'
+        response.headers['Content-Disposition'] = f'attachment; filename=contact_messages_{datetime.now().strftime("%Y%m%d_%H%M%S")}.csv'
+        
+        return response
+        
+    except Exception as e:
+        flash('Error exporting messages. Please try again.', 'danger')
+        print(f"Error exporting messages: {str(e)}")
+        return redirect(url_for('contact.admin_messages'))

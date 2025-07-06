@@ -6,77 +6,11 @@
 <div class="container-fluid">
     <div class="row">
         <!-- Sidebar -->
-        <nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse">
-            <div class="position-sticky pt-3">
-                <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
-                    <span>Admin Panel</span>
-                </h6>
-                <ul class="nav flex-column">
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('admin.dashboard') }}">
-                            <i class="fas fa-tachometer-alt me-2"></i>
-                            Dashboard
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link active" href="{{ url_for('admin.car_list') }}">
-                            <i class="fas fa-car me-2"></i>
-                            Car Management
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('admin.booking_list') }}">
-                            <i class="fas fa-calendar-alt me-2"></i>
-                            Bookings
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('admin.user_list') }}">
-                            <i class="fas fa-users me-2"></i>
-                            User Management
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('admin.review_list') }}">
-                            <i class="fas fa-star me-2"></i>
-                            Reviews
-                        </a>
-                    </li>
-                    <!-- 
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">
-                            <i class="fas fa-money-bill-wave me-2"></i>
-                            Payments
-                        </a>
-                    </li>
-                    -->
-                </ul>
-
-                <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
-                    <span>System</span>
-                </h6>
-                <ul class="nav flex-column mb-2">
-                    <!--
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">
-                            <i class="fas fa-cog me-2"></i>
-                            Settings
-                        </a>
-                    </li>
-                    -->
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('home') }}">
-                            <i class="fas fa-arrow-left me-2"></i>
-                            Return to Site
-                        </a>
-                    </li>
-                </ul>
-            </div>
-        </nav>
-
+        {% include 'admin/partials/sidebar.html' %}
         <!-- Main content -->
         <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
-            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+            <div
+                class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
                 <div>
                     <h1 class="h2">Edit Car</h1>
                     <p class="text-muted">{{ car.make }} {{ car.model }} ({{ car.year }})</p>
@@ -85,7 +19,8 @@
                     <a href="{{ url_for('admin.car_list') }}" class="btn btn-sm btn-outline-secondary me-2">
                         <i class="fas fa-arrow-left me-1"></i> Back to Cars
                     </a>
-                    <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteCarModal">
+                    <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal"
+                        data-bs-target="#deleteCarModal">
                         <i class="fas fa-trash me-1"></i> Delete Car
                     </button>
                 </div>
@@ -97,27 +32,35 @@
                     <div class="card mb-4">
                         <div class="card-body text-center">
                             {% if car.image_url %}
-                            <img src="{{ car.image_url }}" alt="{{ car.make }} {{ car.model }}" class="img-fluid rounded mb-3" style="max-height: 200px;" id="current_image">
+                            <img src="{{ car.image_url }}" alt="{{ car.make }} {{ car.model }}"
+                                class="img-fluid rounded mb-3" style="max-height: 200px;" id="current_image">
                             {% else %}
-                            <div class="bg-secondary text-white d-flex justify-content-center align-items-center rounded mb-3" style="height: 200px;" id="image_placeholder">
+                            <div class="bg-secondary text-white d-flex justify-content-center align-items-center rounded mb-3"
+                                style="height: 200px;" id="image_placeholder">
                                 <i class="fas fa-car fa-3x"></i>
                             </div>
-                            <img src="" alt="{{ car.make }} {{ car.model }}" class="img-fluid rounded mb-3" style="max-height: 200px; display: none;" id="current_image">
+                            <img src="" alt="{{ car.make }} {{ car.model }}" class="img-fluid rounded mb-3"
+                                style="max-height: 200px; display: none;" id="current_image">
                             {% endif %}
-                            
+
                             <h5>{{ car.make }} {{ car.model }}</h5>
                             <p class="text-muted">{{ car.year }} • {{ car.color }}</p>
-                            
+
                             <div class="d-flex justify-content-center">
-                                {% if car.is_available %}
+                                {% if car.status == 'available' %}
                                 <span class="badge bg-success fs-6 px-3 py-2">Available</span>
-                                {% else %}
+                                {% elif car.status == 'rented' %}
                                 <span class="badge bg-warning fs-6 px-3 py-2">Rented</span>
+                                {% elif car.status == 'maintenance' %}
+                                <span class="badge bg-secondary fs-6 px-3 py-2">In Maintenance</span>
+                                {% elif car.status == 'offered_for_loan' %}
+                                <span class="badge bg-info fs-6 px-3 py-2">Offered for Loan</span>
+                                {% else %}
+                                <span class="badge bg-danger fs-6 px-3 py-2">Unavailable</span>
                                 {% endif %}
                             </div>
                         </div>
                     </div>
-                    
                     <!-- Quick stats -->
                     <div class="card">
                         <div class="card-header">
@@ -153,143 +96,246 @@
                         </div>
                     </div>
                 </div>
-                
                 <div class="col-md-8">
                     <div class="card">
                         <div class="card-header">
                             <h5 class="card-title mb-0">Edit Car Details</h5>
                         </div>
                         <div class="card-body">
-                            <form method="POST" action="{{ url_for('admin.edit_car', car_id=car.id) }}" enctype="multipart/form-data" novalidate>
+                            <form method="POST" action="{{ url_for('admin.edit_car', car_id=car.id) }}"
+                                enctype="multipart/form-data" novalidate>
                                 <!-- Basic Information -->
                                 <div class="row mb-4">
                                     <div class="col-12">
                                         <h6 class="fw-bold">Basic Information</h6>
                                         <hr>
                                     </div>
-                                    
+
                                     <div class="col-md-4 mb-3">
-                                        <label for="make" class="form-label">Make <span class="text-danger">*</span></label>
-                                        <input type="text" class="form-control" id="make" name="make" value="{{ car.make }}" maxlength="50" required>
+                                        <label for="make" class="form-label">Make <span
+                                                class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="make" name="make"
+                                            value="{{ car.make }}" maxlength="50" required>
                                         <div class="invalid-feedback">Please enter the car make.</div>
                                     </div>
-                                    
+
                                     <div class="col-md-4 mb-3">
-                                        <label for="model" class="form-label">Model <span class="text-danger">*</span></label>
-                                        <input type="text" class="form-control" id="model" name="model" value="{{ car.model }}" maxlength="50" required>
+                                        <label for="model" class="form-label">Model <span
+                                                class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="model" name="model"
+                                            value="{{ car.model }}" maxlength="50" required>
                                         <div class="invalid-feedback">Please enter the car model.</div>
                                     </div>
-                                    
+
                                     <div class="col-md-4 mb-3">
-                                        <label for="year" class="form-label">Year <span class="text-danger">*</span></label>
-                                        <input type="number" class="form-control" id="year" name="year" value="{{ car.year }}" min="1950" max="2030" required>
-                                        <div class="invalid-feedback">Please enter a valid year between 1950 and 2030.</div>
-                                    </div>
-                                    
-                                    <div class="col-md-4 mb-3">
-                                        <label for="color" class="form-label">Color <span class="text-danger">*</span></label>
-                                        <input type="text" class="form-control" id="color" name="color" value="{{ car.color }}" maxlength="30" required>
-                                        <div class="invalid-feedback">Please enter the car color.</div>
-                                    </div>
-                                    
-                                    <div class="col-md-4 mb-3">
-                                        <label for="transmission" class="form-label">Transmission <span class="text-danger">*</span></label>
-                                        <select class="form-select" id="transmission" name="transmission" required>
-                                            <option value="Manual" {% if car.transmission == 'Manual' %}selected{% endif %}>Manual</option>
-                                            <option value="Automatic" {% if car.transmission == 'Automatic' %}selected{% endif %}>Automatic</option>
-                                            <option value="CVT" {% if car.transmission == 'Semi-Automatic' %}selected{% endif %}>CVT</option>
-                                        </select>
-                                    </div>
-                                    
-                                    <div class="col-md-4 mb-3">
-                                        <label for="fuel_type" class="form-label">Fuel Type <span class="text-danger">*</span></label>
-                                        <select class="form-select" id="fuel_type" name="fuel_type" required>
-                                            <option value="Gasoline" {% if car.fuel_type == 'Gasoline' %}selected{% endif %}>Gasoline</option>
-                                            <option value="Diesel" {% if car.fuel_type == 'Diesel' %}selected{% endif %}>Diesel</option>
-                                            <option value="Electric" {% if car.fuel_type == 'Electric' %}selected{% endif %}>Electric</option>
-                                            <option value="Hybrid" {% if car.fuel_type == 'Hybrid' %}selected{% endif %}>Hybrid</option>
-                                        </select>
-                                    </div>
-                                    
-                                    <div class="col-md-4 mb-3">
-                                        <label for="seats" class="form-label">Seats <span class="text-danger">*</span></label>
-                                        <input type="number" class="form-control" id="seats" name="seats" value="{{ car.seats }}" min="1" max="12" required>
-                                    </div>
-                                    
-                                    <div class="col-md-4 mb-3">
-                                        <label for="daily_rate" class="form-label">Daily Rate (₱) <span class="text-danger">*</span></label>
-                                        <input type="number" class="form-control" id="daily_rate" name="daily_rate" value="{{ '%.2f' % car.daily_rate }}" min="0" step="0.01" required>
-                                        <div class="invalid-feedback">Please enter a valid daily rate (must be a positive number).</div>
-                                    </div>
-                                    
-                                    <div class="col-md-4 mb-3">
-                                        <label for="is_available" class="form-label">Availability</label>
-                                        <div class="form-check form-switch mt-2">
-                                            <input class="form-check-input" type="checkbox" id="is_available" name="is_available" {% if car.is_available %}checked{% endif %}>
-                                            <label class="form-check-label" for="is_available">Available for rent</label>
+                                        <label for="year" class="form-label">Year <span
+                                                class="text-danger">*</span></label>
+                                        <input type="number" class="form-control" id="year" name="year"
+                                            value="{{ car.year }}" min="1950" max="2030" required>
+                                        <div class="invalid-feedback">Please enter a valid year between 1950 and 2030.
                                         </div>
                                     </div>
+
+                                    <div class="col-md-4 mb-3">
+                                        <label for="color" class="form-label">Color <span
+                                                class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="color" name="color"
+                                            value="{{ car.color }}" maxlength="30" required>
+                                        <div class="invalid-feedback">Please enter the car color.</div>
+                                    </div>
+
+                                    <div class="col-md-4 mb-3">
+                                        <label for="transmission" class="form-label">Transmission <span
+                                                class="text-danger">*</span></label>
+                                        <select class="form-select" id="transmission" name="transmission" required>
+                                            <option value="Manual" {% if car.transmission=='Manual' %}selected{% endif
+                                                %}>Manual</option>
+                                            <option value="Automatic" {% if car.transmission=='Automatic' %}selected{%
+                                                endif %}>Automatic</option>
+                                            <option value="CVT" {% if car.transmission=='Semi-Automatic' %}selected{%
+                                                endif %}>CVT</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="col-md-4 mb-3">
+                                        <label for="fuel_type" class="form-label">Fuel Type <span
+                                                class="text-danger">*</span></label>
+                                        <select class="form-select" id="fuel_type" name="fuel_type" required>
+                                            <option value="Gasoline" {% if car.fuel_type=='Gasoline' %}selected{% endif
+                                                %}>Gasoline</option>
+                                            <option value="Diesel" {% if car.fuel_type=='Diesel' %}selected{% endif %}>
+                                                Diesel</option>
+                                            <option value="Electric" {% if car.fuel_type=='Electric' %}selected{% endif
+                                                %}>Electric</option>
+                                            <option value="Hybrid" {% if car.fuel_type=='Hybrid' %}selected{% endif %}>
+                                                Hybrid</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="col-md-4 mb-3">
+                                        <label for="seats" class="form-label">Seats <span
+                                                class="text-danger">*</span></label>
+                                        <input type="number" class="form-control" id="seats" name="seats"
+                                            value="{{ car.seats }}" min="1" max="12" required>
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <label for="body_type" class="form-label">Body Type <span
+                                                class="text-danger">*</span></label>
+                                        <select class="form-select" id="body_type" name="body_type" required>
+                                            <option value="">Select Body Type</option>
+                                            <option value="Sedan" {{ 'selected' if car.body_type=='Sedan' else '' }}>
+                                                Sedan</option>
+                                            <option value="Hatchback" {{ 'selected' if car.body_type=='Hatchback'
+                                                else '' }}>Hatchback</option>
+                                            <option value="SUV" {{ 'selected' if car.body_type=='SUV' else '' }}>SUV
+                                            </option>
+                                            <option value="Coupe" {{ 'selected' if car.body_type=='Coupe' else '' }}>
+                                                Coupe</option>
+                                            <option value="Convertible" {{ 'selected' if car.body_type=='Convertible'
+                                                else '' }}>Convertible</option>
+                                            <option value="Wagon" {{ 'selected' if car.body_type=='Wagon' else '' }}>
+                                                Wagon</option>
+                                            <option value="Pickup" {{ 'selected' if car.body_type=='Pickup' else '' }}>
+                                                Pickup</option>
+                                            <option value="Van" {{ 'selected' if car.body_type=='Van' else '' }}>Van
+                                            </option>
+                                            <option value="Minivan" {{ 'selected' if car.body_type=='Minivan' else ''
+                                                }}>Minivan</option>
+                                            <option value="Crossover" {{ 'selected' if car.body_type=='Crossover'
+                                                else '' }}>Crossover</option>
+                                            <option value="Sports Car" {{ 'selected' if car.body_type=='Sports Car'
+                                                else '' }}>Sports Car</option>
+                                            <option value="Luxury" {{ 'selected' if car.body_type=='Luxury' else '' }}>
+                                                Luxury</option>
+                                        </select>
+                                        <div class="invalid-feedback">Please select a body type.</div>
+                                    </div>
+
+                                    <div class="col-md-4 mb-3">
+                                        <label for="daily_rate" class="form-label">Daily Rate (₱) <span
+                                                class="text-danger">*</span></label>
+                                        <input type="number" class="form-control" id="daily_rate" name="daily_rate"
+                                            value="{{ '%.2f' % car.daily_rate }}" min="0" step="0.01" required>
+                                        <div class="invalid-feedback">Please enter a valid daily rate (must be a
+                                            positive number).</div>
+                                    </div>
+
+                                    <div class="col-md-4 mb-3">
+                                        <label for="status" class="form-label">Availability Status</label>
+                                        <select class="form-select" id="status" name="status" required>
+                                            <option value="available" {% if car.status=='available' %}selected{% endif
+                                                %}>Available for rent</option>
+                                            <option value="rented" {% if car.status=='rented' %}selected{% endif %}>
+                                                Rented</option>
+                                            <option value="maintenance" {% if car.status=='maintenance' %}selected{%
+                                                endif %}>Under maintenance</option>
+                                            <option value="offered_for_loan" {% if car.status=='offered_for_loan'
+                                                %}selected{% endif %}>Offered for loan</option>
+                                        </select>
+                                    </div>
                                 </div>
-                                
+
+                                <div class="row mb-4">
+                                    <div class="col-12">
+                                        <h6 class="fw-bold">Specifications and Performance</h6>
+                                        <hr>
+                                    </div>
+
+                                    <div class="col-md-6 mb-3">
+                                        <label for="license_plate" class="form-label">Horsepower <span
+                                                class="text-danger">*</span></label>
+                                        <input type="number" class="form-control" id="horsepower" name="horsepower"
+                                            value="{{ car.horsepower }}" min="0" required>
+                                        <div class="invalid-feedback">Please enter the car's horsepower (must be a
+                                            positive number).</div>
+                                    </div>
+
+                                    <div class="col-md-6 mb-3">
+                                        <label for="vin" class="form-label">Mileage <span
+                                                class="text-danger">*</span></label>
+                                        <input type="number" class="form-control" id="mileage" name="mileage"
+                                            value="{{ car.mileage }}" min="0" required>
+                                        <div class="invalid-feedback">Please enter the car's mileage (must be a positive
+                                            number).</div>
+                                    </div>
+                                </div>
+
                                 <!-- Registration Information -->
                                 <div class="row mb-4">
                                     <div class="col-12">
                                         <h6 class="fw-bold">Registration Information</h6>
                                         <hr>
                                     </div>
-                                    
+
                                     <div class="col-md-6 mb-3">
-                                        <label for="license_plate" class="form-label">License Plate <span class="text-danger">*</span></label>
-                                        <input type="text" class="form-control" id="license_plate" name="license_plate" value="{{ car.license_plate }}" maxlength="20" pattern="^[A-Za-z0-9-]+$" required>
-                                        <div class="invalid-feedback">Please enter a valid license plate (alphanumeric characters and hyphens only).</div>
+                                        <label for="license_plate" class="form-label">License Plate <span
+                                                class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="license_plate" name="license_plate"
+                                            value="{{ car.license_plate }}" maxlength="20" pattern="^[A-Za-z0-9-]+$"
+                                            required>
+                                        <div class="invalid-feedback">Please enter a valid license plate (alphanumeric
+                                            characters and hyphens only).</div>
                                     </div>
-                                    
+
                                     <div class="col-md-6 mb-3">
-                                        <label for="vin" class="form-label">VIN <span class="text-danger">*</span></label>
-                                        <input type="text" class="form-control" id="vin" name="vin" value="{{ car.vin }}" maxlength="17" pattern="^[A-HJ-NPR-Za-hj-npr-z0-9]{17}$" required>
-                                        <div class="invalid-feedback">VIN must be exactly 17 characters long (excluding I, O, and Q) and contain only letters and numbers.</div>
+                                        <label for="vin" class="form-label">VIN <span
+                                                class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="vin" name="vin"
+                                            value="{{ car.vin }}" maxlength="17"
+                                            pattern="^[A-HJ-NPR-Za-hj-npr-z0-9]{17}$" required>
+                                        <div class="invalid-feedback">VIN must be exactly 17 characters long (excluding
+                                            I, O, and Q) and contain only letters and numbers.</div>
                                     </div>
                                 </div>
-                                
+
                                 <!-- Additional Information -->
                                 <div class="row mb-4">
                                     <div class="col-12">
                                         <h6 class="fw-bold">Additional Information</h6>
                                         <hr>
                                     </div>
-                                    
+
                                     <div class="col-md-12 mb-3">
                                         <label for="description" class="form-label">Description</label>
-                                        <textarea class="form-control" id="description" name="description" rows="4">{{ car.description }}</textarea>
+                                        <textarea class="form-control" id="description" name="description"
+                                            rows="4">{{ car.description }}</textarea>
                                     </div>
-                                    
+
                                     <div class="col-md-12 mb-3">
-                                        <label for="car_image" class="form-label">Car Image <i class="fas fa-image text-primary"></i></label>
-                                        <input type="file" class="form-control" id="car_image" name="car_image" accept="image/*">
+                                        <label for="car_image" class="form-label">Car Image <i
+                                                class="fas fa-image text-primary"></i></label>
+                                        <input type="file" class="form-control" id="car_image" name="car_image"
+                                            accept="image/*">
                                         <div class="form-text">
                                             {% if car.image_url %}
-                                            This car already has an image. Upload a new one only if you want to replace it. All image formats are supported.
+                                            This car already has an image. Upload a new one only if you want to replace
+                                            it. All image formats are supported.
                                             {% else %}
                                             Upload a new image for the car. All image formats are supported.
                                             {% endif %}
                                         </div>
                                     </div>
-                                    
+
                                     <div class="col-md-12 mb-3">
                                         <label for="image_url" class="form-label">Image URL (Optional)</label>
-                                        <input type="text" class="form-control" id="image_url" name="image_url" value="{{ car.image_url if car.image_url else '' }}" placeholder="https://example.com/image.jpg (optional)">
+                                        <input type="text" class="form-control" id="image_url" name="image_url"
+                                            value="{{ car.image_url if car.image_url else '' }}"
+                                            placeholder="https://example.com/image.jpg (optional)">
                                         <div class="form-text">
                                             {% if car.image_url %}
-                                            Current image URL. Leave blank to keep the current image, unless you're uploading a new file above.
+                                            Current image URL. Leave blank to keep the current image, unless you're
+                                            uploading a new file above.
                                             {% else %}
-                                            Optionally, enter a URL for the car image if you don't have an image file to upload.
+                                            Optionally, enter a URL for the car image if you don't have an image file to
+                                            upload.
                                             {% endif %}
                                         </div>
                                     </div>
                                 </div>
-                                
+
                                 <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                                    <a href="{{ url_for('admin.car_list') }}" class="btn btn-secondary me-md-2">Cancel</a>
+                                    <a href="{{ url_for('admin.car_list') }}"
+                                        class="btn btn-secondary me-md-2">Cancel</a>
                                     <button type="submit" class="btn btn-primary">Save Changes</button>
                                 </div>
                             </form>
@@ -330,14 +376,14 @@
 <script src="/static/js/validation/car-form.js"></script>
 <script>
     // Prevent URL validation errors when the field is empty
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
         const imageUrlInput = document.getElementById('image_url');
         if (imageUrlInput) {
             // Set the novalidate attribute on the form to disable browser validation
             imageUrlInput.form.setAttribute('novalidate', 'novalidate');
-            
+
             // Add custom validation on submit
-            imageUrlInput.form.addEventListener('submit', function(event) {
+            imageUrlInput.form.addEventListener('submit', function (event) {
                 if (imageUrlInput.value.trim() === '') {
                     // If URL is empty, it's valid (we don't need URL validation for empty field)
                     imageUrlInput.setCustomValidity('');
@@ -352,12 +398,12 @@
                     }
                 }
             });
-            
+
             // Clear validation message when input changes
-            imageUrlInput.addEventListener('input', function() {
+            imageUrlInput.addEventListener('input', function () {
                 imageUrlInput.setCustomValidity('');
             });
         }
     });
 </script>
-{% endblock %} 
+{% endblock %}

@@ -13,10 +13,10 @@ class LoanCar(db.Model):
     
     loan_system_id = db.Column(db.String(50), nullable=True)
     commission_rate = db.Column(db.Float, default=5.0)  
-    status = db.Column(db.String(20), default='offered')
+    status = db.Column(db.String(20), default='available')
     offered_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     
-    # Relationships
+    
     car = db.relationship('Car', backref='loan_offer', lazy=True)
     admin = db.relationship('User', backref='loan_cars_offered', lazy=True)
     loan_sales = db.relationship('LoanSale', backref='loan_car', lazy=True)

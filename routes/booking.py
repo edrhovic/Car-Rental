@@ -57,7 +57,9 @@ def cancel_booking(booking_id):
     booking.status = 'cancelled'
     car = Car.query.get(booking.car_id)
     car.is_available = True
-    
+    car.status = 'available'  # Reset car status to available
+    car.bookings.remove(booking)  # Remove booking from car's bookings
+    db.session.add(car)  # Add car back to session to update its status
     db.session.commit()
     
     flash('Booking cancelled successfully.', 'success')
