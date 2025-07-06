@@ -3,27 +3,41 @@ from datetime import datetime
 
 class LoanCar(db.Model):
     __tablename__ = 'loan_cars'
-
+    
     id = db.Column(db.Integer, primary_key=True)
     car_id = db.Column(db.Integer, db.ForeignKey('cars.id'), nullable=False)
     loan_sale_price = db.Column(db.Float, nullable=False)
-    is_sold_via_loan = db.Column(db.Boolean, default=False)
-    date_offered = db.Column(db.DateTime, default=datetime.utcnow)
-    date_sold = db.Column(db.DateTime, nullable=True)
+    commission_rate = db.Column(db.Float, default=5.0)
     
+    # Status management
+    status = db.Column(db.String(20), default='available')  # available, pending, approved, active
+    date_offered = db.Column(db.DateTime, default=datetime.utcnow)
+    activated_at = db.Column(db.DateTime, nullable=True)
+    
+    # Borrower information (populated when loan is activated)
+    borrower_id = db.Column(db.Integer, nullable=True)
+    borrower_name = db.Column(db.String(100), nullable=True)
+    borrower_email = db.Column(db.String(120), nullable=True)
+    borrower_phone = db.Column(db.String(20), nullable=True)
+    
+    # Loan details (populated when loan is activated)
+    loan_amount = db.Column(db.Float, nullable=True)
+    loan_term = db.Column(db.Integer, nullable=True)  # in months
+    interest_rate = db.Column(db.Float, nullable=True)
+    
+    # Legacy fields (keep for backwards compatibility)
+    is_sold_via_loan = db.Column(db.Boolean, default=False)
+    date_sold = db.Column(db.DateTime, nullable=True)
     loan_system_id = db.Column(db.String(50), nullable=True)
-    commission_rate = db.Column(db.Float, default=5.0)  
-    status = db.Column(db.String(20), default='available')
     offered_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     
-    
+    # Relationships
     car = db.relationship('Car', backref='loan_offer', lazy=True)
     admin = db.relationship('User', backref='loan_cars_offered', lazy=True)
     loan_sales = db.relationship('LoanSale', backref='loan_car', lazy=True)
-
+    
     def __repr__(self):
         return f"<LoanCar CarID={self.car_id}, Price={self.loan_sale_price}, Status={self.status}>"
-    
 
 class LoanSale(db.Model):
     __tablename__ = 'loan_sales'
@@ -44,7 +58,6 @@ class LoanSale(db.Model):
     
     def __repr__(self):
         return f"<LoanSale {self.id} - {self.customer_name}>"
-    
 
 class LoanCommission(db.Model):
     __tablename__ = 'loan_commissions'

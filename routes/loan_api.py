@@ -3,6 +3,7 @@ from flask_login import login_required
 from models import db
 from models.loan_car import LoanCar
 from models.car import Car
+import datetime
 import requests
 from requests.exceptions import RequestException, Timeout, ConnectionError
 
@@ -180,4 +181,190 @@ def update_status(car_id):
         print(f"Error in updating status approval: {str(e)}")
         return jsonify({'success': False, 'error': 'Unexpected error', 'message': str(e)}), 500
     
+    
+#If the car loan is approved, this endpoint will activate the loan and set the status to active.
+#It will also get the loan details and borrower information.
+@loan_api.route('/activate-car-loan', methods=['POST'])
+@login_required
+def activate_car_loan():
+    
+    try:
+        data = request.get_json()
+        if not data or 'car_id' not in data:
+            return jsonify({'success': False, 'error': 'Invalid request data'}), 400
         
+        car_id = data.get('car_id')
+        user_data = data.get('user_data')
+        loan_data = data.get('loan_data')
+        
+        if not car_id or not user_data or not loan_data:
+            return jsonify({'success': False, 'error': 'Missing required data'}), 400
+        
+        
+        loan_car = LoanCar.query.filter_by(car_id=car_id).first()
+        if not loan_car:
+            return jsonify({'success': False, 'error': 'LoanCar not found'}), 404
+        
+        if loan_car.status != 'approved':
+            return jsonify({
+                'success': False, 
+                'error': f'Cannot activate loan car. Current status: {loan_car.status}'
+            }), 400
+            
+        loan_car.status = 'active'
+        loan_car.activated_at = datetime.utcnow()
+        
+        loan_car.borrower_id = user_data.get('id')
+        loan_car.borrower_name = f"{user_data.get('first_name', '')} {user_data.get('last_name', '')}"
+        loan_car.borrower_email = user_data.get('email')
+        loan_car.borrower_phone = user_data.get('phone')
+        loan_car.loan_amount = loan_data.get('loan_amount', 0.0)
+        loan_car.loan_term = loan_data.get('loan_term')
+        loan_car.interest_rate = loan_data.get('interest_rate', 0.0)
+        
+        try:
+            db.session.commit()
+        except Exception as e:
+            db.session.rollback()
+            print(f"Database commit error: {str(e)}")
+            return jsonify({
+                'success': False, 
+                'error': 'Failed to activate car loan'
+            }), 500
+            
+        return jsonify({
+            'success': True,
+            'car_id': car_id,
+            'status': loan_car.status,
+            'activated_at': loan_car.activated_at.isoformat(),
+            'message': 'Car loan activated successfully'
+        })
+    except Exception as e:
+        print(f"Error in activate_car_loan: {str(e)}")
+        return jsonify({
+            'success': False, 
+            'error': 'Unexpected error', 
+            'message': str(e)
+        }), 500
+        
+
+# Will return all active loans with their details.
+@loan_api.route('/get-active-loans', methods=['GET'])
+@login_required
+def get_active_loans():
+    
+    try:
+        active_loans = db.session.query(LoanCar, Car).join(Car).filter(
+            LoanCar.status == 'active'
+        ).all()
+        
+        loans_data = []
+        for loan_car, car in active_loans:
+            loans_data.append({
+                'id': loan_car.id,
+                'car_id': car.id,
+                'car_details': {
+                    'id': car.id,
+                    'make': car.make,
+                    'model': car.model,
+                    'year': car.year,
+                    'color': car.color,
+                    'horsepower': car.horsepower,
+                    'mileage': car.mileage,
+                    'body_type': car.body_type,
+                    'transmission': car.transmission,
+                    'fuel_type': car.fuel_type,
+                    'seats': car.seats,
+                    'image_url': car.image_url,
+                    'license_plate': car.license_plate,
+                    'description': car.description
+                },
+                'borrower_info': {
+                    'id': loan_car.borrower_id,
+                    'name': loan_car.borrower_name,
+                    'email': loan_car.borrower_email,
+                    'phone': loan_car.borrower_phone
+                },
+                'loan_details': {
+                    'loan_amount': float(loan_car.loan_amount),
+                    'loan_term': loan_car.loan_term,
+                    'interest_rate': float(loan_car.interest_rate),
+                },
+                'status': loan_car.status,
+                'activated_at': loan_car.activated_at.isoformat() if loan_car.activated_at else None,
+                'date_offered': loan_car.date_offered.isoformat() if loan_car.date_offered else None,
+            })
+            
+        return jsonify({
+            'success': True,
+            'active_loans': loans_data,
+            'total': len(loans_data)
+        })
+    except Exception as e:
+        print(f"Error in get_active_loans: {str(e)}")
+        return jsonify({
+            'success': False, 
+            'error': 'Failed to fetch active loans',
+            'message': str(e)
+        }), 500
+        
+# This endpoint will return all loans for a specific user.
+@loan_api.route('/get-loan-by-user/<int:user_id>', methods=['GET'])
+@login_required
+def get_loan_by_user(user_id):
+    try:
+        user_loans = db.session.query(LoanCar, Car).join(Car).filter(
+            LoanCar.borrower_id == user_id,
+            LoanCar.status.in_(['active'])
+        ).all()
+        
+        if not user_loans:
+            return jsonify({'success': False, 'error': 'No active loans found for this user'}), 404
+        
+        loans_data = []
+        for loan_car, car in user_loans:
+            loans_data.append({
+                'id': loan_car.id,
+                'car_id': car.id,
+                'car_details': {
+                    'make': car.make,
+                    'model': car.model,
+                    'year': car.year,
+                    'color': car.color,
+                    'horsepower': car.horsepower,
+                    'mileage': car.mileage,
+                    'body_type': car.body_type,
+                    'transmission': car.transmission,
+                    'fuel_type': car.fuel_type,
+                    'seats': car.seats,
+                    'image_url': car.image_url,
+                    'license_plate': car.license_plate,
+                    'description': car.description
+                },
+                'loan_details': {
+                    'loan_amount': float(loan_car.loan_amount),
+                    'loan_term': loan_car.loan_term,
+                    'interest_rate': float(loan_car.interest_rate),
+                },
+                'status': loan_car.status,
+                'activated_at': loan_car.activated_at.isoformat() if loan_car.activated_at else None,
+                'date_offered': loan_car.date_offered.isoformat() if loan_car.date_offered else None,
+            })
+            
+        return jsonify({
+            'success': True,
+            'user_loans': loans_data,
+            'total': len(loans_data)
+        })
+        
+    except Exception as e:
+        print(f"Error in get_loan_by_user: {str(e)}")
+        return jsonify({
+            'success': False, 
+            'error': 'Failed to fetch user loans',
+            'message': str(e)
+        }), 500
+        
+        
+                
+                
