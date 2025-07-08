@@ -47,20 +47,65 @@ CREATE TABLE IF NOT EXISTS cars (
     date_added DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
--- Create Loan Cars Table
+-- Create Loan Cars Table (UPDATED - removed borrower fields)
 CREATE TABLE IF NOT EXISTS loan_cars (
     id INT AUTO_INCREMENT PRIMARY KEY,
     car_id INT NOT NULL,
     loan_sale_price FLOAT NOT NULL,
-    is_sold_via_loan BOOLEAN DEFAULT FALSE,
+    commission_rate FLOAT DEFAULT 30.0,
+    
+    -- Status management
+    status VARCHAR(20) DEFAULT 'available',  -- available, pending, approved, active, sold
     date_offered DATETIME DEFAULT CURRENT_TIMESTAMP,
+    activated_at DATETIME,
+    is_available BOOLEAN DEFAULT TRUE,
+    
+    -- Legacy fields (keeping for backwards compatibility)
+    is_sold_via_loan BOOLEAN DEFAULT FALSE,
     date_sold DATETIME,
     loan_system_id VARCHAR(50),
-    commission_rate FLOAT DEFAULT 5.0,
-    status VARCHAR(20) DEFAULT 'available',
     offered_by INT NOT NULL,
+    
     FOREIGN KEY (car_id) REFERENCES cars(id),
     FOREIGN KEY (offered_by) REFERENCES users(id)
+);
+
+-- Create Loan Sales Table (UPDATED - added borrower fields and interest_rate)
+CREATE TABLE IF NOT EXISTS loan_sales (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    loan_car_id INT NOT NULL,
+    
+    -- Borrower information
+    borrower_name VARCHAR(100) NOT NULL,
+    borrower_email VARCHAR(120) NOT NULL,
+    borrower_phone VARCHAR(20),
+    
+    -- Loan details
+    loan_term_months INT NOT NULL,
+    interest_rate FLOAT,
+    monthly_payment FLOAT NOT NULL,
+    
+    -- Sale and system tracking
+    sale_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+    loan_system_reference VARCHAR(100),
+    
+    -- Commission tracking
+    total_commission_expected FLOAT NOT NULL,
+    commission_received FLOAT DEFAULT 0.0,
+    last_commission_payment DATETIME,
+    
+    FOREIGN KEY (loan_car_id) REFERENCES loan_cars(id)
+);
+
+-- Create Loan Commissions Table
+CREATE TABLE IF NOT EXISTS loan_commissions (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    loan_sale_id INT NOT NULL,
+    payment_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+    amount FLOAT NOT NULL,
+    payment_month VARCHAR(7) NOT NULL,  -- YYYY-MM format
+    loan_system_reference VARCHAR(100),
+    FOREIGN KEY (loan_sale_id) REFERENCES loan_sales(id)
 );
 
 -- Create Bookings Table
@@ -143,6 +188,7 @@ CREATE TABLE IF NOT EXISTS notifications (
     FOREIGN KEY (booking_id) REFERENCES bookings(id)
 );
 
+-- Create Contact Messages Table
 CREATE TABLE IF NOT EXISTS contact_messages (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
@@ -156,7 +202,6 @@ CREATE TABLE IF NOT EXISTS contact_messages (
     replied_by INT,
     FOREIGN KEY (replied_by) REFERENCES users(id)
 );
-
 
 -- Insert default page contents
 INSERT INTO page_contents (page_name, title, content, last_updated_by)

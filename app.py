@@ -13,9 +13,20 @@ from markupsafe import Markup
 import urllib3
 import json
 from urllib3.util.retry import Retry
+from flask_cors import CORS
 
 # Initialize Flask app
 app = Flask(__name__)
+
+CORS(app,
+     supports_credentials=True,
+     resources={
+         r"/api/*": {
+             "origins": ["http://localhost:5000"],  # or your front-end domain
+             "methods": ["GET", "POST", "PUT", "DELETE"],
+             "allow_headers": ["Content-Type", "Authorization"]
+         }
+     })
 
 # Initialize extensions
 mail = Mail()

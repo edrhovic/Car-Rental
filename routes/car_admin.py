@@ -35,6 +35,22 @@ def admin_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
+@car_admin.route('/loan-cars-dashboard')
+@login_required
+@admin_required
+def loan_cars_dashboard():
+    """Dashboard for loan cars"""
+    total_loan_cars = LoanCar.query.count()
+    active_loan_cars = LoanCar.query.filter_by(status='active').count()
+    pending_loan_cars = LoanCar.query.filter_by(status='pending').count()
+    available_loan_cars = LoanCar.query.filter_by(status='available').count()
+    
+    return render_template('admin/loan_dashboard.html', 
+                           total_loan_cars=total_loan_cars, 
+                           active_loan_cars=active_loan_cars, 
+                           pending_loan_cars=pending_loan_cars, 
+                           available_loan_cars=available_loan_cars)
+
 
 @car_admin.route('/loan-cars')
 @login_required

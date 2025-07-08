@@ -6,12 +6,12 @@
 <div class="container">
     <div class="page-header mb-4">
         <nav aria-label="breadcrumb">
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="{{ url_for('home') }}">Home</a></li>
-            <li class="breadcrumb-item"><a href="{{ url_for('car.car_list') }}">Cars</a></li>
-            <li class="breadcrumb-item active" aria-current="page">{{ car.make }} {{ car.model }}</li>
-        </ol>
-    </nav>
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('home') }}">Home</a></li>
+                <li class="breadcrumb-item"><a href="{{ url_for('car.car_list') }}">Cars</a></li>
+                <li class="breadcrumb-item active" aria-current="page">{{ car.make }} {{ car.model }}</li>
+            </ol>
+        </nav>
     </div>
 
     <div class="row">
@@ -20,55 +20,71 @@
             <div class="card mb-4">
                 <div class="card-body p-0">
                     <div class="position-relative">
-                {% if car.image_url %}
-                        <img src="{{ car.image_url }}" class="w-100 rounded-top" style="max-height: 400px; object-fit: cover;" alt="{{ car.make }} {{ car.model }}">
-                {% else %}
+                        {% if car.image_url %}
+                        <img src="{{ car.image_url }}" class="w-100 rounded-top"
+                            style="max-height: 400px; object-fit: cover;" alt="{{ car.make }} {{ car.model }}">
+                        {% else %}
                         <div class="bg-light d-flex justify-content-center align-items-center" style="height: 400px;">
                             <i class="fas fa-car fa-5x text-muted"></i>
                         </div>
                         {% endif %}
-                        
+
                         {% if car.average_rating > 0 %}
                         <div class="position-absolute top-0 end-0 m-3">
                             <span class="badge bg-warning p-2">
-                                <i class="fas fa-star me-1"></i>{{ "%.1f"|format(car.average_rating) }} ({{ car.reviews|length }} reviews)
+                                <i class="fas fa-star me-1"></i>{{ "%.1f"|format(car.average_rating) }} ({{
+                                car.reviews|length }} reviews)
                             </span>
                         </div>
-                {% endif %}
+                        {% endif %}
                     </div>
 
                     <div class="p-4">
                         <h2 class="mb-3">{{ car.year }} {{ car.make }} {{ car.model }}</h2>
-                        
+
                         <div class="row mb-4">
-                        <div class="col-md-6">
+                            <div class="col-md-6">
                                 <h5 class="text-muted mb-3">Car Specifications</h5>
                                 <ul class="list-unstyled">
-                                    <li class="mb-2"><i class="fas fa-palette me-2"></i> <strong>Color:</strong> {{ car.color }}</li>
-                                    <li class="mb-2"><i class="fas fa-cog me-2"></i> <strong>Transmission:</strong> {{ car.transmission }}</li>
-                                    <li class="mb-2"><i class="fas fa-gas-pump me-2"></i> <strong>Fuel Type:</strong> {{ car.fuel_type }}</li>
-                                    <li class="mb-2"><i class="fas fa-users me-2"></i> <strong>Seats:</strong> {{ car.seats }}</li>
-                                    <li class="mb-2"><i class="fas fa-tachometer-alt me-2"></i> <strong>Horsepower:</strong> {{ car.horsepower }}</li>
-                            </ul>
-                        </div>
-                        <div class="col-md-6">
+                                    <li class="mb-2"><i class="fas fa-palette me-2"></i> <strong>Color:</strong> {{
+                                        car.color }}</li>
+                                    <li class="mb-2"><i class="fas fa-cog me-2"></i> <strong>Transmission:</strong> {{
+                                        car.transmission }}</li>
+                                    <li class="mb-2"><i class="fas fa-gas-pump me-2"></i> <strong>Fuel Type:</strong> {{
+                                        car.fuel_type }}</li>
+                                    <li class="mb-2"><i class="fas fa-users me-2"></i> <strong>Seats:</strong> {{
+                                        car.seats }}</li>
+                                    <li class="mb-2"><i class="fas fa-tachometer-alt me-2"></i>
+                                        <strong>Horsepower:</strong> {{ car.horsepower }}</li>
+                                </ul>
+                            </div>
+                            <div class="col-md-6">
                                 <h5 class="text-muted mb-3">Additional Information</h5>
                                 <ul class="list-unstyled">
-                                    <li class="mb-2"><i class="fas fa-car-side me-2"></i> <strong>Body Type:</strong> {{ car.body_type }}</li>
-                                    <li class="mb-2"><i class="fas fa-road me-2"></i> <strong>Mileage:</strong> {{ car.mileage }} km</li>
-                                    <li class="mb-2"><i class="fas fa-id-card me-2"></i> <strong>License Plate:</strong> {{ car.license_plate }}</li>
-                                    <li class="mb-2"><i class="fas fa-check-circle me-2"></i> <strong>Status:</strong> 
-<<<<<<< HEAD
-                                        {% if car.is_available %}
+                                    <li class="mb-2"><i class="fas fa-car-side me-2"></i> <strong>Body Type:</strong> {{
+                                        car.body_type }}</li>
+                                    <li class="mb-2"><i class="fas fa-road me-2"></i> <strong>Mileage:</strong> {{
+                                        car.mileage }} km</li>
+                                    <li class="mb-2"><i class="fas fa-id-card me-2"></i> <strong>License Plate:</strong>
+                                        {{ car.license_plate }}</li>
+                                    <li class="mb-2"><i class="fas fa-check-circle me-2"></i> <strong>Status:</strong>
+
+                                        {% if car.status == 'available' %}
                                         <span class="text-success">Available</span>
-                                        {% else %}
+                                        {% elif car.status == 'offered_for_loan' %}
+                                        <span class="text-warning">Offered for Loan</span>
+                                        {% elif car.status == 'rented' %}
                                         <span class="text-danger">Currently Booked</span>
+                                        {% elif car.status == 'maintenance' %}
+                                        <span class="text-secondary">Under Maintenance</span>
+                                        {% else %}
+                                        <span class="text-muted">Unknown</span>
                                         {% endif %}
                                     </li>
-                            </ul>
+                                </ul>
                             </div>
                         </div>
-                        
+
                         <div class="mb-4">
                             <h5 class="text-muted mb-3">Description</h5>
                             <p>{{ car.description }}</p>
@@ -85,29 +101,28 @@
                 </div>
                 <div class="card-body">
                     {% if car.reviews %}
-                        {% for review in car.reviews %}
-                        <div class="mb-4 {% if not loop.last %}border-bottom pb-4{% endif %}">
-                            <div class="d-flex justify-content-between mb-2">
-                                <h6 class="mb-0">{{ review.user.first_name }} {{ review.user.last_name }}</h6>
-                                <small class="text-muted">{{ review.review_date.strftime('%B %d, %Y') }}</small>
-                            </div>
-                            <div class="mb-2">
-                                {% for i in range(5) %}
-                                    {% if i < review.rating %}
-                                        <i class="fas fa-star text-warning"></i>
-                                    {% else %}
-                                        <i class="far fa-star text-warning"></i>
-                                    {% endif %}
-                                        {% endfor %}
-                                    </div>
-                            <p>{{ review.comment }}</p>
-                            </div>
-                        {% endfor %}
-                    {% else %}
-                        <div class="text-center py-4">
-                            <i class="far fa-comment-alt fa-3x mb-3 text-muted"></i>
-                            <p>No reviews yet for this car.</p>
+                    {% for review in car.reviews %}
+                    <div class="mb-4 {% if not loop.last %}border-bottom pb-4{% endif %}">
+                        <div class="d-flex justify-content-between mb-2">
+                            <h6 class="mb-0">{{ review.user.first_name }} {{ review.user.last_name }}</h6>
+                            <small class="text-muted">{{ review.review_date.strftime('%B %d, %Y') }}</small>
                         </div>
+                        <div class="mb-2">
+                            {% for i in range(5) %}
+                            {% if i < review.rating %} <i class="fas fa-star text-warning"></i>
+                                {% else %}
+                                <i class="far fa-star text-warning"></i>
+                                {% endif %}
+                                {% endfor %}
+                        </div>
+                        <p>{{ review.comment }}</p>
+                    </div>
+                    {% endfor %}
+                    {% else %}
+                    <div class="text-center py-4">
+                        <i class="far fa-comment-alt fa-3x mb-3 text-muted"></i>
+                        <p>No reviews yet for this car.</p>
+                    </div>
                     {% endif %}
                 </div>
             </div>
@@ -121,43 +136,73 @@
                 </div>
                 <div class="card-body">
                     <div class="price-box mb-4 text-center">
-                        <span class="h2 text-primary">₱{{ "%.2f"|format(car.daily_rate) }}</span> <span class="text-muted">/ day</span>
+                        <span class="h2 text-primary">₱{{ "%.2f"|format(car.daily_rate) }}</span> <span
+                            class="text-muted">/ day</span>
                     </div>
-                    
-                    {% if car.is_available %}
-                        <div class="d-grid">
-                            <a href="{{ url_for('car.book_car', car_id=car.id) }}" class="btn btn-primary">Book This Car</a>
-                        </div>
-                        <div class="mt-3">
-                            <small class="text-muted d-block mb-2">
-                                <i class="fas fa-info-circle me-1"></i> Price includes basic insurance
-                            </small>
-                            <small class="text-muted d-block">
-                                <i class="fas fa-shield-alt me-1"></i> Free cancellation up to 24 hours before pickup
-                            </small>
-                        </div>
+
+                    {% if car.status == 'available' %}
+                    <div class="d-grid">
+                        <a href="{{ url_for('car.book_car', car_id=car.id) }}" class="btn btn-primary">Book This Car</a>
+                    </div>
+                    <div class="mt-3">
+                        <small class="text-muted d-block mb-2">
+                            <i class="fas fa-info-circle me-1"></i> Price includes basic insurance
+                        </small>
+                        <small class="text-muted d-block">
+                            <i class="fas fa-shield-alt me-1"></i> Free cancellation up to 24 hours before pickup
+                        </small>
+                    </div>
+
+                    {% elif car.status == 'offered_for_loan' %}
+                    <div class="text-center py-3">
+                        <i class="fas fa-hand-holding-usd fa-3x text-success mb-3"></i>
+                        <h5 class="text-success">Offered for Loan</h5>
+                        <p class="text-muted">This car is offered for loan. Please contact the administrator for more
+                            details.</p>
+                    </div>
+
+                    {% elif car.status == 'maintenance' %}
+                    <div class="text-center py-3">
+                        <i class="fas fa-tools fa-3x text-warning mb-3"></i>
+                        <h5 class="text-warning">Under Maintenance</h5>
+                        <p class="text-muted">This car is currently undergoing maintenance. Please check back later.</p>
+                    </div>
+
+                    {% elif car.status == 'rented' %}
+                    <div class="text-center py-3">
+                        <i class="fas fa-car-side fa-3x text-info mb-3"></i>
+                        <h5 class="text-info">Currently Rented</h5>
+                        <p class="text-muted">This car is already rented out. Try checking other available cars.</p>
+                        <a href="{{ url_for('car.car_list') }}" class="btn btn-outline-primary mt-2">
+                            View Other Cars
+                        </a>
+                    </div>
+
                     {% else %}
-                        <div class="text-center py-3">
-                            <i class="fas fa-calendar-times fa-3x text-danger mb-3"></i>
-                            <h5 class="text-danger">Currently Unavailable</h5>
-                            <p class="text-muted">This car is currently booked. Please check back later or browse our other available cars.</p>
-                            <a href="{{ url_for('car.car_list') }}" class="btn btn-outline-primary mt-2">
-                                View Other Cars
-                            </a>
-                        </div>
+                    <div class="text-center py-3">
+                        <i class="fas fa-calendar-times fa-3x text-danger mb-3"></i>
+                        <h5 class="text-danger">Currently Unavailable</h5>
+                        <p class="text-muted">This car is not available at the moment.</p>
+                        <a href="{{ url_for('car.car_list') }}" class="btn btn-outline-primary mt-2">
+                            View Other Cars
+                        </a>
+                    </div>
                     {% endif %}
+
                 </div>
                 <div class="card-footer bg-light">
                     <h6 class="mb-3">Included in your rental:</h6>
                     <ul class="list-unstyled">
-                        <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i> Third party liability insurance</li>
-                        <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i> 24/7 roadside assistance</li>
+                        <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i> Third party liability
+                            insurance</li>
+                        <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i> 24/7 roadside assistance
+                        </li>
                         <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i> Free cancellation</li>
                         <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i> Unlimited mileage</li>
                     </ul>
                 </div>
             </div>
-            
+
             <!-- Related Cars -->
             {% if related_cars %}
             <div class="card">
@@ -167,18 +212,24 @@
                 <div class="card-body p-0">
                     <div class="list-group list-group-flush">
                         {% for related_car in related_cars %}
-                        <a href="{{ url_for('car.car_details', car_id=related_car.id) }}" class="list-group-item list-group-item-action">
+                        <a href="{{ url_for('car.car_details', car_id=related_car.id) }}"
+                            class="list-group-item list-group-item-action">
                             <div class="d-flex align-items-center">
                                 {% if related_car.image_url %}
-                                <img src="{{ related_car.image_url }}" alt="{{ related_car.make }} {{ related_car.model }}" class="me-3 rounded" style="width: 60px; height: 60px; object-fit: cover;">
+                                <img src="{{ related_car.image_url }}"
+                                    alt="{{ related_car.make }} {{ related_car.model }}" class="me-3 rounded"
+                                    style="width: 60px; height: 60px; object-fit: cover;">
                                 {% else %}
-                                <div class="bg-light d-flex justify-content-center align-items-center me-3 rounded" style="width: 60px; height: 60px;">
+                                <div class="bg-light d-flex justify-content-center align-items-center me-3 rounded"
+                                    style="width: 60px; height: 60px;">
                                     <i class="fas fa-car text-muted"></i>
                                 </div>
                                 {% endif %}
                                 <div>
-                                    <h6 class="mb-1">{{ related_car.year }} {{ related_car.make }} {{ related_car.model }}</h6>
-                                    <p class="mb-0 small text-primary">₱{{ "%.2f"|format(related_car.daily_rate) }} / day</p>
+                                    <h6 class="mb-1">{{ related_car.year }} {{ related_car.make }} {{ related_car.model
+                                        }}</h6>
+                                    <p class="mb-0 small text-primary">₱{{ "%.2f"|format(related_car.daily_rate) }} /
+                                        day</p>
                                 </div>
                             </div>
                         </a>
@@ -190,4 +241,4 @@
         </div>
     </div>
 </div>
-{% endblock %} 
+{% endblock %}

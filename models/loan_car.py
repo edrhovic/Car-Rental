@@ -7,23 +7,13 @@ class LoanCar(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     car_id = db.Column(db.Integer, db.ForeignKey('cars.id'), nullable=False)
     loan_sale_price = db.Column(db.Float, nullable=False)
-    commission_rate = db.Column(db.Float, default=5.0)
+    commission_rate = db.Column(db.Float, default=30.0)
     
     # Status management
-    status = db.Column(db.String(20), default='available')  # available, pending, approved, active
+    status = db.Column(db.String(20), default='available')  # available, pending, approved, active, sold
     date_offered = db.Column(db.DateTime, default=datetime.utcnow)
     activated_at = db.Column(db.DateTime, nullable=True)
-    
-    # Borrower information (populated when loan is activated)
-    borrower_id = db.Column(db.Integer, nullable=True)
-    borrower_name = db.Column(db.String(100), nullable=True)
-    borrower_email = db.Column(db.String(120), nullable=True)
-    borrower_phone = db.Column(db.String(20), nullable=True)
-    
-    # Loan details (populated when loan is activated)
-    loan_amount = db.Column(db.Float, nullable=True)
-    loan_term = db.Column(db.Integer, nullable=True)  # in months
-    interest_rate = db.Column(db.Float, nullable=True)
+    is_available = db.Column(db.Boolean, default=True)
     
     # Legacy fields (keep for backwards compatibility)
     is_sold_via_loan = db.Column(db.Boolean, default=False)
@@ -44,33 +34,25 @@ class LoanSale(db.Model):
     
     id = db.Column(db.Integer, primary_key=True)
     loan_car_id = db.Column(db.Integer, db.ForeignKey('loan_cars.id'), nullable=False)
-    customer_name = db.Column(db.String(100), nullable=False)
-    customer_email = db.Column(db.String(120), nullable=False)
-    loan_amount = db.Column(db.Float, nullable=False)
+    
+    # Borrower information
+    borrower_name = db.Column(db.String(100), nullable=False)
+    borrower_email = db.Column(db.String(120), nullable=False)
+    borrower_phone = db.Column(db.String(20), nullable=True)
+    
+    # Loan details
     loan_term_months = db.Column(db.Integer, nullable=False)
+    interest_rate = db.Column(db.Float, nullable=True)
     monthly_payment = db.Column(db.Float, nullable=False)
+    
+    # Sale and system tracking
     sale_date = db.Column(db.DateTime, default=datetime.utcnow)
     loan_system_reference = db.Column(db.String(100), nullable=True)
     
+    # Commission tracking
     total_commission_expected = db.Column(db.Float, nullable=False)
     commission_received = db.Column(db.Float, default=0.0)
-    last_commission_payment = db.Column(db.DateTime, nullable=True)
+    date_commission_received = db.Column(db.DateTime, nullable=True)
     
     def __repr__(self):
-        return f"<LoanSale {self.id} - {self.customer_name}>"
-
-class LoanCommission(db.Model):
-    __tablename__ = 'loan_commissions'
-    
-    id = db.Column(db.Integer, primary_key=True)
-    loan_sale_id = db.Column(db.Integer, db.ForeignKey('loan_sales.id'), nullable=False)
-    payment_date = db.Column(db.DateTime, default=datetime.utcnow)
-    amount = db.Column(db.Float, nullable=False)
-    payment_month = db.Column(db.String(7), nullable=False)  # YYYY-MM format
-    loan_system_reference = db.Column(db.String(100), nullable=True)
-    
-    # Relationship
-    loan_sale = db.relationship('LoanSale', backref='commission_payments', lazy=True)
-    
-    def __repr__(self):
-        return f"<LoanCommission {self.id} - ${self.amount}>"
+        return f"<LoanSale {self.id} - {self.borrower_name}>"

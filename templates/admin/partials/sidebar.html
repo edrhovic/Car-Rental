@@ -31,8 +31,14 @@
             </li>
             <li class="nav-item">
                 <a class="nav-link {% if request.endpoint == 'car_admin.manage_loan_cars' %}active{% endif %}" href="{{ url_for('car_admin.manage_loan_cars') }}">
-                    <i class="fas fa-envelope me-2"></i>
+                    <i class="fas fa-handshake me-2"></i>
                     Manage Cars for Loan
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if request.endpoint == 'car_admin.loan_cars_dashboard' %}active{% endif %}" href="{{ url_for('car_admin.loan_cars_dashboard') }}">
+                    <i class="fas fa-hand-holding-usd me-2"></i>
+                    Car Loan Dashboard
                 </a>
             </li>
             <li class="nav-item">

@@ -21,11 +21,11 @@ Rentals{% endblock %}
         </div>
         <div class="btn-toolbar mb-2 mb-md-0">
           <a
-            href="{{ url_for('admin.car_list') }}"
-            class="btn btn-sm btn-outline-secondary"
-          >
-            <i class="fas fa-arrow-left me-1"></i> Back to Cars
-          </a>
+                      href="{{ url_for('admin.add_car') }}"
+                      class="btn btn-outline-secondary"
+                    >
+                      <i class="fas fa-plus me-1"></i> Add More Cars
+                    </a>
         </div>
       </div>
 
@@ -257,6 +257,7 @@ Rentals{% endblock %}
             {% if available_cars and available_count > 0 %} {% for car in
             available_cars %} {% set is_already_offered = car.id in
             offered_car_ids %} {% if not is_already_offered %}
+            
             <div class="col-lg-4 col-md-6 mb-4">
               <div class="card h-100">
                 <div class="position-relative">
@@ -369,7 +370,7 @@ Rentals{% endblock %}
                     class="d-flex flex-column flex-sm-row gap-2 justify-content-center"
                   >
                     <a
-                      href="{{ url_for('admin.car_list') }}"
+                      href="{{ url_for('admin.add_car') }}"
                       class="btn btn-primary"
                     >
                       <i class="fas fa-plus me-1"></i> Add Your First Car
