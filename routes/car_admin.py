@@ -1,7 +1,7 @@
 from flask import Flask, flash, render_template, redirect, url_for, jsonify, make_response, Blueprint, session, current_app, request
 from datetime import datetime
 from flask_login import login_required, current_user, logout_user
-from models.loan_car import LoanCar
+from models.loan_car import LoanCar, LoanSale
 from models.car import Car
 from models import db
 from functools import wraps
@@ -40,6 +40,20 @@ def admin_required(f):
 @admin_required
 def loan_cars_dashboard():
     """Dashboard for loan cars"""
+    try:
+        loan_sale = LoanSale.query.all()
+        if not loan_sale:
+            flash('No loan sales found', 'info')
+            return redirect(url_for('car_admin.loan_cars_dashboard'))
+        
+    except Exception as e:
+        current_app.logger.error(f"Error fetching loan sales: {str(e)}")
+        flash('Error fetching loan sales data', 'error')
+        return redirect(url_for('car_admin.loan_cars_dashboard'))
+    
+    
+    
+    
     total_loan_cars = LoanCar.query.count()
     active_loan_cars = LoanCar.query.filter_by(status='active').count()
     pending_loan_cars = LoanCar.query.filter_by(status='pending').count()
@@ -49,7 +63,7 @@ def loan_cars_dashboard():
                            total_loan_cars=total_loan_cars, 
                            active_loan_cars=active_loan_cars, 
                            pending_loan_cars=pending_loan_cars, 
-                           available_loan_cars=available_loan_cars)
+                           available_loan_cars=available_loan_cars, loan_sales=loan_sale)
 
 
 @car_admin.route('/loan-cars')
@@ -216,3 +230,4 @@ def loan_sale_details(sale_id):
     return render_template('admin/loan_details.html', 
                          loan_car=loan_car, 
                          car=car)
+    

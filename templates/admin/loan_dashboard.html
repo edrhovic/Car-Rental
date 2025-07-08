@@ -20,16 +20,22 @@
                                     <i class="fas fa-download me-2"></i>Export Data
                                 </button>
                                 <div class="dropdown ms-2">
-                                    <button type="button" class="btn btn-primary dropdown-toggle" id="time-period-dropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <button type="button" class="btn btn-primary dropdown-toggle"
+                                        id="time-period-dropdown" data-bs-toggle="dropdown" aria-expanded="false">
                                         <i class="fas fa-calendar me-2"></i>
                                         <span id="selected-period">This month</span>
                                     </button>
                                     <ul class="dropdown-menu" aria-labelledby="time-period-dropdown">
-                                        <li><a class="dropdown-item period-item" href="#" data-period="day">Today</a></li>
-                                        <li><a class="dropdown-item period-item" href="#" data-period="week">This week</a></li>
-                                        <li><a class="dropdown-item period-item" href="#" data-period="month">This month</a></li>
-                                        <li><a class="dropdown-item period-item" href="#" data-period="quarter">This quarter</a></li>
-                                        <li><a class="dropdown-item period-item" href="#" data-period="year">This year</a></li>
+                                        <li><a class="dropdown-item period-item" href="#" data-period="day">Today</a>
+                                        </li>
+                                        <li><a class="dropdown-item period-item" href="#" data-period="week">This
+                                                week</a></li>
+                                        <li><a class="dropdown-item period-item" href="#" data-period="month">This
+                                                month</a></li>
+                                        <li><a class="dropdown-item period-item" href="#" data-period="quarter">This
+                                                quarter</a></li>
+                                        <li><a class="dropdown-item period-item" href="#" data-period="year">This
+                                                year</a></li>
                                     </ul>
                                 </div>
                             </div>
@@ -46,11 +52,13 @@
                                     <div class="icon-circle mb-3">
                                         <i class="fas fa-handshake fa-2x"></i>
                                     </div>
-                                    <h2 class="counter mb-2">25</h2>
+                                    <h2 class="counter mb-2">{{ total_loan_cars }}</h2>
+
                                     <p class="label mb-0">Cars for Loan</p>
                                 </div>
                             </div>
-                            <div class="card-footer d-flex align-items-center justify-content-between bg-transparent border-top-0">
+                            <div
+                                class="card-footer d-flex align-items-center justify-content-between bg-transparent border-top-0">
                                 <a href="#" class="text-white text-decoration-none">View Details</a>
                                 <span class="text-white"><i class="fas fa-arrow-circle-right"></i></span>
                             </div>
@@ -63,11 +71,12 @@
                                     <div class="icon-circle mb-3">
                                         <i class="fas fa-user-check fa-2x"></i>
                                     </div>
-                                    <h2 class="counter active-loans-count mb-2">12</h2>
+                                    <h2 class="counter active-loans-count mb-2">{{ active_loan_cars }}</h2>
                                     <p class="label mb-0">Active Loans</p>
                                 </div>
                             </div>
-                            <div class="card-footer d-flex align-items-center justify-content-between bg-transparent border-top-0">
+                            <div
+                                class="card-footer d-flex align-items-center justify-content-between bg-transparent border-top-0">
                                 <a href="#" class="text-white text-decoration-none">View Details</a>
                                 <span class="text-white"><i class="fas fa-arrow-circle-right"></i></span>
                             </div>
@@ -80,11 +89,12 @@
                                     <div class="icon-circle mb-3">
                                         <i class="fas fa-clock fa-2x"></i>
                                     </div>
-                                    <h2 class="counter mb-2">6</h2>
+                                    <h2 class="counter mb-2">{{ pending_loan_cars }}</h2>
                                     <p class="label mb-0">Pending Applications</p>
                                 </div>
                             </div>
-                            <div class="card-footer d-flex align-items-center justify-content-between bg-transparent border-top-0">
+                            <div
+                                class="card-footer d-flex align-items-center justify-content-between bg-transparent border-top-0">
                                 <a href="#" class="text-white text-decoration-none">View Details</a>
                                 <span class="text-white"><i class="fas fa-arrow-circle-right"></i></span>
                             </div>
@@ -97,11 +107,16 @@
                                     <div class="icon-circle mb-3">
                                         <i class="fas fa-percentage fa-2x"></i>
                                     </div>
-                                    <h2 class="counter monthly-commission mb-2">₱500,000</h2>
+                                    {% for sale in loan_sales %}
+                                    <h2 class="counter monthly-commission mb-2">
+                                        {{ loop.index }} ₱{{ sale.commission_received }}
+                                    </h2>
+                                    {% endfor %}
                                     <p class="label mb-0">Monthly Commission</p>
                                 </div>
                             </div>
-                            <div class="card-footer d-flex align-items-center justify-content-between bg-transparent border-top-0">
+                            <div
+                                class="card-footer d-flex align-items-center justify-content-between bg-transparent border-top-0">
                                 <a href="#" class="text-white text-decoration-none">View Details</a>
                                 <span class="text-white"><i class="fas fa-arrow-circle-right"></i></span>
                             </div>
@@ -109,7 +124,7 @@
                     </div>
                 </div>
 
-                
+
                 <div class="row">
                     <!-- Commission Chart -->
                     <div class="col-md-6">
@@ -122,7 +137,7 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <!-- Loan Status Distribution -->
                     <div class="col-md-6">
                         <div class="card chart-card mb-4">
@@ -181,10 +196,12 @@
                                         <td>₱4,250.00</td>
                                         <td>
                                             <div class="btn-group" role="group">
-                                                <button type="button" class="btn btn-sm btn-outline-primary" title="View Details">
+                                                <button type="button" class="btn btn-sm btn-outline-primary"
+                                                    title="View Details">
                                                     <i class="fas fa-eye"></i>
                                                 </button>
-                                                <button type="button" class="btn btn-sm btn-outline-success" title="Edit">
+                                                <button type="button" class="btn btn-sm btn-outline-success"
+                                                    title="Edit">
                                                     <i class="fas fa-edit"></i>
                                                 </button>
                                             </div>
@@ -208,13 +225,16 @@
                                         <td>₱3,250.00</td>
                                         <td>
                                             <div class="btn-group" role="group">
-                                                <button type="button" class="btn btn-sm btn-outline-primary" title="View Details">
+                                                <button type="button" class="btn btn-sm btn-outline-primary"
+                                                    title="View Details">
                                                     <i class="fas fa-eye"></i>
                                                 </button>
-                                                <button type="button" class="btn btn-sm btn-outline-success" title="Edit">
+                                                <button type="button" class="btn btn-sm btn-outline-success"
+                                                    title="Edit">
                                                     <i class="fas fa-edit"></i>
                                                 </button>
-                                                <button type="button" class="btn btn-sm btn-outline-info" title="Approve">
+                                                <button type="button" class="btn btn-sm btn-outline-info"
+                                                    title="Approve">
                                                     <i class="fas fa-check"></i>
                                                 </button>
                                             </div>
@@ -238,10 +258,12 @@
                                         <td>₱3,750.00</td>
                                         <td>
                                             <div class="btn-group" role="group">
-                                                <button type="button" class="btn btn-sm btn-outline-primary" title="View Details">
+                                                <button type="button" class="btn btn-sm btn-outline-primary"
+                                                    title="View Details">
                                                     <i class="fas fa-eye"></i>
                                                 </button>
-                                                <button type="button" class="btn btn-sm btn-outline-success" title="Edit">
+                                                <button type="button" class="btn btn-sm btn-outline-success"
+                                                    title="Edit">
                                                     <i class="fas fa-edit"></i>
                                                 </button>
                                             </div>
@@ -265,10 +287,12 @@
                                         <td>₱0.00</td>
                                         <td>
                                             <div class="btn-group" role="group">
-                                                <button type="button" class="btn btn-sm btn-outline-primary" title="View Details">
+                                                <button type="button" class="btn btn-sm btn-outline-primary"
+                                                    title="View Details">
                                                     <i class="fas fa-eye"></i>
                                                 </button>
-                                                <button type="button" class="btn btn-sm btn-outline-success" title="Edit">
+                                                <button type="button" class="btn btn-sm btn-outline-success"
+                                                    title="Edit">
                                                     <i class="fas fa-edit"></i>
                                                 </button>
                                             </div>
@@ -292,10 +316,12 @@
                                         <td>₱3,100.00</td>
                                         <td>
                                             <div class="btn-group" role="group">
-                                                <button type="button" class="btn btn-sm btn-outline-primary" title="View Details">
+                                                <button type="button" class="btn btn-sm btn-outline-primary"
+                                                    title="View Details">
                                                     <i class="fas fa-eye"></i>
                                                 </button>
-                                                <button type="button" class="btn btn-sm btn-outline-success" title="Edit">
+                                                <button type="button" class="btn btn-sm btn-outline-success"
+                                                    title="Edit">
                                                     <i class="fas fa-edit"></i>
                                                 </button>
                                             </div>
@@ -337,7 +363,7 @@
         align-items: center;
         justify-content: center;
     }
-    
+
     .stats-card {
         transition: transform 0.3s ease;
         border-radius: 15px;
@@ -345,30 +371,30 @@
         box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
         min-height: 200px;
     }
-    
+
     .stats-card:hover {
         transform: translateY(-5px);
         box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
     }
-    
+
     .chart-card {
-        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
         border-radius: 10px;
         border: none;
     }
-    
+
     .counter {
         font-size: 2.5rem;
         font-weight: bold;
         line-height: 1;
     }
-    
+
     .label {
         font-size: 1rem;
         font-weight: 500;
         opacity: 0.9;
     }
-    
+
     .activity-icon {
         width: 40px;
         height: 40px;
@@ -383,18 +409,18 @@
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
         // Sample data for charts
         const commissionData = {
             months: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
             data: [35000, 42000, 38000, 45000, 41000, 48000]
         };
-        
+
         const loanStatusData = {
             labels: ['Active', 'Pending', 'Available', 'Completed', 'Defaulted'],
             data: [12, 8, 5, 15, 2]
         };
-        
+
         // Monthly Commission Chart
         const commissionCtx = document.getElementById('commissionChart').getContext('2d');
         const commissionChart = new Chart(commissionCtx, {
@@ -438,7 +464,7 @@
                         padding: 12,
                         cornerRadius: 6,
                         callbacks: {
-                            label: function(context) {
+                            label: function (context) {
                                 return '₱' + context.raw.toLocaleString();
                             }
                         }
@@ -452,7 +478,7 @@
                             color: 'rgba(0, 0, 0, 0.05)'
                         },
                         ticks: {
-                            callback: function(value) {
+                            callback: function (value) {
                                 return '₱' + value.toLocaleString();
                             }
                         }
@@ -465,7 +491,7 @@
                 }
             }
         });
-        
+
         // Loan Status Chart
         const statusCtx = document.getElementById('loanStatusChart').getContext('2d');
         const statusChart = new Chart(statusCtx, {
@@ -518,34 +544,34 @@
                 }
             }
         });
-        
+
         // Filter functionality
         const applyFiltersBtn = document.getElementById('apply-filters');
         const clearFiltersBtn = document.getElementById('clear-filters');
         const table = document.getElementById('loan-table');
-        
+
         if (applyFiltersBtn) {
-            applyFiltersBtn.addEventListener('click', function() {
+            applyFiltersBtn.addEventListener('click', function () {
                 const status = document.getElementById('status-filter').value;
                 const carType = document.getElementById('car-type-filter').value;
                 const loanTerm = document.getElementById('loan-term-filter').value;
                 const priceRange = document.getElementById('price-range-filter').value;
-                
+
                 // Filter table rows
                 const rows = table.querySelectorAll('tbody tr');
                 rows.forEach(row => {
                     let showRow = true;
-                    
+
                     if (status) {
                         const statusBadge = row.querySelector('.badge');
                         if (statusBadge && statusBadge.textContent.toLowerCase() !== status) {
                             showRow = false;
                         }
                     }
-                    
+
                     row.style.display = showRow ? '' : 'none';
                 });
-                
+
                 // Show success message
                 const alert = document.createElement('div');
                 alert.className = 'alert alert-success alert-dismissible fade show';
@@ -554,7 +580,7 @@
                     <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                 `;
                 document.querySelector('.dashboard-header').appendChild(alert);
-                
+
                 // Auto-dismiss after 3 seconds
                 setTimeout(() => {
                     if (alert.parentNode) {
@@ -563,15 +589,15 @@
                 }, 3000);
             });
         }
-        
+
         if (clearFiltersBtn) {
-            clearFiltersBtn.addEventListener('click', function() {
+            clearFiltersBtn.addEventListener('click', function () {
                 // Reset all filters
                 document.getElementById('status-filter').value = '';
                 document.getElementById('car-type-filter').value = '';
                 document.getElementById('loan-term-filter').value = '';
                 document.getElementById('price-range-filter').value = '';
-                
+
                 // Show all rows
                 const rows = table.querySelectorAll('tbody tr');
                 rows.forEach(row => {
@@ -579,17 +605,17 @@
                 });
             });
         }
-        
+
         // Export functionality
         const exportBtn = document.getElementById('export-btn');
         if (exportBtn) {
-            exportBtn.addEventListener('click', function() {
+            exportBtn.addEventListener('click', function () {
                 // Create CSV content
                 let csvContent = "data:text/csv;charset=utf-8,";
-                
+
                 // Add headers
                 csvContent += "Car Model,Borrower,Loan Amount,Monthly Payment,Status,Term,Start Date,Commission\n";
-                
+
                 // Add data rows
                 const rows = table.querySelectorAll('tbody tr');
                 rows.forEach(row => {
@@ -606,27 +632,27 @@
                     ];
                     csvContent += rowData.join(',') + '\n';
                 });
-                
+
                 // Create download link
                 const encodedUri = encodeURI(csvContent);
                 const link = document.createElement("a");
                 link.setAttribute("href", encodedUri);
-                link.setAttribute("download", "car_loan_report_" + new Date().toISOString().slice(0,10) + ".csv");
+                link.setAttribute("download", "car_loan_report_" + new Date().toISOString().slice(0, 10) + ".csv");
                 document.body.appendChild(link);
-                
+
                 // Trigger download and remove link
                 link.click();
                 document.body.removeChild(link);
             });
         }
-        
+
         // Time period filtering
         const periodItems = document.querySelectorAll('.period-item');
         const selectedPeriod = document.getElementById('selected-period');
-        
+
         if (periodItems.length && selectedPeriod) {
             periodItems.forEach(item => {
-                item.addEventListener('click', function(e) {
+                item.addEventListener('click', function (e) {
                     e.preventDefault();
                     const period = this.getAttribute('data-period');
                     selectedPeriod.textContent = item.textContent;

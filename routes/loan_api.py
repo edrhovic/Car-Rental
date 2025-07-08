@@ -489,7 +489,7 @@ def receive_monthly_commission(loan_car_id):
             
 
         
-        loan_sale.total_commission_expected += expected_commission
+        loan_sale.total_commission_expected = expected_commission
         loan_sale.commission_received += monthly_commission_amount
         loan_sale.date_commission_received = datetime.datetime.utcnow()
         
