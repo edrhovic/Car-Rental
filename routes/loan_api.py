@@ -58,7 +58,6 @@ def get_available_cars():
     
 
 @loan_api.route('/cars-loan-details/<int:car_id>', methods=['GET'])
-
 def get_car(car_id):
     
     try: 
@@ -82,7 +81,9 @@ def get_car(car_id):
             'license_plate': car.license_plate,
             'loan_sale_price': float(loan.loan_sale_price),
             'description': car.description,
-            'image_url': car.image_url
+            'image_url': car.image_url,
+            'interest_rate': float(loan.commission_rate),
+            'date_offered': loan.date_offered.isoformat() if loan.date_offered else None,
         }
 
         return jsonify({'success': True, 'car': car_data})
@@ -99,6 +100,13 @@ def get_car(car_id):
 def set_pending_status(car_id):
     
     try:
+        
+        data = request.get_json()
+        if not data or 'car_id' not in data:
+            return jsonify({'success': False, 'error': 'Invalid request data'}), 400
+        
+        if data.get('car_id') != car_id:
+            return jsonify({'success': False, 'error': 'Car ID mismatch'}), 400
         
         loan_car = LoanCar.query.filter_by(car_id=car_id).first()
         if not loan_car:
@@ -153,6 +161,8 @@ def update_status(car_id):
         if not data:
             return jsonify({'success':False, 'error': 'No data provided'}), 400
         
+        if 'is_approved' not in data or 'car_id' not in data:
+            return jsonify({'success': False, 'error': 'Invalid request data'}), 400
 
         is_approved = data.get('is_approved')
         get_car_id = data.get('car_id')
@@ -231,7 +241,7 @@ def activate_car_loan():
                 }), 500
             
             data = response.json()
-            if not data or 'car_details' not in data:
+            if not data or 'loan_data' not in data:
                 return jsonify({
                     'success': False, 
                     'error': 'Invalid response from external API'
@@ -262,8 +272,10 @@ def activate_car_loan():
             loan_term_months=loan_data.get('loan_term_months', 0),
             interest_rate=loan_data.get('interest_rate', 0.0),
             monthly_payment = (loan_car.loan_sale_price + (loan_car.loan_sale_price * loan_data.get('interest_rate', 0.0) / 100)) / loan_data.get('loan_term_months'),
-            total_commission_expected = loan_car.loan_sale_price + (loan_car.loan_sale_price * loan_data.get('interest_rate', 0.0) / 100),
-            commission_received = 0.0
+            total_commission_expected = (loan_car.loan_sale_price + (loan_car.loan_sale_price * loan_data.get('interest_rate') / 100)),
+            commission_received = 0.0,
+            expected_monthly_commission = (loan_car.loan_sale_price + (loan_car.loan_sale_price * loan_data.get('interest_rate', 0.0) / 100)) / loan_data.get('loan_term_months')
+            # remaining_balance = loan_sale.total_commission_expected - loan_sale.commission_received,
         )
         
         loan_car.status = 'active'
@@ -297,25 +309,6 @@ def activate_car_loan():
             'message': str(e)
         }), 500
         
-# mock endpoint to test api
-@loan_api.route('/fake-loan-data/<int:car_id>')
-def fake_loan_data(car_id):
-    return jsonify({
-        "car_details": {"model": "Toyota"},
-        "user_data": {
-            "id": 1,
-            "first_name": "John",
-            "last_name": "Doe",
-            "email": "john@example.com",
-            "phone": "09123456789"
-        },
-        "loan_data": {
-            "loan_amount": 500000,
-            "loan_term_months": 24,
-            "interest_rate": 5.5
-        }
-    })
-
         
 
 # Will return all active loans with their details.
@@ -479,17 +472,18 @@ def receive_monthly_commission(loan_car_id):
         if not isinstance(monthly_commission_amount, (int, float)):
             return jsonify({'success': False, 'error': 'Invalid commission amount'}), 400
         
-        expected_commission = (loan_car.loan_sale_price + (loan_car.loan_sale_price * loan_sale.interest_rate / 100)) / loan_sale.loan_term_months
+        expected_commission_per_month = (loan_car.loan_sale_price + (loan_car.loan_sale_price * loan_sale.interest_rate / 100)) / loan_sale.loan_term_months
         
-        if monthly_commission_amount < expected_commission:
+        total_commission_expected = (loan_car.loan_sale_price + (loan_car.loan_sale_price * loan_sale.interest_rate / 100))
+        
+        if monthly_commission_amount < expected_commission_per_month:
             return jsonify({
                 'success': False, 
-                'error': 'Commission amount is less than expected'
+                'error': f'Monthly commission amount must be at least {expected_commission_per_month}'
             }), 400
-            
-
         
-        loan_sale.total_commission_expected = expected_commission
+        loan_sale.expected_monthly_commission = expected_commission_per_month
+        loan_sale.total_commission_expected = total_commission_expected
         loan_sale.commission_received += monthly_commission_amount
         loan_sale.date_commission_received = datetime.datetime.utcnow()
         
@@ -517,3 +511,62 @@ def receive_monthly_commission(loan_car_id):
             'error': 'Unexpected error', 
             'message': str(e)
         }), 500
+
+@loan_api.route('/set-status-to-paid/<int:loan_car_id>', methods=['POST'])
+def set_status_to_paid(loan_car_id):
+    try:
+        
+        data = request.get_json()
+        if not data or 'car_id' not in data:
+            return jsonify({'success': False, 'error': 'Invalid request data'}), 400
+        
+        car_id = data.get('car_id')
+        if not car_id:
+            return jsonify({'success': False, 'error': 'Car ID is required'}), 400
+        
+        if car_id != loan_car_id:
+            return jsonify({'success': False, 'error': 'Car ID mismatch'}), 400
+        
+        
+        loan_car = LoanCar.query.get(loan_car_id)
+        if not loan_car:
+            return jsonify({'success': False, 'error': 'LoanCar not found'}), 404
+        
+        if loan_car.status != 'active':
+            return jsonify({
+                'success': False, 
+                'error': f'Cannot set status to paid. Current status: {loan_car.status}'
+            }), 400
+        
+        loan_sale = LoanSale.query.filter_by(loan_car_id=loan_car_id).first()
+        if not loan_sale:
+            return jsonify({'success': False, 'error': 'LoanSale not found'}), 404
+        
+        if loan_sale.commission_received <= loan_sale.total_commission_expected:
+            return jsonify({
+                'success': False, 
+                'error': 'Commission not fully received'
+            }), 400
+        
+        loan_car.status = 'paid'
+        
+        try:
+            db.session.commit()
+        except Exception as e:
+            db.session.rollback()
+            print(f"Database commit error: {str(e)}")
+            return jsonify({
+                'success': False, 
+                'error': 'Failed to update loan status to paid'
+            }), 500
+        
+        return jsonify({
+            'success': True,
+            'loan_car_id': loan_car_id,
+            'new_status': loan_car.status,
+            'message': 'Loan car status set to paid'
+        })
+    
+    except Exception as e:
+        print(f"Error in set_status_to_paid: {str(e)}")
+        return jsonify({'success': False, 'error': 'Unexpected error', 'message': str(e)}), 500

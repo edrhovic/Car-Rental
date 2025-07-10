@@ -7,7 +7,7 @@ class LoanCar(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     car_id = db.Column(db.Integer, db.ForeignKey('cars.id'), nullable=False)
     loan_sale_price = db.Column(db.Float, nullable=False)
-    commission_rate = db.Column(db.Float, default=30.0)
+    commission_rate = db.Column(db.Float, default=10.0)
     
     # Status management
     status = db.Column(db.String(20), default='available')  # available, pending, approved, active, sold
@@ -53,6 +53,7 @@ class LoanSale(db.Model):
     total_commission_expected = db.Column(db.Float, nullable=False)
     commission_received = db.Column(db.Float, default=0.0)
     date_commission_received = db.Column(db.DateTime, nullable=True)
+    expected_monthly_commission = db.Column(db.Float, nullable=False)
     
     def __repr__(self):
         return f"<LoanSale {self.id} - {self.borrower_name}>"

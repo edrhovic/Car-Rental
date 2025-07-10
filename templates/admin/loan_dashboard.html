@@ -52,15 +52,17 @@
                                     <div class="icon-circle mb-3">
                                         <i class="fas fa-handshake fa-2x"></i>
                                     </div>
-                                    <h2 class="counter mb-2">{{ total_loan_cars }}</h2>
+                                    <h2 class="counter mb-2">{{ statistics.total_loan_cars }}</h2>
 
                                     <p class="label mb-0">Cars for Loan</p>
                                 </div>
                             </div>
                             <div
-                                class="card-footer d-flex align-items-center justify-content-between bg-transparent border-top-0">
-                                <a href="#" class="text-white text-decoration-none">View Details</a>
-                                <span class="text-white"><i class="fas fa-arrow-circle-right"></i></span>
+                                class="card-footer d-flex align-items-center justify-content-center bg-transparent border-top-0">
+                                <a href="{{ url_for('car_admin.manage_loan_cars')}}"
+                                    class="text-white text-decoration-none">View Details <span class="text-white"><i
+                                            class="fas fa-arrow-circle-right"></i></span></a>
+
                             </div>
                         </div>
                     </div>
@@ -71,13 +73,14 @@
                                     <div class="icon-circle mb-3">
                                         <i class="fas fa-user-check fa-2x"></i>
                                     </div>
-                                    <h2 class="counter active-loans-count mb-2">{{ active_loan_cars }}</h2>
+                                    <h2 class="counter active-loans-count mb-2">{{ statistics.total_active_loan_cars }}
+                                    </h2>
                                     <p class="label mb-0">Active Loans</p>
                                 </div>
                             </div>
                             <div
                                 class="card-footer d-flex align-items-center justify-content-between bg-transparent border-top-0">
-                                <a href="#" class="text-white text-decoration-none">View Details</a>
+                                <a href="{{url_for('car_admin.active_loan_cars')}}" class="text-white text-decoration-none">View Details</a>
                                 <span class="text-white"><i class="fas fa-arrow-circle-right"></i></span>
                             </div>
                         </div>
@@ -89,7 +92,7 @@
                                     <div class="icon-circle mb-3">
                                         <i class="fas fa-clock fa-2x"></i>
                                     </div>
-                                    <h2 class="counter mb-2">{{ pending_loan_cars }}</h2>
+                                    <h2 class="counter mb-2">{{ statistics.total_pending_loan_cars }}</h2>
                                     <p class="label mb-0">Pending Applications</p>
                                 </div>
                             </div>
@@ -107,11 +110,10 @@
                                     <div class="icon-circle mb-3">
                                         <i class="fas fa-percentage fa-2x"></i>
                                     </div>
-                                    {% for sale in loan_sales %}
                                     <h2 class="counter monthly-commission mb-2">
-                                        {{ loop.index }} ₱{{ sale.commission_received }}
+                                        {{ statistics.total_commissions }}
                                     </h2>
-                                    {% endfor %}
+
                                     <p class="label mb-0">Monthly Commission</p>
                                 </div>
                             </div>

@@ -40,30 +40,16 @@ def admin_required(f):
 @admin_required
 def loan_cars_dashboard():
     """Dashboard for loan cars"""
-    try:
-        loan_sale = LoanSale.query.all()
-        if not loan_sale:
-            flash('No loan sales found', 'info')
-            return redirect(url_for('car_admin.loan_cars_dashboard'))
-        
-    except Exception as e:
-        current_app.logger.error(f"Error fetching loan sales: {str(e)}")
-        flash('Error fetching loan sales data', 'error')
-        return redirect(url_for('car_admin.loan_cars_dashboard'))
     
-    
-    
-    
-    total_loan_cars = LoanCar.query.count()
-    active_loan_cars = LoanCar.query.filter_by(status='active').count()
-    pending_loan_cars = LoanCar.query.filter_by(status='pending').count()
-    available_loan_cars = LoanCar.query.filter_by(status='available').count()
-    
-    return render_template('admin/loan_dashboard.html', 
-                           total_loan_cars=total_loan_cars, 
-                           active_loan_cars=active_loan_cars, 
-                           pending_loan_cars=pending_loan_cars, 
-                           available_loan_cars=available_loan_cars, loan_sales=loan_sale)
+    statistics = {
+        'total_loan_cars': LoanCar.query.count(),
+        'total_commissions': db.session.query(db.func.sum(LoanSale.commission_received)).scalar() or 0.00,
+        'total_active_loan_cars': LoanCar.query.filter_by(status='approved').count(),
+        'total_pending_loan_cars': LoanCar.query.filter_by(status='pending').count(),
+        'total_available_loan_cars': LoanCar.query.filter_by(status='available').count
+    }
+
+    return render_template('admin/loan_dashboard.html', statistics=statistics)
 
 
 @car_admin.route('/loan-cars')
@@ -74,7 +60,7 @@ def manage_loan_cars():
     available_cars = Car.query.filter_by(is_available=True, status= 'available').all()
 
     loan_cars = db.session.query(LoanCar, Car).join(Car).filter(
-        LoanCar.status.in_(['pending', 'active', 'available'])
+        LoanCar.status.in_(['pending', 'active', 'available', 'approved'])
     ).all()
 
     return render_template('admin/loan_cars.html',  
@@ -136,51 +122,172 @@ def offer_car_for_loan():
         
     return redirect(url_for('car_admin.manage_loan_cars'))
 
-
-@car_admin.route('/update-loan-car/<int:loan_car_id>', methods=['POST'])
+@car_admin.route('/bulk-offer-cars-for-loan', methods=['POST'])
 @login_required
 @admin_required
-def update_loan_car(loan_car_id):
-    """API endpoint for modal updates"""
+def bulk_offer_cars_for_loan():
     try:
-        loan_car = LoanCar.query.get_or_404(loan_car_id)
-
-        if not loan_car:
-            return jsonify({
-                'success': False, 
-                'message': 'Loan car not found'
-            }), 404
+        # Get form data
+        car_ids_str = request.form.get('bulk_car_ids', '')
+        loan_sale_price = float(request.form.get('bulk_loan_sale_price'))
+        commission_rate = float(request.form.get('commission_rate', 30.0))
         
-        if loan_car.status not in ['pending', 'active']:
-            return jsonify({
-                'success': False, 
-                'message': f'Cannot update loan car with status: {loan_car.status}'
-            }), 400
+        # Parse car IDs
+        if not car_ids_str:
+            flash('No cars selected for bulk offer', 'error')
+            return redirect(url_for('car_admin.manage_loan_cars'))
         
-        loan_car.loan_sale_price = float(request.form['loan_sale_price'])
-        loan_car.commission_rate = float(request.form['commission_rate'])
-
-        try:
+        car_ids = [int(id.strip()) for id in car_ids_str.split(',') if id.strip()]
+        
+        if not car_ids:
+            flash('No valid car IDs provided', 'error')
+            return redirect(url_for('car_admin.manage_loan_cars'))
+        
+        # Track results
+        success_count = 0
+        error_count = 0
+        errors = []
+        
+        # Process each car
+        for car_id in car_ids:
+            try:
+                # Get car and validate
+                car = Car.query.get(car_id)
+                if not car:
+                    errors.append(f"Car ID {car_id} not found")
+                    error_count += 1
+                    continue
+                
+                if not car.is_available or car.status != 'available':
+                    errors.append(f"{car.make} {car.model} is not available")
+                    error_count += 1
+                    continue
+                
+                # Check if already offered
+                existing_loan_car = LoanCar.query.filter_by(car_id=car_id).first()
+                
+                if existing_loan_car:
+                    if existing_loan_car.status in ['pending', 'active']:
+                        errors.append(f"{car.make} {car.model} is already offered for loan")
+                        error_count += 1
+                        continue
+                    
+                    elif existing_loan_car.status in ['withdrawn']:
+                        # Re-offer withdrawn car
+                        existing_loan_car.status = 'available'
+                        existing_loan_car.loan_sale_price = loan_sale_price
+                        existing_loan_car.commission_rate = commission_rate
+                        existing_loan_car.date_offered = datetime.utcnow()
+                        existing_loan_car.date_withdrawn = None
+                        existing_loan_car.offered_by = current_user.id
+                        car.status = 'offered_for_loan'
+                        car.is_available = False
+                        success_count += 1
+                else:
+                    # Create new loan car entry
+                    loan_car = LoanCar(
+                        car_id=car_id,
+                        loan_sale_price=loan_sale_price,
+                        commission_rate=commission_rate,
+                        offered_by=current_user.id,
+                        status='available',
+                        date_offered=datetime.utcnow()
+                    )
+                    db.session.add(loan_car)
+                    car.status = 'offered_for_loan'
+                    car.is_available = False
+                    success_count += 1
+                    
+            except ValueError as ve:
+                errors.append(f"Invalid data for car ID {car_id}: {str(ve)}")
+                error_count += 1
+            except Exception as e:
+                errors.append(f"Error processing car ID {car_id}: {str(e)}")
+                error_count += 1
+        
+        # Commit all changes if there were any successes
+        if success_count > 0:
             db.session.commit()
-        except Exception as e:
-            db.session.rollback()
-            return jsonify({
-                'success': False, 
-                'message': 'Failed to update loan car'
-            }), 500
-            
-        return jsonify({
-            'success': True, 
-            'message': 'Loan car updated successfully'
-        })
-    
+        
+        # Generate appropriate flash messages
+        if success_count > 0 and error_count == 0:
+            flash(f'Successfully offered {success_count} car{"s" if success_count > 1 else ""} for loan', 'success')
+        elif success_count > 0 and error_count > 0:
+            flash(f'Successfully offered {success_count} car{"s" if success_count > 1 else ""} for loan. {error_count} car{"s" if error_count > 1 else ""} had errors.', 'warning')
+            for error in errors[:3]:  # Show first 3 errors
+                flash(error, 'error')
+            if len(errors) > 3:
+                flash(f'... and {len(errors) - 3} more errors', 'error')
+        else:
+            flash(f'Failed to offer any cars for loan. {error_count} error{"s" if error_count > 1 else ""} occurred.', 'error')
+            for error in errors[:5]:  # Show first 5 errors
+                flash(error, 'error')
+        
+    except ValueError as ve:
+        db.session.rollback()
+        flash(f'Invalid loan sale price: {str(ve)}', 'error')
     except Exception as e:
         db.session.rollback()
-        return jsonify({
-            'success': False, 
-            'error': 'Unexpected Error',
-            'message': str(e)
-        }), 500
+        flash(f'Error processing bulk offer: {str(e)}', 'error')
+    
+    return redirect(url_for('car_admin.manage_loan_cars'))
+
+
+
+@car_admin.route('/offer-all-cars-for-loan')
+@login_required
+@admin_required
+def offer_all_cars_for_loan():
+    """Route to redirect to bulk offer with all available cars pre-selected"""
+    try:
+        # Get all available cars that are not already offered for loan
+        offered_car_ids = db.session.query(LoanCar.car_id).filter(
+            LoanCar.status.in_(['available', 'pending', 'active'])
+        ).subquery()
+        
+        available_cars = Car.query.filter(
+            Car.is_available == True,
+            Car.status == 'available',
+            ~Car.id.in_(offered_car_ids)
+        ).all()
+        
+        if not available_cars:
+            flash('No available cars to offer for loan', 'info')
+            return redirect(url_for('car_admin.manage_loan_cars'))
+        
+        # Create a list of car IDs
+        car_ids = [str(car.id) for car in available_cars]
+        
+        # Flash message about pre-selection
+        flash(f'{len(available_cars)} available cars have been pre-selected for bulk offer', 'info')
+        
+        # Redirect to manage page with a parameter to indicate pre-selection
+        return redirect(url_for('car_admin.manage_loan_cars', preselect_all='true'))
+        
+    except Exception as e:
+        flash(f'Error loading available cars: {str(e)}', 'error')
+        return redirect(url_for('car_admin.manage_loan_cars'))
+
+
+@car_admin.route('/loan-cars/active-loan-cars')
+@login_required
+@admin_required
+def active_loan_cars():
+    """View all active loan cars"""
+    loan_car = LoanCar.query.filter_by(status='approved').first()
+    if not loan_car:
+        flash('No active loan cars found', 'info')
+        return redirect(url_for('car_admin.loan_cars_dashboard'))
+    
+    statistics = {
+        'active_loan_cars': LoanCar.query.filter_by(status='approved').all(),
+        'total_active_loan_cars': LoanCar.query.filter_by(status='approved').count(),
+        'total_commissions': db.session.query(db.func.sum(LoanSale.commission_received)).scalar() or 0.00,
+    }
+    
+    return render_template('admin/active_loan_cars.html', statistics=statistics)
+
+
 
 @car_admin.route('/withdraw-loan-car/<int:loan_car_id>', methods=['POST'])
 @login_required

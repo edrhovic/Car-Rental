@@ -92,22 +92,11 @@ CREATE TABLE IF NOT EXISTS loan_sales (
     -- Commission tracking
     total_commission_expected FLOAT NOT NULL,
     commission_received FLOAT DEFAULT 0.0,
-    last_commission_payment DATETIME,
+    date_commission_received DATETIME,
+    expected_monthly_commission FLOAT NOT NULL,
     
     FOREIGN KEY (loan_car_id) REFERENCES loan_cars(id)
 );
-
--- Create Loan Commissions Table
-CREATE TABLE IF NOT EXISTS loan_commissions (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    loan_sale_id INT NOT NULL,
-    payment_date DATETIME DEFAULT CURRENT_TIMESTAMP,
-    amount FLOAT NOT NULL,
-    payment_month VARCHAR(7) NOT NULL,  -- YYYY-MM format
-    loan_system_reference VARCHAR(100),
-    FOREIGN KEY (loan_sale_id) REFERENCES loan_sales(id)
-);
-
 -- Create Bookings Table
 CREATE TABLE IF NOT EXISTS bookings (
     id INT AUTO_INCREMENT PRIMARY KEY,

@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
-{% block title %}Car Loans Management - JDM Car
-Rentals{% endblock %}
- {% block content %}
+{% block title %}Car Loans Management - JDM Car Rentals{% endblock %}
+
+{% block content %}
 <div class="container-fluid">
   <div class="row">
     <!-- Sidebar -->
@@ -9,57 +9,34 @@ Rentals{% endblock %}
 
     <!-- Main content -->
     <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
-      <div
-        class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom"
-      >
+      <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
         <div>
           <h1 class="h2">Car Loan Management</h1>
           <p class="text-muted">
-            Manage cars offered for loan and available inventory (30% commission
-            rate)
+            Manage cars offered for loan and available inventory (30% commission rate)
           </p>
-        </div>
-        <div class="btn-toolbar mb-2 mb-md-0">
-          <a
-                      href="{{ url_for('admin.add_car') }}"
-                      class="btn btn-outline-secondary"
-                    >
-                      <i class="fas fa-plus me-1"></i> Add More Cars
-                    </a>
         </div>
       </div>
 
       <!-- Calculate counts before using them -->
-      {% set offered_count = (loan_cars|selectattr('0.status', 'ne',
-      'withdrawn')|list)|length %} {% set offered_car_ids = [] %} {% for
-      loan_car, loan_car_info in loan_cars %} {% if loan_car.status !=
-      'withdrawn' %} {% set _ = offered_car_ids.append(loan_car.car_id) %} {%
-      endif %} {% endfor %} {% set available_count =
-      (available_cars|rejectattr('id', 'in', offered_car_ids)|list)|length %}
+      {% set offered_count = (loan_cars|selectattr('0.status', 'ne', 'withdrawn')|list)|length %}
+      {% set offered_car_ids = [] %}
+      {% for loan_car, loan_car_info in loan_cars %}
+        {% if loan_car.status != 'withdrawn' %}
+          {% set _ = offered_car_ids.append(loan_car.car_id) %}
+        {% endif %}
+      {% endfor %}
+      {% set available_count = (available_cars|rejectattr('id', 'in', offered_car_ids)|list)|length %}
 
       <!-- Navigation Tabs -->
       <ul class="nav nav-tabs mb-4" id="loanTabs" role="tablist">
         <li class="nav-item" role="presentation">
-          <button
-            class="nav-link active"
-            id="offered-tab"
-            data-bs-toggle="tab"
-            data-bs-target="#offered"
-            type="button"
-            role="tab"
-          >
+          <button class="nav-link active" id="offered-tab" data-bs-toggle="tab" data-bs-target="#offered" type="button" role="tab">
             Cars Offered for Loan
           </button>
         </li>
         <li class="nav-item" role="presentation">
-          <button
-            class="nav-link"
-            id="available-tab"
-            data-bs-toggle="tab"
-            data-bs-target="#available"
-            type="button"
-            role="tab"
-          >
+          <button class="nav-link" id="available-tab" data-bs-toggle="tab" data-bs-target="#available" type="button" role="tab">
             All Available Cars
           </button>
         </li>
@@ -69,323 +46,247 @@ Rentals{% endblock %}
         <!-- Cars Offered for Loan Tab -->
         <div class="tab-pane fade show active" id="offered" role="tabpanel">
           <div class="row">
-            {% if loan_cars and offered_count > 0 %} {% for loan_car, car in
-            loan_cars %} {% if loan_car.status != 'withdrawn' %}
-            <div class="col-lg-4 col-md-6 mb-4">
-              <div
-                class="card h-100 shadow-sm border-0"
-                style="border-radius: 12px"
-              >
-                <div class="position-relative">
-                  <!-- Car Image -->
-                  {% if car.image_url %}
-                  <img
-                    src="{{ car.image_url }}"
-                    class="card-img-top"
-                    alt="{{ car.make }} {{ car.model }}"
-                    style="
-                      height: 220px;
-                      object-fit: cover;
-                      border-radius: 12px 12px 0 0;
-                    "
-                  />
-                  {% else %}
-                  <img
-                    src="https://via.placeholder.com/400x220/e9ecef/6c757d?text={{ car.make }}+{{ car.model }}"
-                    class="card-img-top"
-                    alt="{{ car.make }} {{ car.model }}"
-                    style="
-                      height: 220px;
-                      object-fit: cover;
-                      border-radius: 12px 12px 0 0;
-                    "
-                  />
-                  {% endif %}
+            {% if loan_cars and offered_count > 0 %}
+              {% for loan_car, car in loan_cars %}
+                {% if loan_car.status != 'withdrawn' %}
+                  <div class="col-lg-4 col-md-6 mb-4">
+                    <div class="card h-100 shadow-sm border-0" style="border-radius: 12px">
+                      <div class="position-relative">
+                        <!-- Car Image -->
+                        {% if car.image_url %}
+                          <img src="{{ car.image_url }}" class="card-img-top" alt="{{ car.make }} {{ car.model }}" style="height: 220px; object-fit: cover; border-radius: 12px 12px 0 0;" />
+                        {% else %}
+                          <img src="https://via.placeholder.com/400x220/e9ecef/6c757d?text={{ car.make }}+{{ car.model }}" class="card-img-top" alt="{{ car.make }} {{ car.model }}" style="height: 220px; object-fit: cover; border-radius: 12px 12px 0 0;" />
+                        {% endif %}
 
-                  <!-- Year Badge -->
-                  <span
-                    class="badge bg-primary position-absolute fw-bold px-3 py-2"
-                    style="top: 12px; left: 12px; border-radius: 20px"
-                  >
-                    {{ car.year }}
-                  </span>
+                        <!-- Year Badge -->
+                        <span class="badge bg-primary position-absolute fw-bold px-3 py-2" style="top: 12px; left: 12px; border-radius: 20px">
+                          {{ car.year }}
+                        </span>
 
-                  <!-- Status Badge -->
-                  {% if loan_car.status == 'available' %}
-                  <span
-                    class="badge bg-info position-absolute fw-bold px-3 py-2"
-                    style="top: 12px; right: 12px; border-radius: 20px"
-                  >
-                    <i class="fas fa-tag me-1"></i>Available
-                  </span>
-                  {% elif loan_car.status == 'pending' %}
-                  <span
-                    class="badge position-absolute fw-bold px-3 py-2 text-black"
-                    style="
-                      top: 12px;
-                      right: 12px;
-                      border-radius: 20px;
-                      background-color: #ffc107;
-                    "
-                  >
-                    <i class="fas fa-clock me-1"></i>Pending
-                  </span>
-                  {% elif loan_car.status == 'active' %}
-                  <span
-                    class="badge bg-success position-absolute fw-bold px-3 py-2"
-                    style="top: 12px; right: 12px; border-radius: 20px"
-                  >
-                    <i class="fas fa-check-circle me-1"></i>Active
-                  </span>
-                  {% endif %}
-                </div>
+                        <!-- Status Badge -->
+                        {% if loan_car.status == 'available' %}
+                          <span class="badge bg-info position-absolute fw-bold px-3 py-2" style="top: 12px; right: 12px; border-radius: 20px">
+                            <i class="fas fa-tag me-1"></i>Available
+                          </span>
+                        {% elif loan_car.status == 'pending' %}
+                          <span class="badge position-absolute fw-bold px-3 py-2 text-black" style="top: 12px; right: 12px; border-radius: 20px; background-color: #ffc107;">
+                            <i class="fas fa-clock me-1"></i>Pending
+                          </span>
+                        {% elif loan_car.status == 'active' %}
+                          <span class="badge bg-success position-absolute fw-bold px-3 py-2" style="top: 12px; right: 12px; border-radius: 20px">
+                            <i class="fas fa-check-circle me-1"></i>Active
+                          </span>
+                        {% endif %}
+                      </div>
 
-                <div class="card-body d-flex flex-column p-4">
-                  <!-- Car Title -->
-                  <h5 class="card-title fw-bold mb-2 text-dark">
-                    {{ car.make }} {{ car.model }} - {{ car.year }}
-                  </h5>
+                      <div class="card-body d-flex flex-column p-4">
+                        <!-- Car Title -->
+                        <h5 class="card-title fw-bold mb-2 text-dark">
+                          {{ car.make }} {{ car.model }} - {{ car.year }}
+                        </h5>
 
-                  <!-- Car Details -->
-                  <div class="d-flex align-items-center text-muted mb-3">
-                    <i class="fas fa-palette me-2 text-secondary"></i>
-                    <span class="me-3">{{ car.color }}</span>
-                    <i class="fas fa-id-card me-2 text-secondary"></i>
-                    <span>{{ car.license_plate }}</span>
+                        <!-- Car Details -->
+                        <div class="d-flex align-items-center text-muted mb-3">
+                          <i class="fas fa-palette me-2 text-secondary"></i>
+                          <span class="me-3">{{ car.color }}</span>
+                          <i class="fas fa-id-card me-2 text-secondary"></i>
+                          <span>{{ car.license_plate }}</span>
+                        </div>
+
+                        <!-- Car Description -->
+                        <p class="card-text flex-grow-1 text-muted" style="line-height: 1.5">
+                          {% if car.description %}
+                            {{ car.description }}
+                          {% else %}
+                            Well-maintained vehicle with excellent performance and reliability.
+                          {% endif %}
+                        </p>
+
+                        <!-- Loan Sale Price -->
+                        <div class="bg-light rounded-3 p-3 mb-3 text-center border">
+                          <h4 class="text-primary mb-0 fw-bold">
+                            ₱{{ "{:,.0f}".format(loan_car.loan_sale_price) }}
+                          </h4>
+                          <small class="text-muted">Loan Sale Price</small>
+                        </div>
+
+                        <!-- Details Row -->
+                        <div class="row g-2 mb-3">
+                          <div class="col-6">
+                            <div class="d-flex align-items-center">
+                              <i class="fas fa-percentage text-success me-2"></i>
+                              <small class="text-muted">30% commission</small>
+                            </div>
+                          </div>
+                          <div class="col-6">
+                            <div class="d-flex align-items-center">
+                              <i class="fas fa-calendar text-info me-2"></i>
+                              <small class="text-muted">{{ loan_car.date_offered.strftime('%b %d, %Y') if loan_car.date_offered else 'N/A' }}</small>
+                            </div>
+                          </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="d-flex gap-2 mt-auto">
+                          {% if loan_car.status == 'available' %}
+                            <button type="button" class="btn btn-outline-warning flex-fill" onclick="confirmWithdraw({{ loan_car.id }})" style="border-radius: 8px">
+                              <i class="fas fa-times me-1"></i> Withdraw
+                            </button>
+                          {% endif %}
+                          <a href="{{ url_for('car_admin.loan_sale_details', sale_id=loan_car.id) }}" class="btn btn-outline-primary {% if loan_car.status == 'available' %}flex-fill{% else %}w-100{% endif %}" style="border-radius: 8px">
+                            <i class="fas fa-eye me-1"></i> View Details
+                          </a>
+                        </div>
+                      </div>
+                    </div>
                   </div>
-
-                  <!-- Car Description -->
-                  <p
-                    class="card-text flex-grow-1 text-muted"
-                    style="line-height: 1.5"
-                  >
-                    {% if car.description %} {{ car.description }} {% else %}
-                    Well-maintained vehicle with excellent performance and
-                    reliability. {% endif %}
+                {% endif %}
+              {% endfor %}
+            {% else %}
+              <!-- Enhanced Empty State for Offered Cars -->
+              <div class="col-12">
+                <div class="text-center py-5">
+                  <div class="mb-4">
+                    <i class="fas fa-handshake fa-4x text-muted"></i>
+                  </div>
+                  <h4 class="text-muted mb-3">No Cars Currently Offered for Loan</h4>
+                  <p class="text-muted mb-4">
+                    You haven't offered any cars for loan yet. Start by selecting vehicles from your available inventory to offer them with a 30% commission rate.
                   </p>
-
-                  <!-- Loan Sale Price -->
-                  <div class="bg-light rounded-3 p-3 mb-3 text-center border">
-                    <h4 class="text-primary mb-0 fw-bold">
-                      ₱{{ "{:,.0f}".format(loan_car.loan_sale_price) }}
-                    </h4>
-                    <small class="text-muted">Loan Sale Price</small>
-                  </div>
-
-                  <!-- Details Row -->
-                  <div class="row g-2 mb-3">
-                    <div class="col-6">
-                      <div class="d-flex align-items-center">
-                        <i class="fas fa-percentage text-success me-2"></i>
-                        <small class="text-muted">30% commission</small>
-                      </div>
-                    </div>
-                    <div class="col-6">
-                      <div class="d-flex align-items-center">
-                        <i class="fas fa-calendar text-info me-2"></i>
-                        <small class="text-muted"
-                          >{{ loan_car.date_offered.strftime('%b %d, %Y') if
-                          loan_car.date_offered else 'N/A' }}</small
-                        >
-                      </div>
-                    </div>
-                  </div>
-
-                  <!-- Action Buttons -->
-                  <div class="d-flex gap-2 mt-auto">
-                    {% if loan_car.status == 'available' %}
-                    <button
-                      type="button"
-                      class="btn btn-outline-warning flex-fill"
-                      onclick="confirmWithdraw({{ loan_car.id }})"
-                      style="border-radius: 8px"
-                    >
-                      <i class="fas fa-times me-1"></i> Withdraw
+                  <div class="d-flex flex-column flex-sm-row gap-2 justify-content-center">
+                    <button class="btn btn-primary" onclick="document.getElementById('available-tab').click()">
+                      <i class="fas fa-plus me-1"></i> Browse Available Cars
                     </button>
-                    {% endif %}
-                    <a
-                      href="{{ url_for('car_admin.loan_sale_details', sale_id=loan_car.id) }}"
-                      class="btn btn-outline-primary {% if loan_car.status == 'available' %}flex-fill{% else %}w-100{% endif %}"
-                      style="border-radius: 8px"
-                    >
-                      <i class="fas fa-eye me-1"></i> View Details
+                    <a href="{{ url_for('admin.car_list') }}" class="btn btn-outline-secondary">
+                      <i class="fas fa-car me-1"></i> Manage Inventory
                     </a>
                   </div>
                 </div>
               </div>
-            </div>
-            {% endif %} {% endfor %} {% else %}
-            <!-- Enhanced Empty State for Offered Cars -->
-            <div class="col-12">
-              <div class="text-center py-5">
-                <div class="mb-4">
-                  <i class="fas fa-handshake fa-4x text-muted"></i>
-                </div>
-                <h4 class="text-muted mb-3">
-                  No Cars Currently Offered for Loan
-                </h4>
-                <p class="text-muted mb-4">
-                  You haven't offered any cars for loan yet. Start by selecting
-                  vehicles from your available inventory to offer them with a
-                  30% commission rate.
-                </p>
-                <div
-                  class="d-flex flex-column flex-sm-row gap-2 justify-content-center"
-                >
-                  <button
-                    class="btn btn-primary"
-                    onclick="document.getElementById('available-tab').click()"
-                  >
-                    <i class="fas fa-plus me-1"></i> Browse Available Cars
-                  </button>
-                  <a
-                    href="{{ url_for('admin.car_list') }}"
-                    class="btn btn-outline-secondary"
-                  >
-                    <i class="fas fa-car me-1"></i> Manage Inventory
-                  </a>
-                </div>
-              </div>
-            </div>
             {% endif %}
           </div>
         </div>
 
         <!-- Available Inventory Tab -->
         <div class="tab-pane fade" id="available" role="tabpanel">
+          <!-- Bulk Actions Bar -->
+          <div class="d-flex justify-content-between align-items-center mb-4 p-3 bg-light rounded-3">
+            <div class="d-flex align-items-center">
+              <div class="form-check me-3">
+                <input class="form-check-input" type="checkbox" id="selectAllCars" onchange="toggleSelectAll()">
+                <label class="form-check-label fw-bold" for="selectAllCars">
+                  Select All Available Cars
+                </label>
+              </div>
+              <span id="selectedCount" class="text-muted small">0 cars selected</span>
+            </div>
+            <div class="d-flex gap-2">
+              <button type="button" class="btn btn-success" id="bulkOfferBtn" onclick="showBulkOfferModal()" disabled>
+                <i class="fas fa-handshake me-1"></i>
+                <span id="bulkOfferBtnText">Offer Selected for Loan</span>
+              </button>
+              <button type="button" class="btn btn-outline-secondary" onclick="clearAllSelections()">
+                <i class="fas fa-times me-1"></i> Clear Selection
+              </button>
+            </div>
+          </div>
+
           <div class="row">
-            {% if available_cars and available_count > 0 %} {% for car in
-            available_cars %} {% set is_already_offered = car.id in
-            offered_car_ids %} {% if not is_already_offered %}
-            
-            <div class="col-lg-4 col-md-6 mb-4">
-              <div class="card h-100">
-                <div class="position-relative">
-                  <!-- Car Image -->
-                  {% if car.image_url %}
-                  <img
-                    src="{{ car.image_url }}"
-                    class="card-img-top"
-                    alt="{{ car.make }} {{ car.model }}"
-                    style="height: 200px; object-fit: cover"
-                  />
-                  {% else %}
-                  <img
-                    src="https://via.placeholder.com/400x200/e9ecef/6c757d?text={{ car.make }}+{{ car.model }}"
-                    class="card-img-top"
-                    alt="{{ car.make }} {{ car.model }}"
-                    style="height: 200px; object-fit: cover"
-                  />
-                  {% endif %}
+            {% if available_cars and available_count > 0 %}
+              {% for car in available_cars %}
+                {% set is_already_offered = car.id in offered_car_ids %}
+                {% if not is_already_offered %}
+                  <div class="col-lg-4 col-md-6 mb-4">
+                    <div class="card h-100 car-card" data-car-id="{{ car.id }}">
+                      <div class="position-relative">
+                        <!-- Selection Checkbox -->
+                        <div class="position-absolute" style="top: 10px; left: 10px; z-index: 10;">
+                          <div class="form-check">
+                            <input class="form-check-input car-checkbox" type="checkbox" value="{{ car.id }}" id="car_{{ car.id }}" onchange="updateSelectionCount()">
+                            <label class="form-check-label" for="car_{{ car.id }}"></label>
+                          </div>
+                        </div>
 
-                  <!-- Year Badge -->
-                  <span
-                    class="badge bg-primary position-absolute"
-                    style="top: 10px; left: 10px"
-                    >{{ car.year }}</span
-                  >
-                </div>
+                        <!-- Car Image -->
+                        {% if car.image_url %}
+                          <img src="{{ car.image_url }}" class="card-img-top" alt="{{ car.make }} {{ car.model }}" style="height: 200px; object-fit: cover" />
+                        {% else %}
+                          <img src="https://via.placeholder.com/400x200/e9ecef/6c757d?text={{ car.make }}+{{ car.model }}" class="card-img-top" alt="{{ car.make }} {{ car.model }}" style="height: 200px; object-fit: cover" />
+                        {% endif %}
 
-                <div class="card-body d-flex flex-column">
-                  <!-- Car Title -->
-                  <h5 class="card-title">{{ car.make }} {{ car.model }}</h5>
+                        <!-- Year Badge -->
+                        <span class="badge bg-primary position-absolute" style="top: 10px; right: 10px">{{ car.year }}</span>
+                      </div>
 
-                  <!-- Car Details -->
-                  <p class="text-muted mb-3">
-                    {{ car.color }} • {{ car.license_plate }}
-                  </p>
+                      <div class="card-body d-flex flex-column">
+                        <!-- Car Title -->
+                        <h5 class="card-title">{{ car.make }} {{ car.model }}</h5>
 
-                  <!-- Car Description -->
-                  <p class="card-text flex-grow-1">
-                    {{ car.description if car.description else 'Well-maintained
-                    vehicle available for loan offering.' }}
-                  </p>
+                        <!-- Car Details -->
+                        <p class="text-muted mb-3">{{ car.color }} • {{ car.license_plate }}</p>
 
-                  <!-- Daily Rate -->
-                  <h5 class="text-secondary mb-3">
-                    ₱{{ "{:,.0f}".format(car.daily_rate) }}/day rental
-                  </h5>
+                        <!-- Car Description -->
+                        <p class="card-text flex-grow-1">
+                          {{ car.description if car.description else 'Well-maintained vehicle available for loan offering.' }}
+                        </p>
 
-                  <!-- Action Buttons -->
-                  <div class="d-flex gap-2 mt-auto">
-                    <button
-                      type="button"
-                      class="btn btn-primary flex-grow-1"
-                      onclick="offerCarForLoan({{ car.id }}, '{{ car.make }} {{ car.model }}')"
-                    >
-                      <i class="fas fa-handshake"></i> Offer for Loan
-                    </button>
-                    <a
-                      href="{{ url_for('car.car_details', car_id=car.id) }}"
-                      class="btn btn-outline-secondary btn-sm"
-                    >
-                      <i class="fas fa-eye"></i> Details
-                    </a>
+                        <!-- Daily Rate -->
+                        <h5 class="text-secondary mb-3">₱{{ "{:,.0f}".format(car.daily_rate) }}/day rental</h5>
+
+                        <!-- Action Buttons -->
+                        <div class="d-flex gap-2 mt-auto">
+                          <button type="button" class="btn btn-primary flex-grow-1" onclick="offerCarForLoan({{ car.id }}, '{{ car.make }} {{ car.model }}')">
+                            <i class="fas fa-handshake"></i> Offer for Loan
+                          </button>
+                          <a href="{{ url_for('car.car_details', car_id=car.id) }}" class="btn btn-outline-secondary btn-sm">
+                            <i class="fas fa-eye"></i> Details
+                          </a>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                {% endif %}
+              {% endfor %}
+            {% else %}
+              <!-- Enhanced Empty State for Available Cars -->
+              <div class="col-12">
+                <div class="text-center py-5">
+                  <div class="mb-4">
+                    {% if available_cars %}
+                      <!-- All cars are already offered -->
+                      <i class="fas fa-check-circle fa-4x text-success"></i>
+                      <h4 class="text-muted mt-3 mb-3">All Cars Already Offered</h4>
+                      <p class="text-muted mb-4">
+                        Great! You've offered all your available cars for loan. All vehicles in your inventory are currently listed in the loan marketplace.
+                      </p>
+                      <div class="d-flex flex-column flex-sm-row gap-2 justify-content-center">
+                        <button class="btn btn-primary" onclick="document.getElementById('offered-tab').click()">
+                          <i class="fas fa-eye me-1"></i> View Offered Cars
+                        </button>
+                        <a href="{{ url_for('admin.car_list') }}" class="btn btn-outline-secondary">
+                          <i class="fas fa-plus me-1"></i> Add More Cars
+                        </a>
+                      </div>
+                    {% else %}
+                      <!-- No cars in inventory at all -->
+                      <i class="fas fa-car fa-4x text-muted"></i>
+                      <h4 class="text-muted mt-3 mb-3">No Cars Available in Inventory</h4>
+                      <p class="text-muted mb-4">
+                        Your car inventory is empty. Add some vehicles to your fleet to start offering them for loan with competitive rates and 30% commission.
+                      </p>
+                      <div class="d-flex flex-column flex-sm-row gap-2 justify-content-center">
+                        <a href="{{ url_for('admin.add_car') }}" class="btn btn-primary">
+                          <i class="fas fa-plus me-1"></i> Add Your First Car
+                        </a>
+                        <a href="{{ url_for('admin.car_list') }}" class="btn btn-outline-secondary">
+                          <i class="fas fa-cog me-1"></i> Manage Inventory
+                        </a>
+                      </div>
+                    {% endif %}
                   </div>
                 </div>
               </div>
-            </div>
-            {% endif %} {% endfor %} {% else %}
-            <!-- Enhanced Empty State for Available Cars -->
-            <div class="col-12">
-              <div class="text-center py-5">
-                <div class="mb-4">
-                  {% if available_cars %}
-                  <!-- All cars are already offered -->
-                  <i class="fas fa-check-circle fa-4x text-success"></i>
-                  <h4 class="text-muted mt-3 mb-3">All Cars Already Offered</h4>
-                  <p class="text-muted mb-4">
-                    Great! You've offered all your available cars for loan. All
-                    vehicles in your inventory are currently listed in the loan
-                    marketplace.
-                  </p>
-                  <div
-                    class="d-flex flex-column flex-sm-row gap-2 justify-content-center"
-                  >
-                    <button
-                      class="btn btn-primary"
-                      onclick="document.getElementById('offered-tab').click()"
-                    >
-                      <i class="fas fa-eye me-1"></i> View Offered Cars
-                    </button>
-                    <a
-                      href="{{ url_for('admin.car_list') }}"
-                      class="btn btn-outline-secondary"
-                    >
-                      <i class="fas fa-plus me-1"></i> Add More Cars
-                    </a>
-                  </div>
-                  {% else %}
-                  <!-- No cars in inventory at all -->
-                  <i class="fas fa-car fa-4x text-muted"></i>
-                  <h4 class="text-muted mt-3 mb-3">
-                    No Cars Available in Inventory
-                  </h4>
-                  <p class="text-muted mb-4">
-                    Your car inventory is empty. Add some vehicles to your fleet
-                    to start offering them for loan with competitive rates and
-                    30% commission.
-                  </p>
-                  <div
-                    class="d-flex flex-column flex-sm-row gap-2 justify-content-center"
-                  >
-                    <a
-                      href="{{ url_for('admin.add_car') }}"
-                      class="btn btn-primary"
-                    >
-                      <i class="fas fa-plus me-1"></i> Add Your First Car
-                    </a>
-                    <a
-                      href="{{ url_for('admin.car_list') }}"
-                      class="btn btn-outline-secondary"
-                    >
-                      <i class="fas fa-cog me-1"></i> Manage Inventory
-                    </a>
-                  </div>
-                  {% endif %}
-                </div>
-              </div>
-            </div>
             {% endif %}
           </div>
         </div>
@@ -398,61 +299,86 @@ Rentals{% endblock %}
 <div class="modal fade" id="offerCarModal" tabindex="-1">
   <div class="modal-dialog">
     <div class="modal-content">
-      <form
-        method="POST"
-        action="{{ url_for('car_admin.offer_car_for_loan') }}"
-      >
+      <form method="POST" action="{{ url_for('car_admin.offer_car_for_loan') }}">
         <div class="modal-header">
           <h5 class="modal-title">Offer Car for Loan</h5>
-          <button
-            type="button"
-            class="btn-close"
-            data-bs-dismiss="modal"
-          ></button>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body">
           <div class="mb-3">
             <label class="form-label">Selected Car</label>
-            <input
-              type="text"
-              id="selected_car_display"
-              class="form-control"
-              readonly
-            />
+            <input type="text" id="selected_car_display" class="form-control" readonly />
             <input type="hidden" id="car_id" name="car_id" />
           </div>
           <div class="mb-3">
-            <label for="loan_sale_price" class="form-label"
-              >Loan Sale Price (₱)</label
-            >
-            <input
-              type="number"
-              class="form-control"
-              id="loan_sale_price"
-              name="loan_sale_price"
-              step="0.01"
-              min="0"
-              required
-            />
+            <label for="loan_sale_price" class="form-label">Loan Sale Price (₱)</label>
+            <input type="number" class="form-control" id="loan_sale_price" name="loan_sale_price" step="0.01" min="0" required />
           </div>
           <div class="mb-3">
             <label class="form-label">Commission Rate</label>
             <input type="text" class="form-control" value="30%" readonly />
             <input type="hidden" name="commission_rate" value="30" />
-            <small class="text-muted"
-              >Fixed commission rate for all loan offerings</small
-            >
+            <small class="text-muted">Fixed commission rate for all loan offerings</small>
           </div>
         </div>
         <div class="modal-footer">
-          <button
-            type="button"
-            class="btn btn-secondary"
-            data-bs-dismiss="modal"
-          >
-            Cancel
-          </button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
           <button type="submit" class="btn btn-primary">Offer for Loan</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Bulk Offer Modal -->
+<div class="modal fade" id="bulkOfferModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <form method="POST" action="{{ url_for('car_admin.bulk_offer_cars_for_loan') }}">
+        <div class="modal-header">
+          <h5 class="modal-title">
+            <i class="fas fa-handshake me-2"></i>Bulk Offer Cars for Loan
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="alert alert-info">
+            <i class="fas fa-info-circle me-2"></i>
+            <strong>Bulk Offer Settings:</strong> All selected cars will be offered with the same loan sale price and commission rate.
+          </div>
+          
+          <div class="mb-4">
+            <label class="form-label fw-bold">Selected Cars (<span id="bulkSelectedCount">0</span>)</label>
+            <div id="bulkSelectedCars" class="border rounded p-3 bg-light" style="max-height: 200px; overflow-y: auto;">
+              <!-- Selected cars will be populated here -->
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-md-8">
+              <div class="mb-3">
+                <label for="bulk_loan_sale_price" class="form-label">Loan Sale Price (₱)</label>
+                <input type="number" class="form-control" id="bulk_loan_sale_price" name="bulk_loan_sale_price" step="0.01" min="0" required />
+                <small class="text-muted">This price will be applied to all selected cars</small>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="mb-3">
+                <label class="form-label">Commission Rate</label>
+                <input type="text" class="form-control" value="30%" readonly />
+                <input type="hidden" name="commission_rate" value="30" />
+                <small class="text-muted">Fixed rate</small>
+              </div>
+            </div>
+          </div>
+
+          <input type="hidden" id="bulk_car_ids" name="bulk_car_ids" />
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-success">
+            <i class="fas fa-handshake me-1"></i>Offer All Selected Cars
+          </button>
         </div>
       </form>
     </div>
@@ -465,31 +391,18 @@ Rentals{% endblock %}
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title">
-          <i class="fas fa-exclamation-triangle text-warning me-2"></i>Confirm
-          Withdrawal
+          <i class="fas fa-exclamation-triangle text-warning me-2"></i>Confirm Withdrawal
         </h5>
-        <button
-          type="button"
-          class="btn-close"
-          data-bs-dismiss="modal"
-        ></button>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body">
-        <p class="mb-3">
-          Are you sure you want to withdraw this car from loan offering?
-        </p>
+        <p class="mb-3">Are you sure you want to withdraw this car from loan offering?</p>
         <div class="alert alert-warning">
-          <small
-            ><strong>Warning:</strong> This action will remove the car from the
-            loan marketplace and it will become available for offering
-            again.</small
-          >
+          <small><strong>Warning:</strong> This action will remove the car from the loan marketplace and it will become available for offering again.</small>
         </div>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-          Cancel
-        </button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
         <button type="button" class="btn btn-warning" id="confirmWithdrawBtn">
           <i class="fas fa-times me-1"></i>Withdraw Car
         </button>
@@ -497,15 +410,98 @@ Rentals{% endblock %}
     </div>
   </div>
 </div>
-{% endblock %} {% block scripts %}
+
+{% endblock %}
+
+{% block scripts %}
 <script>
   let currentLoanCarId = null;
   let pendingFormData = null;
 
+  // Single car offer function
   function offerCarForLoan(carId, carName) {
     document.getElementById("car_id").value = carId;
     document.getElementById("selected_car_display").value = carName;
     new bootstrap.Modal(document.getElementById("offerCarModal")).show();
+  }
+
+  // Bulk selection functions
+  function toggleSelectAll() {
+    const selectAllCheckbox = document.getElementById('selectAllCars');
+    const carCheckboxes = document.querySelectorAll('.car-checkbox');
+    
+    carCheckboxes.forEach(checkbox => {
+      checkbox.checked = selectAllCheckbox.checked;
+    });
+    
+    updateSelectionCount();
+  }
+
+  function updateSelectionCount() {
+    const selectedCheckboxes = document.querySelectorAll('.car-checkbox:checked');
+    const count = selectedCheckboxes.length;
+    const totalCheckboxes = document.querySelectorAll('.car-checkbox').length;
+    
+    document.getElementById('selectedCount').textContent = `${count} cars selected`;
+    document.getElementById('bulkOfferBtn').disabled = count === 0;
+    
+    const selectAllCheckbox = document.getElementById('selectAllCars');
+    if (count === 0) {
+      selectAllCheckbox.indeterminate = false;
+      selectAllCheckbox.checked = false;
+    } else if (count === totalCheckboxes) {
+      selectAllCheckbox.indeterminate = false;
+      selectAllCheckbox.checked = true;
+    } else {
+      selectAllCheckbox.indeterminate = true;
+      selectAllCheckbox.checked = false;
+    }
+    
+    // Update button text
+    const bulkOfferBtnText = document.getElementById('bulkOfferBtnText');
+    if (count === 0) {
+      bulkOfferBtnText.textContent = 'Offer Selected for Loan';
+    } else {
+      bulkOfferBtnText.textContent = `Offer ${count} Car${count > 1 ? 's' : ''} for Loan`;
+    }
+  }
+
+  function clearAllSelections() {
+    const carCheckboxes = document.querySelectorAll('.car-checkbox');
+    carCheckboxes.forEach(checkbox => {
+      checkbox.checked = false;
+    });
+    document.getElementById('selectAllCars').checked = false;
+    document.getElementById('selectAllCars').indeterminate = false;
+    updateSelectionCount();
+  }
+
+  function showBulkOfferModal() {
+    const selectedCheckboxes = document.querySelectorAll('.car-checkbox:checked');
+    const selectedCars = [];
+    const selectedCarIds = [];
+    
+    selectedCheckboxes.forEach(checkbox => {
+      const carId = checkbox.value;
+      const carCard = document.querySelector(`[data-car-id="${carId}"]`);
+      const carTitle = carCard.querySelector('.card-title').textContent;
+      selectedCars.push(carTitle);
+      selectedCarIds.push(carId);
+    });
+    
+    // Update modal content
+    document.getElementById('bulkSelectedCount').textContent = selectedCars.length;
+    document.getElementById('bulk_car_ids').value = selectedCarIds.join(',');
+    
+    const bulkSelectedCarsDiv = document.getElementById('bulkSelectedCars');
+    bulkSelectedCarsDiv.innerHTML = selectedCars.map(car => 
+      `<div class="d-flex align-items-center mb-2">
+        <i class="fas fa-car text-primary me-2"></i>
+        <span>${car}</span>
+      </div>`
+    ).join('');
+    
+    new bootstrap.Modal(document.getElementById("bulkOfferModal")).show();
   }
 
   function confirmWithdraw(loanCarId) {
@@ -514,33 +510,42 @@ Rentals{% endblock %}
   }
 
   // Handle confirmed withdraw
-  document
-    .getElementById("confirmWithdrawBtn")
-    .addEventListener("click", function () {
-      if (currentLoanCarId) {
-        const form = document.createElement("form");
-        form.method = "POST";
-        form.action =
-          `{{ url_for('car_admin.withdraw_loan_car', loan_car_id=0) }}`.replace(
-            "0",
-            currentLoanCarId
-          );
-        document.body.appendChild(form);
-        form.submit();
-      }
-    });
+  document.getElementById("confirmWithdrawBtn").addEventListener("click", function () {
+    if (currentLoanCarId) {
+      const form = document.createElement("form");
+      form.method = "POST";
+      form.action = `{{ url_for('car_admin.withdraw_loan_car', loan_car_id=0) }}`.replace("0", currentLoanCarId);
+      document.body.appendChild(form);
+      form.submit();
+    }
+  });
 
   // Clean up when modals are hidden
-  document
-    .getElementById("confirmSaveModal")
-    .addEventListener("hidden.bs.modal", function () {
-      pendingFormData = null;
-    });
+  document.getElementById("confirmWithdrawModal").addEventListener("hidden.bs.modal", function () {
+    currentLoanCarId = null;
+  });
 
-  document
-    .getElementById("confirmWithdrawModal")
-    .addEventListener("hidden.bs.modal", function () {
-      currentLoanCarId = null;
-    });
+  // Initialize selection count on page load
+  document.addEventListener('DOMContentLoaded', function() {
+    updateSelectionCount();
+    
+    // Check if we need to pre-select all cars (from URL parameter)
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('preselect_all') === 'true') {
+      // Switch to available tab
+      document.getElementById('available-tab').click();
+      
+      // Select all cars after a brief delay to ensure tab content is loaded
+      setTimeout(() => {
+        document.getElementById('selectAllCars').checked = true;
+        toggleSelectAll();
+        
+        // Show the bulk offer modal automatically
+        setTimeout(() => {
+          showBulkOfferModal();
+        }, 500);
+      }, 300);
+    }
+  });
 </script>
 {% endblock %}
