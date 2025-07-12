@@ -1,5 +1,6 @@
-{% extends 'base.html' %} {% block title %}Loan Details - {{ car.make }} {{
-car.model }} - JDM Car Rentals{% endblock %} {% block content %}
+{% extends 'base.html' %}
+{% block title %}Loan Details - {{ car.make }} {{ car.model }} - JDM Car Rentals{% endblock %}
+{% block content %}
 <div class="container-fluid">
   <div class="row">
     <!-- Sidebar -->
@@ -7,270 +8,282 @@ car.model }} - JDM Car Rentals{% endblock %} {% block content %}
 
     <!-- Main content -->
     <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
-      <div
-        class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom"
-      >
+      <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
         <div>
           <h1 class="h2">Loan Details</h1>
-          <p class="text-muted">Detailed information about the loan vehicle</p>
+          <p class="text-muted">Detailed information about the loan vehicle and borrower</p>
         </div>
         <div class="btn-toolbar mb-2 mb-md-0">
-          <a
-            href="{{ url_for('car_admin.manage_loan_cars') }}"
-            class="btn btn-sm btn-outline-secondary"
-          >
-            <i class="fas fa-arrow-left me-1"></i> Back to Loans
+          <a href="{{ url_for('car_admin.car_loan_management') }}" class="btn btn-sm btn-outline-secondary">
+            <i class="fas fa-arrow-left me-1"></i> Back to Car Loan Management
           </a>
         </div>
       </div>
-
-      <!-- Car Details Card -->
-      <div class="row justify-content-center">
+      
+      <!-- Main Content Row -->
+      <div class="row">
+        <!-- Left Column - Car Details -->
         <div class="col-lg-8">
-          <div class="card shadow-sm">
-            <!-- Car Image -->
-            <div class="position-relative">
-              {% if car.image_url %}
-              <img
-                src="{{ car.image_url }}"
-                class="card-img-top"
-                alt="{{ car.make }} {{ car.model }}"
-                style="
-                  height: 350px;
-                  object-fit: cover;
-                  border-radius: 0.375rem 0.375rem 0 0;
-                "
-              />
-              {% else %}
-              <img
-                src="https://via.placeholder.com/800x400/e9ecef/6c757d?text={{ car.make }}+{{ car.model }}"
-                class="card-img-top"
-                alt="{{ car.make }} {{ car.model }}"
-                style="
-                  height: 400px;
-                  object-fit: cover;
-                  border-radius: 0.375rem 0.375rem 0 0;
-                "
-              />
-              {% endif %}
+          <!-- Car Image -->
+          <div class="position-relative mb-4">
+            {% if car.image_url %}
+            <img src="{{ car.image_url }}" class="img-fluid rounded" alt="{{ car.make }} {{ car.model }}" style="width: 100%; height: 400px; object-fit: cover;">
+            {% else %}
+            <img src="https://via.placeholder.com/800x400/e9ecef/6c757d?text={{ car.make }}+{{ car.model }}" class="img-fluid rounded" alt="{{ car.make }} {{ car.model }}" style="width: 100%; height: 400px; object-fit: cover;">
+            {% endif %}
+            
+            <!-- Status Badge -->
+            {% if loan_car.status == 'available' %}
+            <span class="badge bg-primary position-absolute fw-bold px-3 py-2" style="top: 12px; right: 12px; border-radius: 20px;">
+              <i class="fas fa-tag me-1"></i>Available
+            </span>
+            {% elif loan_car.status == 'pending' %}
+            <span class="badge position-absolute fw-bold px-3 py-2 text-black" style="top: 12px; right: 12px; border-radius: 20px; background-color: #ffc107;">
+              <i class="fas fa-clock me-1"></i>Pending
+            </span>
+            {% elif loan_car.status == 'active' %}
+            <span class="badge bg-success position-absolute fw-bold px-3 py-2" style="top: 12px; right: 12px; border-radius: 20px;">
+              <i class="fas fa-check-circle me-1"></i>Active
+            </span>
+            {% endif %}
+          </div>
 
-              <!-- Year Badge -->
-              <span
-                class="badge bg-primary position-absolute fs-6 px-3 py-2"
-                style="top: 20px; left: 20px"
-                >{{ car.year }}</span
-              >
-              {% if loan_car.status == 'available' %}
-              <span
-                class="badge bg-primary position-absolute fw-bold px-3 py-2"
-                style="top: 12px; right: 12px; border-radius: 20px"
-              >
-                <i class="fas fa-tag me-1"></i>Available
-              </span>
-              {% elif loan_car.status == 'pending' %}
-              <span
-                class="badge position-absolute fw-bold px-3 py-2 text-black text-warning"
-                style="
-                  top: 12px;
-                  right: 12px;
-                  border-radius: 20px;
-                  background-color: #ffc107;
-                "
-              >
-                <i class="fas fa-clock me-1"></i>Pending
-              </span>
-              {% elif loan_car.status == 'active' %}
-              <span
-                class="badge bg-success position-absolute fw-bold px-3 py-2"
-                style="top: 12px; right: 12px; border-radius: 20px"
-              >
-                <i class="fas fa-check-circle me-1"></i>Active
-              </span>
-              {% endif %}
-            </div>
+          <!-- Car Title -->
+          <h1 class="mb-3">{{ car.year }} {{ car.make }} {{ car.model }}</h1>
 
+          <!-- Car Specifications -->
+          <div class="card mb-4">
             <div class="card-body">
-              <!-- Car Title -->
-              <h2 class="card-title text-primary mb-3">
-                {{ car.make }} {{ car.model }}
-              </h2>
-
-              <!-- Car Details -->
-              <p class="text-muted mb-4">
-                {{ car.color }} • {{ car.license_plate }}
-              </p>
-
-              <!-- Loan Sale Price -->
-              <h3 class="text-primary mb-4">
-                ₱{{ "{:,.0f}".format(loan_car.loan_sale_price) }}
-              </h3>
-
-              <!-- Details Row -->
-              <div class="row mb-4">
-                <div class="col-md-4">
-                  <div class="d-flex align-items-center">
-                    <i class="fas fa-percentage text-muted me-2"></i>
-                    <div>
-                      <small class="text-muted d-block">Commission Rate</small>
-                      <strong>{{ loan_car.commission_rate }}%</strong>
-                    </div>
-                  </div>
-                </div>
-                <div class="col-md-4">
-                  <div class="d-flex align-items-center">
-                    <i class="fas fa-peso-sign text-muted me-2"></i>
-                    <div>
-                      <small class="text-muted d-block"
-                        >Commission Amount</small
-                      >
-                      <strong class="text-success"
-                        >₱{{ "{:,.0f}".format(loan_car.loan_sale_price *
-                        loan_car.commission_rate / 100) }}</strong
-                      >
-                    </div>
-                  </div>
-                </div>
-                <div class="col-md-4">
-                  <div class="d-flex align-items-center">
-                    <i class="fas fa-calendar text-muted me-2"></i>
-                    <div>
-                      <small class="text-muted d-block">Date Offered</small>
-                      <strong
-                        >{{ loan_car.date_offered.strftime('%b %d, %Y') if
-                        loan_car.date_offered else 'N/A' }}</strong
-                      >
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Car Specifications Section -->
-              <div class="row mb-4">
+              <h5 class="card-title mb-3">
+                <i class="fas fa-car me-2"></i>Car Specifications
+              </h5>
+              <div class="row">
                 <div class="col-md-6">
-                  <h5 class="mb-3">Car Specifications</h5>
-                  
-                  <div class="mb-3">
-                    <div class="d-flex align-items-center">
-                      <i class="fas fa-palette text-muted me-2"></i>
-                      <div>
-                        <strong>Color:</strong> {{ car.color }}
-                      </div>
+                  <div class="mb-3 d-flex align-items-center">
+                    <i class="fas fa-palette text-muted me-2"></i>
+                    <div>
+                      <strong>Color:</strong> {{ car.color }}
                     </div>
                   </div>
-                  
-                  <div class="mb-3">
-                    <div class="d-flex align-items-center">
-                      <i class="fas fa-cogs text-muted me-2"></i>
-                      <div>
-                        <strong>Transmission:</strong> {{ car.transmission if car.transmission else 'N/A' }}
-                      </div>
+                  <div class="mb-3 d-flex align-items-center">
+                    <i class="fas fa-cogs text-muted me-2"></i>
+                    <div>
+                      <strong>Transmission:</strong> {{ car.transmission if car.transmission else 'N/A' }}
                     </div>
                   </div>
-                  
-                  <div class="mb-3">
-                    <div class="d-flex align-items-center">
-                      <i class="fas fa-gas-pump text-muted me-2"></i>
-                      <div>
-                        <strong>Fuel Type:</strong> {{ car.fuel_type if car.fuel_type else 'N/A' }}
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div class="mb-3">
-                    <div class="d-flex align-items-center">
-                      <i class="fas fa-user-friends text-muted me-2"></i>
-                      <div>
-                        <strong>Seats:</strong> {{ car.seats if car.seats else 'N/A' }}
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div class="mb-3">
-                    <div class="d-flex align-items-center">
-                      <i class="fas fa-tachometer-alt text-muted me-2"></i>
-                      <div>
-                        <strong>Horsepower:</strong> {{ car.horsepower if car.horsepower else 'N/A' }}
-                      </div>
+                  <div class="mb-3 d-flex align-items-center">
+                    <i class="fas fa-gas-pump text-muted me-2"></i>
+                    <div>
+                      <strong>Fuel Type:</strong> {{ car.fuel_type if car.fuel_type else 'N/A' }}
                     </div>
                   </div>
                 </div>
-                
                 <div class="col-md-6">
-                  <h5 class="mb-3">Additional Information</h5>
-                  
-                  <div class="mb-3">
-                    <div class="d-flex align-items-center">
-                      <i class="fas fa-car-side text-muted me-2"></i>
-                      <div>
-                        <strong>Body Type:</strong> {{ car.body_type if car.body_type else 'N/A' }}
-                      </div>
+                  <div class="mb-3 d-flex align-items-center">
+                    <i class="fas fa-user-friends text-muted me-2"></i>
+                    <div>
+                      <strong>Seats:</strong> {{ car.seats if car.seats else 'N/A' }}
                     </div>
                   </div>
-                  
-                  <div class="mb-3">
-                    <div class="d-flex align-items-center">
-                      <i class="fas fa-road text-muted me-2"></i>
-                      <div>
-                        <strong>Mileage:</strong> {{ "{:,}".format(car.mileage) if car.mileage else 'N/A' }} km
-                      </div>
+                  <div class="mb-3 d-flex align-items-center">
+                    <i class="fas fa-tachometer-alt text-muted me-2"></i>
+                    <div>
+                      <strong>Horsepower:</strong> {{ car.horsepower if car.horsepower else 'N/A' }}
                     </div>
                   </div>
-                  
-                  <div class="mb-3">
-                    <div class="d-flex align-items-center">
-                      <i class="fas fa-id-card text-muted me-2"></i>
-                      <div>
-                        <strong>License Plate:</strong> {{ car.license_plate }}
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div class="mb-3">
-                    <div class="d-flex align-items-center">
-                      <i class="fas fa-info-circle text-muted me-2"></i>
-                      <div>
-                        <strong>Status:</strong> 
-                        {% if loan_car.status == 'available' %}
-                          <span class="text-primary">Available for Loan</span>
-                        {% elif loan_car.status == 'pending' %}
-                          <span class="text-warning">Pending</span>
-                        {% elif loan_car.status == 'active' %}
-                          <span class="text-success">Active</span>
-                        {% endif %}
-                      </div>
+                  <div class="mb-3 d-flex align-items-center">
+                    <i class="fas fa-car-side text-muted me-2"></i>
+                    <div>
+                      <strong>Body Type:</strong> {{ car.body_type if car.body_type else 'N/A' }}
                     </div>
                   </div>
                 </div>
-              </div>
-
-              <!-- Car Description -->
-              <div class="mb-4">
-                <h5 class="mb-2">
-                  <i class="fas fa-info-circle text-muted me-2"></i>Description
-                </h5>
-                <p class="card-text">
-                  {% if car.description %} {{ car.description }} {% else %} This
-                  is a well-maintained {{ car.make }} {{ car.model }} in
-                  excellent condition. The vehicle has been regularly serviced
-                  and is ready for loan. It offers reliable performance and
-                  comfortable driving experience. {% endif %}
-                </p>
-              </div>
-
-              <!-- Action Buttons -->
-              <div class="d-flex gap-2 justify-content-center">
-                {% if loan_car.status == 'available' %}
-
-                <button
-                  type="button"
-                  class="btn btn-outline-warning"
-                  onclick="confirmWithdraw({{ loan_car.id }})"
-                >
-                  <i class="fas fa-times"></i> Withdraw
-                </button>
-                {% endif %}
               </div>
             </div>
+          </div>
+
+          <!-- Additional Information -->
+          <div class="card mb-4">
+            <div class="card-body">
+              <h5 class="card-title mb-3">
+                <i class="fas fa-info-circle me-2"></i>Additional Information
+              </h5>
+              <div class="row">
+                <div class="col-md-6">
+                  <div class="mb-3 d-flex align-items-center">
+                    <i class="fas fa-road text-muted me-2"></i>
+                    <div>
+                      <strong>Mileage:</strong> {{ "{:,}".format(car.mileage) if car.mileage else 'N/A' }} km
+                    </div>
+                  </div>
+                  <div class="mb-3 d-flex align-items-center">
+                    <i class="fas fa-id-card text-muted me-2"></i>
+                    <div>
+                      <strong>License Plate:</strong> {{ car.license_plate }}
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="mb-3 d-flex align-items-center">
+                    <i class="fas fa-info-circle text-muted me-2"></i>
+                    <div>
+                      <strong>Status:</strong> 
+                      {% if loan_car.status == 'available' %}
+                        <span class="text-primary">Offered for Loan</span>
+                      {% elif loan_car.status == 'pending' %}
+                        <span class="text-warning">Pending</span>
+                      {% elif loan_car.status == 'active' %}
+                        <span class="text-success">Active</span>
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Description -->
+          <div class="card">
+            <div class="card-body">
+              <h5 class="card-title mb-3">
+                <i class="fas fa-file-alt me-2"></i>Description
+              </h5>
+              <p class="card-text">
+                {% if car.description %}
+                  {{ car.description }}
+                {% else %}
+                  This is a well-maintained {{ car.make }} {{ car.model }} in excellent condition. The vehicle has been regularly serviced and is ready for loan. It offers reliable performance and comfortable driving experience.
+                {% endif %}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Column - Borrower Details -->
+        <div class="col-lg-4">
+          <!-- Loan Price Card -->
+          <div class="card mb-4">
+            <div class="card-body">
+              <h3 class="text-primary mb-2">₱{{ "{:,.2f}".format(loan_car.loan_sale_price) }}</h3>
+              
+
+              <!-- Commission Details -->
+              <div class="mt-3">
+                <div class="d-flex justify-content-between mb-2">
+                  <span>Commission Rate:</span>
+                  <strong>{{ loan_car.commission_rate }}%</strong>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                  <span>Commission Amount:</span>
+                  <strong class="text-success">₱{{ "{:,.2f}".format(loan_car.loan_sale_price * loan_car.commission_rate / 100) }}</strong>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                  <span>Date Offered:</span>
+                  <strong>{{ loan_car.date_offered.strftime('%b %d, %Y') if loan_car.date_offered else 'N/A' }}</strong>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Borrower Details Card -->
+          {% if loan_sale %}
+          <div class="card">
+            <div class="card-header bg-info text-white">
+              <h5 class="mb-0">
+                <i class="fas fa-user me-2"></i>Borrower Details
+              </h5>
+            </div>
+            <div class="card-body">
+              <div class="mb-3">
+                <div class="d-flex align-items-center">
+                  <i class="fas fa-user-tag text-muted me-2"></i>
+                  <div>
+                    <small class="text-muted d-block">Full Name</small>
+                    <strong>{{ loan_sale.first_name }} {{ loan_sale.middle_name }} {{ loan_sale.last_name }}</strong>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="mb-3">
+                <div class="d-flex align-items-center">
+                  <i class="fas fa-envelope text-muted me-2"></i>
+                  <div>
+                    <small class="text-muted d-block">Email</small>
+                    <strong>{{ loan_sale.email }}</strong>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="mb-3">
+                <div class="d-flex align-items-center">
+                  <i class="fas fa-phone text-muted me-2"></i>
+                  <div>
+                    <small class="text-muted d-block">Contact</small>
+                    <strong>{{ loan_sale.contact if loan_sale.contact else 'N/A' }}</strong>
+                  </div>
+                </div>
+              </div>
+
+              <div class="mb-3">
+                <div class="d-flex align-items-center">
+                  <i class="fas fa-hashtag text-muted me-2"></i>
+                  <div>
+                    <small class="text-muted d-block">Loan Sale ID</small>
+                    <strong>#{{ loan_sale.id }}</strong>
+                  </div>
+                </div>
+              </div>
+
+              <div class="mb-3">
+                <div class="d-flex align-items-center">
+                  <i class="fas fa-money-bill-wave text-muted me-2"></i>
+                  <div>
+                    <small class="text-muted d-block">Disbursement ID</small>
+                    <strong>{{ loan_sale.disbursement_id if loan_sale.disbursement_id else 'Pending' }}</strong>
+                  </div>
+                </div>
+              </div>
+
+              <div class="mb-3">
+                <div class="d-flex align-items-center">
+                  <i class="fas fa-user-circle text-muted me-2"></i>
+                  <div>
+                    <small class="text-muted d-block">User ID</small>
+                    <strong>{{ loan_sale.user_id if loan_sale.user_id else 'N/A' }}</strong>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          {% else %}
+          <!-- No Borrower Card -->
+          <div class="card">
+            <div class="card-header bg-light">
+              <h5 class="mb-0">
+                <i class="fas fa-user me-2"></i>Borrower Details
+              </h5>
+            </div>
+            <div class="card-body text-center">
+              <i class="fas fa-user-slash text-muted mb-3" style="font-size: 3rem;"></i>
+              <p class="text-muted mb-0">No borrower assigned yet</p>
+              <small class="text-muted">This car is available for loan</small>
+            </div>
+          </div>
+          {% endif %}
+
+          <!-- Action Buttons -->
+          <div class="mt-4 d-grid gap-2">
+            {% if loan_car.status == 'available' %}
+            <button type="button" class="btn btn-outline-warning" onclick="confirmWithdraw({{ loan_car.id }})">
+              <i class="fas fa-times me-1"></i> Withdraw
+            </button>
+            {% endif %}
+            
+            {% if loan_sale %}
+            <button type="button" class="btn btn-outline-primary" onclick="printLoanDetails()">
+              <i class="fas fa-print me-1"></i> Print Details
+            </button>
+            {% endif %}
           </div>
         </div>
       </div>
@@ -278,36 +291,24 @@ car.model }} - JDM Car Rentals{% endblock %} {% block content %}
   </div>
 </div>
 
+<!-- Confirm Withdraw Modal -->
 <div class="modal fade" id="confirmWithdrawModal" tabindex="-1">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title">
-          <i class="fas fa-exclamation-triangle text-warning me-2"></i>Confirm
-          Withdrawal
+          <i class="fas fa-exclamation-triangle text-warning me-2"></i>Confirm Withdrawal
         </h5>
-        <button
-          type="button"
-          class="btn-close"
-          data-bs-dismiss="modal"
-        ></button>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body">
-        <p class="mb-3">
-          Are you sure you want to withdraw this car from loan offering?
-        </p>
+        <p class="mb-3">Are you sure you want to withdraw this car from loan offering?</p>
         <div class="alert alert-warning">
-          <small
-            ><strong>Warning:</strong> This action will remove the car from the
-            loan marketplace and it will become available for offering
-            again.</small
-          >
+          <small><strong>Warning:</strong> This action will remove the car from the loan marketplace and it will become available for offering again.</small>
         </div>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-          Cancel
-        </button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
         <button type="button" class="btn btn-warning" id="confirmWithdrawBtn">
           <i class="fas fa-times me-1"></i>Withdraw Car
         </button>
@@ -316,36 +317,120 @@ car.model }} - JDM Car Rentals{% endblock %} {% block content %}
   </div>
 </div>
 
-{% endblock %} {% block scripts %}
+{% endblock %}
 
+{% block scripts %}
 <script>
+  let currentLoanCarId = null;
+
   function confirmWithdraw(loanCarId) {
     currentLoanCarId = loanCarId;
     new bootstrap.Modal(document.getElementById("confirmWithdrawModal")).show();
   }
 
   // Handle confirmed withdraw
-  document
-    .getElementById("confirmWithdrawBtn")
-    .addEventListener("click", function () {
-      if (currentLoanCarId) {
-        const form = document.createElement("form");
-        form.method = "POST";
-        form.action =
-          `{{ url_for('car_admin.withdraw_loan_car', loan_car_id=0) }}`.replace(
-            "0",
-            currentLoanCarId
-          );
-        document.body.appendChild(form);
-        form.submit();
-      }
-    });
+  document.getElementById("confirmWithdrawBtn").addEventListener("click", function () {
+    if (currentLoanCarId) {
+      const form = document.createElement("form");
+      form.method = "POST";
+      form.action = `{{ url_for('car_admin.withdraw_loan_car', loan_car_id=0) }}`.replace("0", currentLoanCarId);
+      document.body.appendChild(form);
+      form.submit();
+    }
+  });
 
-  document
-    .getElementById("confirmWithdrawModal")
-    .addEventListener("hidden.bs.modal", function () {
-      currentLoanCarId = null;
-    });
+  document.getElementById("confirmWithdrawModal").addEventListener("hidden.bs.modal", function () {
+    currentLoanCarId = null;
+  });
+
+  // Print function for loan details
+  function printLoanDetails() {
+    const printWindow = window.open('', '_blank');
+    const printContent = `
+      <html>
+        <head>
+          <title>Loan Details - {{ car.make }} {{ car.model }}</title>
+          <style>
+            body { font-family: Arial, sans-serif; margin: 20px; }
+            .header { text-align: center; margin-bottom: 30px; }
+            .section { margin-bottom: 20px; }
+            .section h3 { color: #0066cc; border-bottom: 2px solid #0066cc; padding-bottom: 5px; }
+            .detail-row { display: flex; justify-content: space-between; margin-bottom: 10px; }
+            .detail-label { font-weight: bold; }
+            @media print { body { margin: 0; } }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <h1>JDM Car Rentals - Loan Details</h1>
+            <h2>{{ car.make }} {{ car.model }} ({{ car.year }})</h2>
+          </div>
+          
+          <div class="section">
+            <h3>Vehicle Information</h3>
+            <div class="detail-row">
+              <span class="detail-label">Make & Model:</span>
+              <span>{{ car.make }} {{ car.model }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Year:</span>
+              <span>{{ car.year }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Color:</span>
+              <span>{{ car.color }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">License Plate:</span>
+              <span>{{ car.license_plate }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Loan Sale Price:</span>
+              <span>₱{{ "{:,.2f}".format(loan_car.loan_sale_price) }}</span>
+            </div>
+          </div>
+          
+          {% if loan_sale %}
+          <div class="section">
+            <h3>Borrower Information</h3>
+            <div class="detail-row">
+              <span class="detail-label">Name:</span>
+              <span>{{ loan_sale.first_name }} {{ loan_sale.middle_name }} {{ loan_sale.last_name }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Email:</span>
+              <span>{{ loan_sale.email }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Contact:</span>
+              <span>{{ loan_sale.contact if loan_sale.contact else 'N/A' }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Loan Sale ID:</span>
+              <span>#{{ loan_sale.id }}</span>
+            </div>
+          </div>
+          {% endif %}
+          
+          <div class="section">
+            <h3>Commission Details</h3>
+            <div class="detail-row">
+              <span class="detail-label">Commission Rate:</span>
+              <span>{{ loan_car.commission_rate }}%</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Commission Amount:</span>
+              <span>₱{{ "{:,.2f}".format(loan_car.loan_sale_price * loan_car.commission_rate / 100) }}</span>
+            </div>
+          </div>
+          
+        </body>
+      </html>
+    `;
+    
+    printWindow.document.write(printContent);
+    printWindow.document.close();
+    printWindow.print();
+  }
 </script>
-
 {% endblock %}

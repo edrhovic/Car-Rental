@@ -259,7 +259,7 @@
                                         <span class="badge bg-dark">Unavailable</span>
                                         {% endif %}
                                     </td>
-                                    <td>₱{{ "%.2f"|format(car.daily_rate) }}</td>
+                                    <td>₱{{ "{:,.2f}".format(car.daily_rate) }}</td>
                                     <td>
                                         <div class="btn-group">
                                             <a href="{{ url_for('car.car_details', car_id=car.id) }}"

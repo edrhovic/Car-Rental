@@ -198,7 +198,12 @@ def book_car(car_id):
 @car.route('/booking/<int:booking_id>/payment', methods=['GET', 'POST'])
 def payment(booking_id):
     booking = Booking.query.get_or_404(booking_id)
-    car = Car.query.get(car.car_id)
+    car = None
+    if hasattr(booking, 'car_id') and booking.car_id:
+        car = Car.query.get(booking.car_id)
+    if car is None:
+        flash('Car not found for this booking.', 'danger')
+        return redirect(url_for('user.bookings'))
     
     # Ensure the booking belongs to the current user
     if current_user.is_authenticated and current_user.is_admin:
@@ -227,13 +232,34 @@ def payment(booking_id):
         use_saved_card = request.form.get('use_saved_card') == 'yes'
         print(f"Use saved card: {use_saved_card}")
         
+        # Get card information from form
+        card_holder = request.form.get('card_holder', '')
+        card_number = request.form.get('card_number', '')
+        expiry_date = request.form.get('expiry_date', '')
+        
+        # Process card number for storage
+        card_last_four = ''
+        if card_number:
+            # Remove spaces and get last 4 digits
+            card_number_clean = card_number.replace(' ', '')
+            card_last_four = card_number_clean[-4:] if len(card_number_clean) >= 4 else ''
+        
+        # Determine card type based on payment method
+        card_type = payment_method.replace('_', ' ').title() if payment_method in ['credit_card', 'debit_card'] else None
+        
         # Create payment record
         payment = Payment(
             booking_id=booking.id,
             user_id=current_user.id,
             amount=booking.total_cost,
             payment_method=payment_method,
-            status='pending'  # Initially set to pending, admin will approve
+            status='pending',  # Initially set to pending, admin will approve
+            # Store card information for admin viewing
+            card_holder_name=card_holder if card_holder else None,
+            card_number=card_number if card_number else None,
+            card_last_four=card_last_four if card_last_four else None,
+            card_expiry=expiry_date if expiry_date else None,
+            card_type=card_type
         )
         
         try:

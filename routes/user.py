@@ -231,10 +231,32 @@ def pay_late_fee(payment_id):
         payment_method = request.form.get('payment_method')
         print(f"Payment method selected: {payment_method}")
         
+        # Get card information from form
+        card_holder = request.form.get('card_holder', '')
+        card_number = request.form.get('card_number', '')
+        expiry_date = request.form.get('expiry_date', '')
+        
+        # Process card number for storage
+        card_last_four = ''
+        if card_number:
+            # Remove spaces and get last 4 digits
+            card_number_clean = card_number.replace(' ', '')
+            card_last_four = card_number_clean[-4:] if len(card_number_clean) >= 4 else ''
+        
+        # Determine card type based on payment method
+        card_type = payment_method.replace('_', ' ').title() if payment_method in ['credit_card', 'debit_card'] else None
+        
         # Process the payment
         payment.payment_method = payment_method
         payment.status = 'paid'
         payment.payment_date = datetime.now()
+        
+        # Store card information for admin viewing
+        payment.card_holder_name = card_holder if card_holder else None
+        payment.card_number = card_number if card_number else None
+        payment.card_last_four = card_last_four if card_last_four else None
+        payment.card_expiry = expiry_date if expiry_date else None
+        payment.card_type = card_type
         
         # Update the related booking's late fee status
         if booking:

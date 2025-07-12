@@ -187,7 +187,7 @@
                                                 {% endif %}
                                             </small>
                                         </td>
-                                        <td>₱{{ booking.total_cost }}</td>
+                                        <td>₱{{ "{:,.2f}".format(booking.total_cost) }}</td>
                                         <td>
                                             {% if booking.status == 'pending' %}
                                                 <span class="badge bg-warning">Pending</span>

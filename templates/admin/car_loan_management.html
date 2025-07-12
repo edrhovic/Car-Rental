@@ -1,0 +1,341 @@
+{% extends 'base.html' %}
+{% block title %}Active Loan Cars - JDM Car Rentals{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+  <div class="row">
+    <!-- Sidebar -->
+    {% include 'admin/partials/sidebar.html' %}
+
+    <!-- Main content -->
+    <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+      <div
+        class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <div>
+          <h1 class="h2">Active Loan Cars</h1>
+          <p class="text-muted">
+            Monitor and manage cars currently on active loan with customers
+          </p>
+        </div>
+        <div class="btn-toolbar mb-2 mb-md-0">
+          <a href="{{ url_for('car_admin.loan_cars_dashboard')}}" class="btn btn-outline-secondary me-2">
+            <i class="fas fa-arrow-left me-1"></i> Back to Dashboard
+          </a>
+          <a href="{{ url_for('admin.add_car') }}" class="btn btn-outline-primary">
+            <i class="fas fa-plus me-1"></i> Add More Cars
+          </a>
+        </div>
+      </div>
+
+      <!-- Stats Cards -->
+      <div class="row mb-4 g-4">
+        <div class="col-xl-3 col-lg-6 col-md-6">
+          <div class="card stats-card text-white bg-warning h-100">
+            <div class="card-body d-flex flex-column justify-content-center py-4">
+              <div class="d-flex flex-column align-items-center text-center">
+                <div class="icon-circle mb-3">
+                  <i class="fas fa-handshake fa-2x"></i>
+                </div>
+                <h2 class="counter mb-2">{{ statistics.total_loan_cars }}</h2>
+
+                <p class="label mb-0">Cars for Loan</p>
+              </div>
+            </div>
+            <div class="card-footer d-flex align-items-center justify-content-between bg-transparent border-top-0">
+              <a href="{{ url_for('car_admin.manage_loan_cars') }}" class="text-white text-decoration-none">View
+                Details</a>
+              <span class="text-white"><i class="fas fa-arrow-circle-right"></i></span>
+            </div>
+          </div>
+        </div>
+        <div class="col-xl-3 col-lg-6 col-md-6">
+          <div class="card stats-card text-white bg-warning h-100">
+            <div class="card-body d-flex flex-column justify-content-center py-4">
+              <div class="d-flex flex-column align-items-center text-center">
+                <div class="icon-circle mb-3">
+                  <i class="fas fa-user-check fa-2x"></i>
+                </div>
+                <h2 class="counter active-loans-count mb-2">{{ statistics.total_active_loan_cars }}</h2>
+                <p class="label mb-0">Active Loans</p>
+              </div>
+            </div>
+            <div class="card-footer d-flex align-items-center justify-content-between bg-transparent border-top-0">
+              <a href="{{ url_for('car_admin.car_loan_management' )}}" class="text-white text-decoration-none">View
+                Details</a>
+              <span class="text-white"><i class="fas fa-arrow-circle-right"></i></span>
+            </div>
+          </div>
+        </div>
+        <div class="col-xl-3 col-lg-6 col-md-6">
+          <div class="card stats-card text-white bg-warning h-100">
+            <div class="card-body d-flex flex-column justify-content-center py-4">
+              <div class="d-flex flex-column align-items-center text-center">
+                <div class="icon-circle mb-3">
+                  <i class="fas fa-clock fa-2x"></i>
+                </div>
+                <h2 class="counter mb-2">{{ statistics.total_pending_loan_cars }}</h2>
+                <p class="label mb-0">Pending Applications</p>
+              </div>
+            </div>
+            <div class="card-footer d-flex align-items-center justify-content-between bg-transparent border-top-0">
+              <a href="#" class="text-white text-decoration-none">View Details</a>
+              <span class="text-white"><i class="fas fa-arrow-circle-right"></i></span>
+            </div>
+          </div>
+        </div>
+        <div class="col-xl-3 col-lg-6 col-md-6">
+          <div class="card stats-card text-white bg-warning h-100">
+            <div class="card-body d-flex flex-column justify-content-center py-4">
+              <div class="d-flex flex-column align-items-center text-center">
+                <div class="icon-circle mb-3">
+                  <i class="fas fa-percentage fa-2x"></i>
+                </div>
+                <h2 class="counter monthly-commission mb-2">
+                  {{ statistics.total_available_cars }}
+
+                </h2>
+                <p class="label mb-0">All Available Cars</p>
+              </div>
+            </div>
+            <div class="card-footer d-flex align-items-center justify-content-between bg-transparent border-top-0">
+              <a href="#" class="text-white text-decoration-none">View Details</a>
+              <span class="text-white"><i class="fas fa-arrow-circle-right"></i></span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Stats Cards -->
+      <!-- Search and Filter -->
+      <div class="row mb-4">
+        <div class="col-md-6">
+          <div class="input-group">
+            <span class="input-group-text"><i class="fas fa-search"></i></span>
+            <input type="text" class="form-control" id="searchInput"
+              placeholder="Search by car make, model, or customer name...">
+          </div>
+        </div>
+        <div class="col-md-3">
+          <select class="form-select" id="statusFilter">
+            <option value="">All Statuses</option>
+            <option value="active">Active</option>
+            <option value="pending">Pending</option>
+            <option value="approved">Approved</option>
+            <option value="sold">Sold</option>
+          </select>
+        </div>
+        <div class="col-md-3">
+          <select class="form-select" id="sortFilter">
+            <option value="newest">Newest First</option>
+            <option value="oldest">Oldest First</option>
+            <option value="price_high">Price: High to Low</option>
+            <option value="price_low">Price: Low to High</option>
+          </select>
+        </div>
+      </div>
+      <!-- Active Loan Cars List -->
+      <div class="card shadow-sm border-0">
+        <div class="card-body p-0">
+          {% if statistics.active_loan_cars %}
+          <div class="table-responsive">
+            <table class="table table-hover mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th scope="col" class="px-3 py-3">Car</th>
+                  <th scope="col" class="px-3 py-3">Status</th>
+                  <th scope="col" class="px-3 py-3">Loan Value</th>
+                  <th scope="col" class="px-3 py-3">Commission</th>
+                  <th scope="col" class="px-3 py-3">Dates</th>
+                  <th scope="col" class="px-3 py-3">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="activeLoanCarsTable">
+                {% for loan_car in statistics.active_loan_cars %}
+                {% set loan_sale = loan_car.loan_sales|first %}
+                <tr class="loan-car-row" data-make="{{ loan_car.car.make|lower }}"
+                  data-model="{{ loan_car.car.model|lower }}"
+                  data-customer="{{ loan_sale.borrower_name|lower if loan_sale and loan_sale.borrower_name else '' }}"
+                  data-status="{{ loan_car.status }}" data-price="{{ loan_car.loan_sale_price }}"
+                  data-date="{{ loan_car.activated_at.strftime('%Y-%m-%d') if loan_car.activated_at else loan_car.date_offered.strftime('%Y-%m-%d') }}">
+                  <td class="px-3 py-3">
+                    <div class="d-flex align-items-center">
+                      <div class="flex-shrink-0 me-3">
+                        {% if loan_car.car.image_url %}
+                        <img src="{{ loan_car.car.image_url }}" class="rounded"
+                          alt="{{ loan_car.car.make }} {{ loan_car.car.model }}"
+                          style="width: 60px; height: 45px; object-fit: cover;">
+                        {% else %}
+                        <div class="bg-light rounded d-flex align-items-center justify-content-center"
+                          style="width: 60px; height: 45px;">
+                          <i class="fas fa-car text-muted"></i>
+                        </div>
+                        {% endif %}
+                      </div>
+                      <div>
+                        <div class="fw-bold text-dark">{{ loan_car.car.make }} {{ loan_car.car.model }}</div>
+                        <small class="text-muted">{{ loan_car.car.year }}</small>
+                        {% if loan_sale and loan_sale.borrower_name %}
+                        <br><small class="text-primary">{{ loan_sale.borrower_name }}</small>
+                        {% endif %}
+                      </div>
+                    </div>
+                  </td>
+                  <td class="px-3 py-3">
+                    {% if loan_car.status == 'active' %}
+                    <span class="badge bg-success">
+                      <i class="fas fa-check-circle me-1"></i>Active
+                    </span>
+                    {% elif loan_car.status == 'approved' %}
+                    <span class="badge bg-info">
+                      <i class="fas fa-thumbs-up me-1"></i>Approved
+                    </span>
+                    {% elif loan_car.status == 'pending' %}
+                    <span class="badge bg-warning">
+                      <i class="fas fa-clock me-1"></i>Pending
+                    </span>
+                    {% elif loan_car.status == 'paid' %}
+                    <span class="badge bg-dark">
+                      <i class="fas fa-handshake me-1"></i>Paid
+                    </span>
+                    {% endif %}
+                  </td>
+                  <td class="px-3 py-3">
+                    <div class="fw-bold text-primary">₱{{ "{:,.2f}".format(loan_car.loan_sale_price) }}</div>
+                  </td>
+                  <td class="px-3 py-3">
+                    <div>
+                      <div class="fw-bold">{{ loan_car.commission_rate }}%</div>
+                      <small class="text-muted">₱{{ "{:,.2f}".format((loan_car.loan_sale_price *
+                        loan_car.commission_rate / 100) if loan_car.commission_rate else 0) }}</small>
+                    </div>
+                  </td>
+                  <td class="px-3 py-3">
+                    <div>
+                      <small class="text-muted d-block">
+                        <i class="fas fa-calendar-plus me-1"></i>
+                        Offered: {{ loan_car.date_offered.strftime('%b %d, %Y') if loan_car.date_offered else 'N/A' }}
+                      </small>
+                      <small class="text-muted d-block">
+                        <i class="fas fa-play-circle me-1"></i>
+                        Activated: {{ loan_car.activated_at.strftime('%b %d, %Y') if loan_car.activated_at else 'Not
+                        yet' }}
+                      </small>
+                    </div>
+                  </td>
+                  <td class="px-3 py-3">
+                    <div class="d-flex gap-1">
+                      <a href="{{ url_for('car_admin.loan_sale_details', sale_id=loan_car.id) }}"
+                        class="btn btn-sm btn-outline-primary" title="View Details">
+                        <i class="fas fa-eye"></i>
+                      </a>
+                    </div>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          {% else %}
+          <!-- Empty State -->
+          <div class="text-center py-5">
+            <div class="mb-4">
+              <i class="fas fa-handshake fa-4x text-muted"></i>
+            </div>
+            <h4 class="text-muted mb-3">No Active Loan Cars</h4>
+            <p class="text-muted mb-4">
+              There are currently no cars on active loan. Cars will appear here once customers complete their loan
+              applications and payments.
+            </p>
+            <div class="d-flex flex-column flex-sm-row gap-2 justify-content-center">
+              <a href="#" class="btn btn-primary">
+                <i class="fas fa-handshake me-1"></i> View Loan Offers
+              </a>
+              <a href="#" class="btn btn-outline-secondary">
+                <i class="fas fa-car me-1"></i> Manage Inventory
+              </a>
+            </div>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+  // Search functionality
+  document.getElementById('searchInput').addEventListener('input', function () {
+    filterRows();
+  });
+
+  // Filter functionality
+  document.getElementById('statusFilter').addEventListener('change', function () {
+    filterRows();
+  });
+
+  // Sort functionality
+  document.getElementById('sortFilter').addEventListener('change', function () {
+    sortRows();
+  });
+
+  function filterRows() {
+    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+    const statusFilter = document.getElementById('statusFilter').value;
+    const rows = document.querySelectorAll('.loan-car-row');
+
+    rows.forEach(row => {
+      const make = row.dataset.make;
+      const model = row.dataset.model;
+      const customer = row.dataset.customer;
+      const status = row.dataset.status;
+
+      const matchesSearch = make.includes(searchTerm) ||
+        model.includes(searchTerm) ||
+        customer.includes(searchTerm);
+      const matchesStatus = !statusFilter || status === statusFilter;
+
+      if (matchesSearch && matchesStatus) {
+        row.style.display = '';
+      } else {
+        row.style.display = 'none';
+      }
+    });
+  }
+
+  function sortRows() {
+    const sortBy = document.getElementById('sortFilter').value;
+    const tbody = document.getElementById('activeLoanCarsTable');
+    const rows = Array.from(tbody.querySelectorAll('.loan-car-row'));
+
+    rows.sort((a, b) => {
+      switch (sortBy) {
+        case 'newest':
+          return new Date(b.dataset.date) - new Date(a.dataset.date);
+        case 'oldest':
+          return new Date(a.dataset.date) - new Date(b.dataset.date);
+        case 'price_high':
+          return parseFloat(b.dataset.price) - parseFloat(a.dataset.price);
+        case 'price_low':
+          return parseFloat(a.dataset.price) - parseFloat(b.dataset.price);
+        default:
+          return 0;
+      }
+    });
+
+    rows.forEach(row => tbody.appendChild(row));
+  }
+
+  function updateLoanStatus(loanId) {
+    document.getElementById('update_loan_id').value = loanId;
+    new bootstrap.Modal(document.getElementById('updateLoanStatusModal')).show();
+  }
+
+  // Initialize filters on page load
+  document.addEventListener('DOMContentLoaded', function () {
+    filterRows();
+    sortRows();
+  });
+</script>
+{% endblock %}

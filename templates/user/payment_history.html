@@ -3,7 +3,7 @@
 {% block title %}Payment History - JDM Car Rentals{% endblock %}
 
 {% block content %}
-<div class="container py-4">
+<div class="container-fluid">
     <h1 class="mb-4">My Payment History</h1>
     
     {% with messages = get_flashed_messages(with_categories=true) %}
@@ -53,9 +53,9 @@
                                     </td>
                                     <td>
                                         {% if payment.is_late_fee %}
-                                            <span class="text-danger">₱{{ payment.amount }}</span>
+                                            <span class="text-danger">₱{{ "{:,.2f}".format(payment.amount) }}</span>
                                         {% else %}
-                                            <span>₱{{ payment.amount }}</span>
+                                            <span>₱{{ "{:,.2f}".format(payment.amount) }}</span>
                                         {% endif %}
                                     </td>
                                     <td>{{ payment.payment_date.strftime('%Y-%m-%d') }}</td>

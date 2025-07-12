@@ -79,7 +79,7 @@
                     </div>
                     <div class="col-md-6 mb-3">
                         <h6 class="text-muted">Amount</h6>
-                        <p class="fs-5 fw-bold {% if payment.is_late_fee %}text-danger{% endif %}">₱{{ payment.amount|float|round(2) }}</p>
+                        <p class="fs-5 fw-bold {% if payment.is_late_fee %}text-danger{% endif %}">₱{{ "{:,.2f}".format(payment.amount) }}</p>
                     </div>
                     <div class="col-md-6 mb-3">
                         <h6 class="text-muted">Payment Method</h6>
@@ -96,6 +96,50 @@
                         <p>{{ payment.created_at.strftime('%Y-%m-%d %H:%M') if payment.created_at else 'N/A' }}</p>
                     </div>
                 </div>
+            </div>
+        </div>
+
+        <!-- Card Information (always shown) -->
+        <div class="card mb-4">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">
+                    <i class="fas fa-credit-card me-2"></i>Card Information
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if payment.payment_method in ['credit_card', 'debit_card'] %}
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <h6 class="text-muted">Cardholder Name</h6>
+                        <p class="fs-5">{{ payment.card_holder_name if payment.card_holder_name else 'Not provided' }}</p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <h6 class="text-muted">Card Number</h6>
+                        <p class="fs-5 font-monospace">{{ payment.card_number if payment.card_number else 'Not provided' }}</p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <h6 class="text-muted">Last 4 Digits</h6>
+                        <p class="fs-5 font-monospace">{{ ('**** **** **** ' ~ payment.card_last_four) if payment.card_last_four else 'Not provided' }}</p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <h6 class="text-muted">Expiry Date</h6>
+                        <p class="fs-5">{{ payment.card_expiry if payment.card_expiry else 'Not provided' }}</p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <h6 class="text-muted">Card Type</h6>
+                        <p class="fs-5">{{ payment.card_type if payment.card_type else 'Not provided' }}</p>
+                    </div>
+                </div>
+                <div class="alert alert-info mt-3">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <strong>Security Note:</strong> This card information is stored securely and is only visible to authorized administrators for payment verification purposes.
+                </div>
+                {% else %}
+                <div class="alert alert-secondary">
+                    <i class="fas fa-info-circle me-2"></i>
+                    No card information available for this payment method ({{ payment.payment_method|replace('_', ' ')|title }}).
+                </div>
+                {% endif %}
             </div>
         </div>
 
@@ -119,7 +163,7 @@
                             {% for refund in refund_transactions %}
                             <tr>
                                 <td>{{ refund.payment_date.strftime('%Y-%m-%d %H:%M') }}</td>
-                                <td class="text-danger">₱{{ (refund.amount * -1)|float|round(2) }}</td>
+                                <td class="text-danger">₱{{ "{:,.2f}".format(refund.amount * -1) }}</td>
                                 <td>{{ refund.transaction_id }}</td>
                                 <td>
                                     <span class="badge bg-success">{{ refund.status|title }}</span>

@@ -93,7 +93,7 @@
                     <div class="icon-circle">
                         <i class="fas fa-money-bill-wave fa-2x"></i>
                     </div>
-                    <h2 class="counter monthly-revenue">₱{{ stats.monthly_revenue|float|round(2) }}</h2>
+                    <h2 class="counter monthly-revenue">₱{{ "{:,.2f}".format(stats.monthly_revenue) }}</h2>
                     <p class="label">Monthly Revenue</p>
                 </div>
             </div>

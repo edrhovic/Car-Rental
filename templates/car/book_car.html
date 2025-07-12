@@ -3,7 +3,7 @@
 {% block title %}Book {{ car.make }} {{ car.model }} - JDM Car Rentals{% endblock %}
 
 {% block content %}
-<div class="container">
+<div class="container-fluid py-4">
     <nav aria-label="breadcrumb" class="mb-4">
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="{{ url_for('home') }}">Home</a></li>
@@ -38,7 +38,7 @@
                                             <li><i class="fas fa-gas-pump me-2"></i> {{ car.fuel_type }}</li>
                                             <li><i class="fas fa-users me-2"></i> {{ car.seats }} seats</li>
                                         </ul>
-                                        <p class="text-primary fw-bold fs-4" id="daily_rate">₱{{ "%.2f"|format(car.daily_rate) }}</p>
+                                        <p class="text-primary fw-bold fs-4" id="daily_rate">₱{{ "{:,.2f}".format(car.daily_rate) }}</p>
                                     </div>
                                 </div>
                             </div>
@@ -70,7 +70,7 @@
                                 </div>
                                 <div class="alert alert-info">
                                     <h5 class="alert-heading">Booking Summary</h5>
-                                    <p class="mb-1">Daily Rate: ₱{{ "%.2f"|format(car.daily_rate) }}</p>
+                                    <p class="mb-1">Daily Rate: ₱{{ "{:,.2f}".format(car.daily_rate) }}</p>
                                     <p class="mb-1">Duration: <span id="days">0</span> days</p>
                                     <hr>
                                     <p class="mb-0 fw-bold">Total Cost: <span id="total_cost">₱0.00</span></p>
@@ -177,7 +177,7 @@
                     
                     // Extract daily rate from the element text
                     const dailyRateText = dailyRateElement.textContent;
-                    const dailyRate = parseFloat(dailyRateText.replace('₱', ''));
+                    const dailyRate = parseFloat(dailyRateText.replace(/[₱,]/g, ''));
                     
                     const totalCost = (dailyRate * daysDiff).toFixed(2);
                     totalCostElement.textContent = '₱' + totalCost;

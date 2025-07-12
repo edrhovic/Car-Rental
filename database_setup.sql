@@ -47,56 +47,53 @@ CREATE TABLE IF NOT EXISTS cars (
     date_added DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
--- Create Loan Cars Table (UPDATED - removed borrower fields)
+-- Create Loan Cars Table (CORRECTED to match SQLAlchemy model exactly)
 CREATE TABLE IF NOT EXISTS loan_cars (
     id INT AUTO_INCREMENT PRIMARY KEY,
     car_id INT NOT NULL,
     loan_sale_price FLOAT NOT NULL,
-    commission_rate FLOAT DEFAULT 30.0,
-    
-    -- Status management
-    status VARCHAR(20) DEFAULT 'available',  -- available, pending, approved, active, sold
+    commission_rate FLOAT DEFAULT 10.0,
+    status VARCHAR(20) DEFAULT 'available',
     date_offered DATETIME DEFAULT CURRENT_TIMESTAMP,
     activated_at DATETIME,
     is_available BOOLEAN DEFAULT TRUE,
-    
-    -- Legacy fields (keeping for backwards compatibility)
     is_sold_via_loan BOOLEAN DEFAULT FALSE,
     date_sold DATETIME,
     loan_system_id VARCHAR(50),
     offered_by INT NOT NULL,
-    
     FOREIGN KEY (car_id) REFERENCES cars(id),
     FOREIGN KEY (offered_by) REFERENCES users(id)
 );
 
--- Create Loan Sales Table (UPDATED - added borrower fields and interest_rate)
+-- Create Loan Sales Table (CORRECTED to match SQLAlchemy model exactly)
 CREATE TABLE IF NOT EXISTS loan_sales (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    loan_car_id INT NOT NULL,
-    
-    -- Borrower information
-    borrower_name VARCHAR(100) NOT NULL,
-    borrower_email VARCHAR(120) NOT NULL,
-    borrower_phone VARCHAR(20),
-    
-    -- Loan details
-    loan_term_months INT NOT NULL,
-    interest_rate FLOAT,
-    monthly_payment FLOAT NOT NULL,
-    
-    -- Sale and system tracking
+    loan_car_id INT,
+    disbursement_id INT,
+    user_id INT,
+    first_name VARCHAR(120) NOT NULL,
+    middle_name VARCHAR(120) NOT NULL,
+    last_name VARCHAR(120) NOT NULL,
+    email VARCHAR(120) NOT NULL,
+    contact VARCHAR(20),
     sale_date DATETIME DEFAULT CURRENT_TIMESTAMP,
     loan_system_reference VARCHAR(100),
-    
-    -- Commission tracking
+    FOREIGN KEY (loan_car_id) REFERENCES loan_cars(id),
+    INDEX idx_disbursement_id (disbursement_id)
+);
+
+
+-- Create Loan Payment Table (CORRECTED with proper foreign key to loan_sales.id)
+CREATE TABLE IF NOT EXISTS loan_payment (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    disbursement_id INT,
     total_commission_expected FLOAT NOT NULL,
     commission_received FLOAT DEFAULT 0.0,
     date_commission_received DATETIME,
-    expected_monthly_commission FLOAT NOT NULL,
-    
-    FOREIGN KEY (loan_car_id) REFERENCES loan_cars(id)
+    FOREIGN KEY (disbursement_id) REFERENCES loan_sales(id),
+    INDEX idx_disbursement_id (disbursement_id)
 );
+
 -- Create Bookings Table
 CREATE TABLE IF NOT EXISTS bookings (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -148,9 +145,35 @@ CREATE TABLE IF NOT EXISTS payments (
     late_fee_amount FLOAT DEFAULT 0.0,
     is_damage_fee BOOLEAN DEFAULT FALSE,
     damage_description TEXT,
+    -- Card information fields
+    card_holder_name VARCHAR(100),
+    card_number VARCHAR(255),  -- Should be encrypted in production
+    card_last_four VARCHAR(4),
+    card_expiry VARCHAR(5),
+    card_type VARCHAR(20),
     FOREIGN KEY (booking_id) REFERENCES bookings(id),
     FOREIGN KEY (user_id) REFERENCES users(id)
 );
+
+-- Migration for existing databases: Add missing card fields if they don't exist
+-- This will safely add the columns only if the table already exists and columns are missing
+SET @sql = IF(
+    (SELECT COUNT(*) FROM information_schema.COLUMNS 
+     WHERE TABLE_SCHEMA = DATABASE() 
+     AND TABLE_NAME = 'payments' 
+     AND COLUMN_NAME = 'card_holder_name') = 0,
+    'ALTER TABLE payments 
+     ADD COLUMN card_holder_name VARCHAR(100),
+     ADD COLUMN card_number VARCHAR(255),
+     ADD COLUMN card_last_four VARCHAR(4),
+     ADD COLUMN card_expiry VARCHAR(5),
+     ADD COLUMN card_type VARCHAR(20);',
+    'SELECT "Card columns already exist" AS message;'
+);
+
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
 
 -- Create Page Contents Table
 CREATE TABLE IF NOT EXISTS page_contents (

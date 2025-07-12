@@ -1007,6 +1007,7 @@ def add_car():
 @login_required
 @admin_required
 def edit_car(car_id):
+    
     car = Car.query.get_or_404(car_id)
     
     if request.method == 'POST':
@@ -1100,11 +1101,17 @@ def edit_car(car_id):
             car.body_type = body_type
             car.status = request.form.get('status')
             
+            if car.status == 'available':
+                Booking.status = 'cancelled'
+            
             if car.status == 'offered_for_loan':
                 loan_offer = LoanCar.query.filter_by(car_id=car.id).first()
                 if loan_offer:
                     loan_offer.status = 'available'
             car.is_available = (car.status == 'available')
+            
+            if car.status == 'available':
+                Booking.status = 'cancelled'
             
             # Handle image URL first (will be overridden by uploaded file if present)
             image_url = request.form.get('image_url')
@@ -1171,6 +1178,8 @@ def delete_car(car_id):
             Booking.status.in_(['pending', 'confirmed']),
             Booking.returned == False
         ).first()
+        
+        
         
         if active_bookings:
             flash('Cannot delete car with active bookings.', 'danger')
@@ -1694,6 +1703,7 @@ def update_booking_status(booking_id):
         # If status is pending_approval, it's awaiting admin review after payment
         elif status == 'pending_approval':
             flash('Booking marked as pending approval. Please review payment details.', 'info')
+            car.status = 'pending_booking'
         
         # If status is pending_return, the customer is trying to return the car
         elif status == 'pending_return':
@@ -1701,11 +1711,13 @@ def update_booking_status(booking_id):
         
         # If status is cancelled, make car available again
         elif status == 'cancelled':
+            car.status = 'available'
             car.is_available = True
             flash('Booking cancelled! The car has been marked as available.', 'success')
         
         # If status is completed from pending_return, approve the return
         elif status == 'completed' and old_status == 'pending_return':
+            car.status = 'available'
             car.is_available = True
             booking.returned = True
             if not booking.return_date:
@@ -1746,6 +1758,14 @@ def update_booking_status(booking_id):
                     booking_reference=booking.get_reference()
                 )
                 print(f"Created notification for user {booking.user_id} about booking status change to {status}")
+            
+            if booking.status == 'confirmed':
+                car.status = 'rented'
+                car.is_available = False
+            
+            elif booking.status in ['pending', 'pending_approval']:
+                car.status = 'pending_booking'
+                car.is_available = False
                 
             db.session.commit()
             print(f"Successfully updated booking #{booking_id} status to {status}")

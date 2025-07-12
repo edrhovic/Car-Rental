@@ -1,11 +1,12 @@
 from flask import Flask, flash, render_template, redirect, url_for, jsonify, make_response, Blueprint, session, current_app, request
-from datetime import datetime
+from datetime import datetime, timedelta
 from flask_login import login_required, current_user, logout_user
-from models.loan_car import LoanCar, LoanSale
+from models.loan_car import LoanCar, LoanSale, LoanPayment
 from models.car import Car
 from models import db
 from functools import wraps
-
+import json
+from sqlalchemy import func, extract
 car_admin = Blueprint('car_admin', __name__)
 
 
@@ -41,15 +42,83 @@ def admin_required(f):
 def loan_cars_dashboard():
     """Dashboard for loan cars"""
     
+    
+    current_date = datetime.now()
+    current_year = current_date.year
+    
+    total_active_loans = LoanCar.query.filter_by(status='active').count()
+    total_loan_value = db.session.query(func.sum(LoanCar.loan_sale_price)).filter_by(status='active').scalar() or 0.00
+    total_commissions = db.session.query(func.sum(LoanPayment.commission_received)).scalar() or 0.00
+    
+    pending_commissions = db.session.query(
+        func.sum(LoanPayment.total_commission_expected - LoanPayment.commission_received)
+    ).filter(
+        LoanPayment.commission_received < LoanPayment.total_commission_expected
+    ).scalar() or 0.00
+    
+    
+    monthly_data = []
+    monthly_labels = []
+    monthly_commissions = []
+    monthly_active_loans = []
+    
+    for i in range(11, -1, -1):
+        # Calculate the date for each month
+        target_date = current_date - timedelta(days=30*i)
+        month_year = target_date.strftime('%Y-%m')
+        month_name_short = target_date.strftime('%b %Y')
+        
+        # Get commission data for the month
+        commission_data = db.session.query(
+            func.sum(LoanPayment.commission_received)
+        ).filter(
+            extract('year', LoanPayment.date_commission_received) == target_date.year,
+            extract('month', LoanPayment.date_commission_received) == target_date.month
+        ).scalar() or 0
+        
+        # Get active loans for the month (loans that were active during that month)
+        active_loans_count = db.session.query(
+            func.count(LoanCar.id)
+        ).filter(
+            LoanCar.status == 'active',
+            LoanCar.activated_at <= target_date.replace(day=1) + timedelta(days=32)
+        ).scalar() or 0
+        
+        monthly_labels.append(month_name_short)
+        monthly_commissions.append(float(commission_data))
+        monthly_active_loans.append(active_loans_count)
+    
+    # Get recent loan activities (recently accepted loans)
+    recent_activities = db.session.query(LoanSale).join(
+        LoanCar, LoanSale.loan_car_id == LoanCar.id
+    ).filter(
+        LoanCar.status == 'active'
+    ).order_by(
+        LoanCar.activated_at.desc()
+    ).limit(10).all()
+    
+    # Get all loan cars for the table
+    loan_cars = db.session.query(LoanCar).join(
+        Car, LoanCar.car_id == Car.id
+    ).filter(
+        LoanCar.status.in_(['active', 'pending', 'approved'])
+    ).order_by(
+        LoanCar.date_offered.desc()
+    ).all()
+    
     statistics = {
-        'total_loan_cars': LoanCar.query.count(),
-        'total_commissions': db.session.query(db.func.sum(LoanSale.commission_received)).scalar() or 0.00,
-        'total_active_loan_cars': LoanCar.query.filter_by(status='approved').count(),
-        'total_pending_loan_cars': LoanCar.query.filter_by(status='pending').count(),
-        'total_available_loan_cars': LoanCar.query.filter_by(status='available').count
+        'total_active_loan_cars': total_active_loans,
+        'total_loan_value': total_loan_value,
+        'total_commissions': total_commissions,
+        'pending_commissions': pending_commissions
     }
 
-    return render_template('admin/loan_dashboard.html', statistics=statistics)
+    return render_template('admin/loan_dashboard.html', statistics=statistics,
+                         monthly_labels=json.dumps(monthly_labels),
+                         monthly_commissions=json.dumps(monthly_commissions),
+                         monthly_active_loans=json.dumps(monthly_active_loans),
+                         recent_activities=recent_activities,
+                         loan_cars=loan_cars)
 
 
 @car_admin.route('/loan-cars')
@@ -74,7 +143,7 @@ def offer_car_for_loan():
     try:
         car_id = request.form.get('car_id')
         loan_sale_price = float(request.form.get('loan_sale_price'))
-        commission_rate = float(request.form.get('commission_rate', 30.0))
+        commission_rate = float(request.form.get('commission_rate', 10.0))
 
         car = Car.query.get(car_id)
         if not car or not car.is_available or car.status != 'available':
@@ -130,7 +199,7 @@ def bulk_offer_cars_for_loan():
         # Get form data
         car_ids_str = request.form.get('bulk_car_ids', '')
         loan_sale_price = float(request.form.get('bulk_loan_sale_price'))
-        commission_rate = float(request.form.get('commission_rate', 30.0))
+        commission_rate = float(request.form.get('commission_rate', 10.0))
         
         # Parse car IDs
         if not car_ids_str:
@@ -269,23 +338,23 @@ def offer_all_cars_for_loan():
         return redirect(url_for('car_admin.manage_loan_cars'))
 
 
-@car_admin.route('/loan-cars/active-loan-cars')
+@car_admin.route('/car-loan-management')
 @login_required
 @admin_required
-def active_loan_cars():
+def car_loan_management():
     """View all active loan cars"""
-    loan_car = LoanCar.query.filter_by(status='approved').first()
-    if not loan_car:
-        flash('No active loan cars found', 'info')
-        return redirect(url_for('car_admin.loan_cars_dashboard'))
     
     statistics = {
-        'active_loan_cars': LoanCar.query.filter_by(status='approved').all(),
-        'total_active_loan_cars': LoanCar.query.filter_by(status='approved').count(),
-        'total_commissions': db.session.query(db.func.sum(LoanSale.commission_received)).scalar() or 0.00,
+        'total_loan_cars': LoanCar.query.count(),
+        'active_loan_cars': LoanCar.query.filter_by(status='active').all(),
+        'total_available_cars': LoanCar.query.filter_by(status='available').count(),
+        'total_commissions': db.session.query(db.func.sum(LoanPayment.commission_received)).scalar() or 0.00,
+        'total_active_loan_cars': LoanCar.query.filter_by(status='active').count(),
+        'total_pending_loan_cars': LoanCar.query.filter_by(status='pending').count(),
+        'total_available_loan_cars': LoanCar.query.filter_by(status='available').count
     }
     
-    return render_template('admin/active_loan_cars.html', statistics=statistics)
+    return render_template('admin/car_loan_management.html', statistics=statistics)
 
 
 
@@ -332,9 +401,12 @@ def withdraw_loan_car(loan_car_id):
 def loan_sale_details(sale_id):
     """View loan sale details"""
     loan_car = LoanCar.query.get_or_404(sale_id)
+    loan_sale = LoanSale.query.filter_by(loan_car_id=loan_car.id).first()
+
+    
     car = Car.query.get_or_404(loan_car.car_id)
     
     return render_template('admin/loan_details.html', 
                          loan_car=loan_car, 
-                         car=car)
+                         car=car, loan_sale=loan_sale)
     

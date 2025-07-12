@@ -1,3 +1,5 @@
+# FIXED MODELS - The issue is in LoanPayment foreign key reference
+
 from models import db
 from datetime import datetime
 
@@ -33,27 +35,28 @@ class LoanSale(db.Model):
     __tablename__ = 'loan_sales'
     
     id = db.Column(db.Integer, primary_key=True)
-    loan_car_id = db.Column(db.Integer, db.ForeignKey('loan_cars.id'), nullable=False)
+    loan_car_id = db.Column(db.Integer, db.ForeignKey('loan_cars.id'), nullable=True)
+    disbursement_id = db.Column(db.Integer, nullable=True)
+    user_id = db.Column(db.Integer, nullable=True)
+    first_name = db.Column(db.String(120), nullable=False)
+    middle_name = db.Column(db.String(120), nullable=False)
+    last_name = db.Column(db.String(120), nullable=False)
+    email = db.Column(db.String(120), nullable=False)
+    contact = db.Column(db.String(20), nullable=True)
     
-    # Borrower information
-    borrower_name = db.Column(db.String(100), nullable=False)
-    borrower_email = db.Column(db.String(120), nullable=False)
-    borrower_phone = db.Column(db.String(20), nullable=True)
+    def __repr__(self):
+        return f"<LoanSale {self.id} - {self.first_name} {self.last_name}>"
     
-    # Loan details
-    loan_term_months = db.Column(db.Integer, nullable=False)
-    interest_rate = db.Column(db.Float, nullable=True)
-    monthly_payment = db.Column(db.Float, nullable=False)
+class LoanPayment(db.Model):
+    __tablename__ = 'loan_payment'
     
-    # Sale and system tracking
-    sale_date = db.Column(db.DateTime, default=datetime.utcnow)
-    loan_system_reference = db.Column(db.String(100), nullable=True)
+    id = db.Column(db.Integer, primary_key=True)
+    disbursement_id = db.Column(db.Integer, db.ForeignKey('loan_sales.id'), nullable=True)
     
-    # Commission tracking
+    # Commission Tracking
     total_commission_expected = db.Column(db.Float, nullable=False)
     commission_received = db.Column(db.Float, default=0.0)
     date_commission_received = db.Column(db.DateTime, nullable=True)
-    expected_monthly_commission = db.Column(db.Float, nullable=False)
     
-    def __repr__(self):
-        return f"<LoanSale {self.id} - {self.borrower_name}>"
+    # Add relationship
+    loan_sale = db.relationship('LoanSale', backref='loan_payments', lazy=True)

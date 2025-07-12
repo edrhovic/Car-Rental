@@ -122,10 +122,10 @@
                                     <p class="mb-3 fw-bold">{{ (booking.end_date - booking.start_date).days }}</p>
                                     
                                     <p class="mb-1 text-muted">Daily Rate</p>
-                                    <p class="mb-3 fw-bold">₱{{ booking.car.daily_rate }}</p>
+                                    <p class="mb-3 fw-bold">₱{{ "{:,.2f}".format(booking.car.daily_rate) }}</p>
                                     
                                     <p class="mb-1 text-muted">Total Price</p>
-                                    <p class="fw-bold">₱{{ booking.total_cost }}</p>
+                                    <p class="fw-bold">₱{{ "{:,.2f}".format(booking.total_cost) }}</p>
                                 </div>
                             </div>
 
@@ -185,7 +185,7 @@
                                             <p class="mb-3 fw-bold">{{ booking.car.transmission }}</p>
                                             
                                             <p class="mb-1 text-muted">Daily Rate</p>
-                                            <p class="fw-bold">₱{{ booking.car.daily_rate }}</p>
+                                            <p class="fw-bold">₱{{ "{:,.2f}".format(booking.car.daily_rate) }}</p>
                                         </div>
                                     </div>
                                     <a href="{{ url_for('admin.edit_car', car_id=booking.car.id) }}" class="btn btn-sm btn-outline-primary">

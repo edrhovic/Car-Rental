@@ -3,7 +3,7 @@
 {% block title %}Payment - JDM Car Rentals{% endblock %}
 
 {% block content %}
-<div class="container">
+<div class="container-fluid py-4">
     <nav aria-label="breadcrumb" class="mb-4">
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="{{ url_for('home') }}">Home</a></li>
@@ -29,10 +29,10 @@
                             <p><strong>Duration:</strong> {{ booking.duration_days }} days</p>
                         </div>
                         <div class="col-md-6">
-                            <p><strong>Daily Rate:</strong> ₱{{ "%.2f"|format(booking.car.daily_rate) }}</p>
-                            <p><strong>Subtotal:</strong> ₱{{ "%.2f"|format(booking.total_cost) }}</p>
-                            <p><strong>Tax (10%):</strong> ₱{{ "%.2f"|format(booking.total_cost * 0.1) }}</p>
-                            <p><strong>Total:</strong> ₱{{ "%.2f"|format(booking.total_cost + (booking.total_cost * 0.1)) }}</p>
+                            <p><strong>Daily Rate:</strong> ₱{{ "{:,.2f}".format(booking.car.daily_rate) }}</p>
+                            <p><strong>Subtotal:</strong> ₱{{ "{:,.2f}".format(booking.total_cost) }}</p>
+                            <p><strong>Tax (10%):</strong> ₱{{ "{:,.2f}".format(booking.total_cost * 0.1) }}</p>
+                            <p><strong>Total:</strong> ₱{{ "{:,.2f}".format(booking.total_cost + (booking.total_cost * 0.1)) }}</p>
                         </div>
                     </div>
 
@@ -140,15 +140,15 @@
                     <ul class="list-group mb-3">
                         <li class="list-group-item d-flex justify-content-between">
                             <span>Subtotal</span>
-                            <strong>₱{{ "%.2f"|format(booking.total_cost) }}</strong>
+                            <strong>₱{{ "{:,.2f}".format(booking.total_cost) }}</strong>
                         </li>
                         <li class="list-group-item d-flex justify-content-between">
                             <span>Tax (10%)</span>
-                            <strong>₱{{ "%.2f"|format(booking.total_cost * 0.1) }}</strong>
+                            <strong>₱{{ "{:,.2f}".format(booking.total_cost * 0.1) }}</strong>
                         </li>
                         <li class="list-group-item d-flex justify-content-between bg-light">
                             <span class="text-primary">Total (PHP)</span>
-                            <strong class="text-primary">₱{{ "%.2f"|format(booking.total_cost + (booking.total_cost * 0.1)) }}</strong>
+                            <strong class="text-primary">₱{{ "{:,.2f}".format(booking.total_cost + (booking.total_cost * 0.1)) }}</strong>
                         </li>
                     </ul>
                     
