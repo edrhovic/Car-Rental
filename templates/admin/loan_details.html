@@ -11,7 +11,7 @@
       <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
         <div>
           <h1 class="h2">Loan Details</h1>
-          <p class="text-muted">Detailed information about the loan vehicle and borrower</p>
+          <p class="text-muted">Detailed information about the loan vehicle and user</p>
         </div>
         <div class="btn-toolbar mb-2 mb-md-0">
           <a href="{{ url_for('car_admin.car_loan_management') }}" class="btn btn-sm btn-outline-secondary">
@@ -113,7 +113,7 @@
                   <div class="mb-3 d-flex align-items-center">
                     <i class="fas fa-road text-muted me-2"></i>
                     <div>
-                      <strong>Mileage:</strong> {{ "{:,}".format(car.mileage) if car.mileage else 'N/A' }} km
+                      <strong>Mileage:</strong> {{ car.mileage }} km
                     </div>
                   </div>
                   <div class="mb-3 d-flex align-items-center">
@@ -134,6 +134,8 @@
                         <span class="text-warning">Pending</span>
                       {% elif loan_car.status == 'active' %}
                         <span class="text-success">Active</span>
+                      {% elif loan_car.status == 'paid' %}
+                        <span class="text-success">Paid</span>
                       {% endif %}
                     </div>
                   </div>
@@ -164,19 +166,12 @@
           <!-- Loan Price Card -->
           <div class="card mb-4">
             <div class="card-body">
-              <h3 class="text-primary mb-2">₱{{ "{:,.2f}".format(loan_car.loan_sale_price) }}</h3>
+              <h4>Loan Price:</h4>
+              <h3 class="d-flex mt-4 mb-2 justify-content-center">₱{{ "{:,.2f}".format(loan_car.loan_sale_price) }}</h3>
               
 
               <!-- Commission Details -->
               <div class="mt-3">
-                <div class="d-flex justify-content-between mb-2">
-                  <span>Commission Rate:</span>
-                  <strong>{{ loan_car.commission_rate }}%</strong>
-                </div>
-                <div class="d-flex justify-content-between mb-2">
-                  <span>Commission Amount:</span>
-                  <strong class="text-success">₱{{ "{:,.2f}".format(loan_car.loan_sale_price * loan_car.commission_rate / 100) }}</strong>
-                </div>
                 <div class="d-flex justify-content-between mb-2">
                   <span>Date Offered:</span>
                   <strong>{{ loan_car.date_offered.strftime('%b %d, %Y') if loan_car.date_offered else 'N/A' }}</strong>
@@ -190,7 +185,7 @@
           <div class="card">
             <div class="card-header bg-info text-white">
               <h5 class="mb-0">
-                <i class="fas fa-user me-2"></i>Borrower Details
+                <i class="fas fa-user me-2"></i>User Details
               </h5>
             </div>
             <div class="card-body">
@@ -260,12 +255,12 @@
           <div class="card">
             <div class="card-header bg-light">
               <h5 class="mb-0">
-                <i class="fas fa-user me-2"></i>Borrower Details
+                <i class="fas fa-user me-2"></i>User Details
               </h5>
             </div>
             <div class="card-body text-center">
               <i class="fas fa-user-slash text-muted mb-3" style="font-size: 3rem;"></i>
-              <p class="text-muted mb-0">No borrower assigned yet</p>
+              <p class="text-muted mb-0">No user assigned yet</p>
               <small class="text-muted">This car is available for loan</small>
             </div>
           </div>
@@ -392,7 +387,7 @@
           
           {% if loan_sale %}
           <div class="section">
-            <h3>Borrower Information</h3>
+            <h3>User Information</h3>
             <div class="detail-row">
               <span class="detail-label">Name:</span>
               <span>{{ loan_sale.first_name }} {{ loan_sale.middle_name }} {{ loan_sale.last_name }}</span>

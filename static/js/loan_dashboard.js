@@ -640,3 +640,204 @@ document.addEventListener('DOMContentLoaded', function () {
     // Initialize real-time updates if available
     initializeRealTimeUpdates();
 });
+
+// Chart initialization
+document.addEventListener('DOMContentLoaded', function() {
+    initializeCharts();
+    
+    // Event listeners
+    document.getElementById('refresh-charts').addEventListener('click', refreshCharts);
+    document.getElementById('refresh-table').addEventListener('click', refreshTable);
+    
+    // Time period dropdown
+    document.querySelectorAll('.period-item').forEach(item => {
+        item.addEventListener('click', function(e) {
+            e.preventDefault();
+            const period = this.dataset.period;
+            document.getElementById('selected-period').textContent = this.textContent;
+            updateChartsForPeriod(period);
+        });
+    });
+});
+
+function initializeCharts() {
+    // Monthly Analytics Chart (Commission & Active Loans)
+    const monthlyCtx = document.getElementById('monthlyAnalyticsChart').getContext('2d');
+    const monthlyChart = new Chart(monthlyCtx, {
+        type: 'line',
+        data: {
+            labels: {{ monthly_labels|safe }},
+            datasets: [{
+                label: 'Commission Received (₱)',
+                data: {{ monthly_commissions|safe }},
+                backgroundColor: 'rgba(40, 167, 69, 0.1)',
+                borderColor: 'rgba(40, 167, 69, 1)',
+                borderWidth: 3,
+                fill: true,
+                tension: 0.4,
+                pointBackgroundColor: 'rgba(40, 167, 69, 1)',
+                pointBorderColor: '#fff',
+                pointBorderWidth: 2,
+                pointRadius: 5,
+                pointHoverRadius: 8,
+                yAxisID: 'y'
+            }, {
+                label: 'Active Loans',
+                data: {{ monthly_active_loans|safe }},
+                backgroundColor: 'rgba(0, 123, 255, 0.1)',
+                borderColor: 'rgba(0, 123, 255, 1)',
+                borderWidth: 3,
+                fill: true,
+                tension: 0.4,
+                pointBackgroundColor: 'rgba(0, 123, 255, 1)',
+                pointBorderColor: '#fff',
+                pointBorderWidth: 2,
+                pointRadius: 5,
+                pointHoverRadius: 8,
+                yAxisID: 'y1'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: {
+                mode: 'index',
+                intersect: false,
+            },
+            scales: {
+                y: {
+                    type: 'linear',
+                    display: true,
+                    position: 'left',
+                    title: {
+                        display: true,
+                        text: 'Commission (₱)',
+                        font: {
+                            size: 12,
+                            weight: 'bold'
+                        }
+                    },
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.1)',
+                    }
+                },
+                y1: {
+                    type: 'linear',
+                    display: true,
+                    position: 'right',
+                    title: {
+                        display: true,
+                        text: 'Active Loans',
+                        font: {
+                            size: 12,
+                            weight: 'bold'
+                        }
+                    },
+                    grid: {
+                        drawOnChartArea: false,
+                    },
+                },
+                x: {
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.1)',
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top',
+                    labels: {
+                        usePointStyle: true,
+                        padding: 20
+                    }
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    titleColor: '#fff',
+                    bodyColor: '#fff',
+                    borderColor: 'rgba(255, 255, 255, 0.1)',
+                    borderWidth: 1,
+                    displayColors: true,
+                    callbacks: {
+                        label: function(context) {
+                            let label = context.dataset.label || '';
+                            if (label) {
+                                label += ': ';
+                            }
+                            if (context.dataset.yAxisID === 'y') {
+                                label += '₱' + context.parsed.y.toLocaleString();
+                            } else {
+                                label += context.parsed.y + ' loans';
+                            }
+                            return label;
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    // Commission Pie Chart
+    const pieCtx = document.getElementById('commissionPieChart').getContext('2d');
+    const pieChart = new Chart(pieCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Received', 'Pending'],
+            datasets: [{
+                data: [{{ statistics.total_commissions }}, {{ statistics.pending_commissions or 0 }}],
+                backgroundColor: [
+                    'rgba(40, 167, 69, 0.8)',
+                    'rgba(255, 193, 7, 0.8)'
+                ],
+                borderColor: [
+                    'rgba(40, 167, 69, 1)',
+                    'rgba(255, 193, 7, 1)'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+}
+
+function refreshCharts() {
+    // Add loading state
+    const refreshBtn = document.getElementById('refresh-charts');
+    refreshBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
+    
+    // Simulate refresh (replace with actual AJAX call)
+    setTimeout(() => {
+        refreshBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Refresh';
+        // Re-initialize charts with new data
+        initializeCharts();
+    }, 1000);
+}
+
+function refreshTable() {
+    // Add loading state
+    const refreshBtn = document.getElementById('refresh-table');
+    refreshBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
+    
+    // Simulate refresh (replace with actual AJAX call)
+    setTimeout(() => {
+        refreshBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Refresh';
+        // Reload table data
+        window.location.reload();
+    }, 1000);
+}
+
+function updateChartsForPeriod(period) {
+    // This function would make an AJAX call to get data for the selected period
+    // and update the charts accordingly
+    console.log('Updating charts for period:', period);
+}

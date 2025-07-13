@@ -30,7 +30,7 @@
       <!-- Stats Cards -->
       <div class="row mb-4 g-4">
         <div class="col-xl-3 col-lg-6 col-md-6">
-          <div class="card stats-card text-white bg-warning h-100">
+          <div class="card stats-card text-white bg-warning h-60">
             <div class="card-body d-flex flex-column justify-content-center py-4">
               <div class="d-flex flex-column align-items-center text-center">
                 <div class="icon-circle mb-3">
@@ -49,7 +49,7 @@
           </div>
         </div>
         <div class="col-xl-3 col-lg-6 col-md-6">
-          <div class="card stats-card text-white bg-warning h-100">
+          <div class="card stats-card text-white bg-warning h-60">
             <div class="card-body d-flex flex-column justify-content-center py-4">
               <div class="d-flex flex-column align-items-center text-center">
                 <div class="icon-circle mb-3">
@@ -67,7 +67,7 @@
           </div>
         </div>
         <div class="col-xl-3 col-lg-6 col-md-6">
-          <div class="card stats-card text-white bg-warning h-100">
+          <div class="card stats-card text-white bg-warning h-60">
             <div class="card-body d-flex flex-column justify-content-center py-4">
               <div class="d-flex flex-column align-items-center text-center">
                 <div class="icon-circle mb-3">
@@ -84,7 +84,7 @@
           </div>
         </div>
         <div class="col-xl-3 col-lg-6 col-md-6">
-          <div class="card stats-card text-white bg-warning h-100">
+          <div class="card stats-card text-white bg-warning h-60">
             <div class="card-body d-flex flex-column justify-content-center py-4">
               <div class="d-flex flex-column align-items-center text-center">
                 <div class="icon-circle mb-3">
@@ -119,7 +119,6 @@
             <option value="">All Statuses</option>
             <option value="active">Active</option>
             <option value="pending">Pending</option>
-            <option value="approved">Approved</option>
             <option value="sold">Sold</option>
           </select>
         </div>
@@ -135,7 +134,7 @@
       <!-- Active Loan Cars List -->
       <div class="card shadow-sm border-0">
         <div class="card-body p-0">
-          {% if statistics.active_loan_cars %}
+          {% if statistics.all_loan_cars %}
           <div class="table-responsive">
             <table class="table table-hover mb-0">
               <thead class="table-light">
@@ -143,13 +142,12 @@
                   <th scope="col" class="px-3 py-3">Car</th>
                   <th scope="col" class="px-3 py-3">Status</th>
                   <th scope="col" class="px-3 py-3">Loan Value</th>
-                  <th scope="col" class="px-3 py-3">Commission</th>
                   <th scope="col" class="px-3 py-3">Dates</th>
                   <th scope="col" class="px-3 py-3">Actions</th>
                 </tr>
               </thead>
               <tbody id="activeLoanCarsTable">
-                {% for loan_car in statistics.active_loan_cars %}
+                {% for loan_car in statistics.all_loan_cars %}
                 {% set loan_sale = loan_car.loan_sales|first %}
                 <tr class="loan-car-row" data-make="{{ loan_car.car.make|lower }}"
                   data-model="{{ loan_car.car.model|lower }}"
@@ -184,10 +182,6 @@
                     <span class="badge bg-success">
                       <i class="fas fa-check-circle me-1"></i>Active
                     </span>
-                    {% elif loan_car.status == 'approved' %}
-                    <span class="badge bg-info">
-                      <i class="fas fa-thumbs-up me-1"></i>Approved
-                    </span>
                     {% elif loan_car.status == 'pending' %}
                     <span class="badge bg-warning">
                       <i class="fas fa-clock me-1"></i>Pending
@@ -200,13 +194,6 @@
                   </td>
                   <td class="px-3 py-3">
                     <div class="fw-bold text-primary">₱{{ "{:,.2f}".format(loan_car.loan_sale_price) }}</div>
-                  </td>
-                  <td class="px-3 py-3">
-                    <div>
-                      <div class="fw-bold">{{ loan_car.commission_rate }}%</div>
-                      <small class="text-muted">₱{{ "{:,.2f}".format((loan_car.loan_sale_price *
-                        loan_car.commission_rate / 100) if loan_car.commission_rate else 0) }}</small>
-                    </div>
                   </td>
                   <td class="px-3 py-3">
                     <div>

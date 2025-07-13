@@ -1,12 +1,13 @@
 from flask import Blueprint, jsonify, request
 from flask_login import login_required
 from models import db
-from models.loan_car import LoanCar, LoanSale, LoanPayment
+from models.loan_car import LoanCar, LoanSale, LoanPayment, LoanNotification
 from models.car import Car
 import datetime
 import requests
 from requests.exceptions import RequestException, Timeout, ConnectionError
 from sqlalchemy import func
+from decimal import Decimal, ROUND_HALF_UP
 
 loan_api = Blueprint('loan_api', __name__, url_prefix='/api/loan')
 
@@ -106,7 +107,9 @@ def set_pending_status(car_id):
         if not data or 'car_id' not in data:
             return jsonify({'success': False, 'error': 'Invalid request data'}), 400
         
-        if data.get('car_id') != car_id:
+        car_id = data.get('car_id')
+        
+        if car_id != car_id:
             return jsonify({'success': False, 'error': 'Car ID mismatch'}), 400
         
         loan_car = LoanCar.query.filter_by(car_id=car_id).first()
@@ -120,8 +123,10 @@ def set_pending_status(car_id):
             }), 400
         
         loan_car.status = 'pending'
+        loan_notification = LoanNotification.create_loan_status_notification(loan_car, 'pending')
 
         try:
+            db.session.add(loan_notification)
             db.session.commit()
         except Exception as e:
             db.session.rollback()
@@ -149,6 +154,9 @@ def approve_status(car_id):
         loan_car = LoanCar.query.filter_by(car_id=car_id).first()
         if not loan_car:
             return jsonify({'success': False, 'error': 'Loan Car not found'}), 404
+        
+        loan_notif = LoanNotification.query.filter_by(loan_car_id=car_id).first()
+        
 
         data = request.get_json()
         if not data or 'is_approved' not in data or 'car_id' not in data:
@@ -156,6 +164,9 @@ def approve_status(car_id):
 
         if data.get('car_id') != car_id:
             return jsonify({'success': False, 'error': 'Car ID mismatch'}), 400
+        
+        if loan_car.status == 'active':
+            return jsonify({'success': True, 'error': f'Cannot update loan car status. Current status: {loan_car.status}'})
 
         is_approved = data.get('is_approved')
         disbursement_id = data.get('disbursement_id')
@@ -167,6 +178,7 @@ def approve_status(car_id):
             last_name = data.get('last_name')
             email = data.get('email')
             contact = data.get('contact')
+            loan_term = data.get('loan_term')
 
             required_fields = [user_id, first_name, last_name, email, contact, disbursement_id]
             if any(field is None for field in required_fields):
@@ -181,12 +193,16 @@ def approve_status(car_id):
                     middle_name=middle_name,
                     last_name=last_name,
                     email=email,
-                    contact=contact
+                    contact=contact,
+                    loan_term=loan_term
                 )
+                
+                loan_notification = LoanNotification.create_loan_status_notification(loan_car, 'approved')
                 loan_car.status = 'active'
                 loan_car.activated_at = datetime.datetime.utcnow()
 
                 db.session.add(loan_sale)
+                db.session.add(loan_notification)
                 db.session.commit()
             except Exception as db_exc:
                 db.session.rollback()
@@ -196,10 +212,12 @@ def approve_status(car_id):
             return jsonify({
                 'success': True,
                 'new_loan_car_status': loan_car.status,
+                'notif_status': loan_notif.notification_type,
                 'approved_at': loan_car.activated_at.isoformat() if loan_car.activated_at else None,
                 'disbursement_id': disbursement_id
             })
         else:
+            LoanNotification.create_loan_status_notification(loan_car, 'rejected')
             loan_car.status = 'available'
             loan_car.is_available = True
             
@@ -221,13 +239,15 @@ def receive_monthly_commission():
         
         car_id = data.get('car_id')
         disbursement_id = data.get('disbursement_id')
+        is_paid = data.get('is_paid', False)
         monthly_commission_amount = data.get('commission_amount')
         
         if not isinstance(monthly_commission_amount, (int, float)) or monthly_commission_amount <= 0:
             return jsonify({'success': False, 'error': 'Invalid commission amount'}), 400
         
-        loan_car = LoanCar.query.filter_by(car_id=car_id).first()
+        monthly_commission_amount = Decimal(str(monthly_commission_amount)).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
         
+        loan_car = LoanCar.query.filter_by(car_id=car_id).first()
         if not loan_car:
             return jsonify({'success': False, 'error': 'LoanCar not found'}), 404
         
@@ -235,49 +255,85 @@ def receive_monthly_commission():
             return jsonify({'success': False, 'error': f'Cannot receive commission. Current status: {loan_car.status}'}), 400
         
         loan_sale = LoanSale.query.filter_by(loan_car_id=loan_car.id).first()
-        
         if not loan_sale:
             return jsonify({'success': False, 'error': 'LoanSale not found'}), 404
         
         if disbursement_id and loan_sale.disbursement_id != disbursement_id:
             return jsonify({'success': False, 'error': 'Disbursement ID mismatch'}), 400
         
-        total_commission_expected = loan_car.loan_sale_price + (loan_car.loan_sale_price * loan_car.commission_rate / 100)
         
-        loan_payment = LoanPayment.query.filter_by(disbursement_id=loan_sale.id).first()
+        if not loan_sale.loan_term or loan_sale.loan_term <= 0:
+            return jsonify({'success': False, 'error': 'Invalid loan term'}), 400
+        
+        loan_payment = LoanPayment.query.filter_by(loan_sale_id=loan_sale.id).first()
+        
+        monthly_payment = loan_car.loan_sale_price / loan_sale.loan_term
         
         if not loan_payment:
             loan_payment = LoanPayment(
-                disbursement_id=loan_sale.id,
-                total_commission_expected=total_commission_expected,
-                commission_received=0.0
+                loan_sale_id=loan_sale.id,
+                commission_received=monthly_commission_amount,
+                total_commission_received=0.0,
+                date_commission_received = datetime.datetime.utcnow(),
+                monthly_payment=monthly_payment
             )
             db.session.add(loan_payment)
         
-        new_total_received = (loan_payment.commission_received or 0) + monthly_commission_amount
+        current_total = Decimal(str(loan_payment.total_commission_received or 0))
+        new_total_received = current_total + monthly_commission_amount
+        loan_sale_price = Decimal(str(loan_car.loan_sale_price))
         
-        if new_total_received > total_commission_expected:
+        if new_total_received > loan_sale_price:
             return jsonify({
                 'success': False,
-                'error': f'Commission amount exceeds remaining balance. Expected: {total_commission_expected}, Already received: {loan_payment.commission_received or 0}'
+                'error': f'Commission amount exceeds remaining balance. Expected: {loan_car.loan_sale_price}, Already received: {loan_payment.total_commission_received or 0}. Remaining Balance: {loan_car.loan_sale_price - loan_payment.total_commission_received}'
             }), 400
         
-        loan_payment.total_commission_expected = total_commission_expected
-        loan_payment.commission_received = new_total_received
+            
+        loan_payment.commission_received = float(monthly_commission_amount)
+        loan_payment.total_commission_received = float(new_total_received)
         loan_payment.date_commission_received = datetime.datetime.utcnow()
         
-        if new_total_received >= total_commission_expected:
+        if loan_payment.total_commission_received >= loan_car.loan_sale_price:
             loan_car.status = 'paid'
         
         db.session.commit()
         
+        loan_notification = False
+        if loan_car.status == 'paid':
+            try:
+                last_payment_notification = LoanNotification.last_payment_notification(loan_payment)
+                if last_payment_notification:
+                    db.session.add(last_payment_notification)
+                    db.session.commit()
+                    loan_notification = True
+                else:
+                    print("Warning: Failed to create last payment notification")
+            except Exception as e:
+                print(f"Error creating last payment notification: {e}")
+        elif is_paid:
+            try:
+                loan_notification = LoanNotification.create_payment_notification(loan_payment)
+                if loan_notification:
+                    db.session.add(loan_notification)
+                    db.session.commit()
+                    loan_notification = True
+                else:
+                    print("Warning: Failed to create payment notification")
+            except Exception as e:
+                print(f"Error creating payment notification: {e}")
+                
+            
         return jsonify({
             'success': True,
             'disbursement_id': loan_sale.disbursement_id,
             'car_id': car_id,
-            'commission_received': loan_payment.commission_received,
-            'total_commission_expected': total_commission_expected,
+            'commission_received': float(monthly_commission_amount),
+            'total_commission_received': float(new_total_received),
+            'total_loan_value': loan_car.loan_sale_price,
             'date_commission_received': loan_payment.date_commission_received.isoformat(),
+            'loan_status': loan_car.status,
+            'notification_created': loan_notification is not None,
             'message': 'Commission payment processed successfully'
         })
         
@@ -308,7 +364,7 @@ def get_total_commissions():
             return jsonify({'success': False, 'error': 'LoanSale not found'}), 404
 
         loan_payment = LoanPayment.query.filter_by(disbursement_id=loan_sale.id).first()
-        total_commission = loan_payment.commission_received
+        total_commission = loan_payment.total_commission_received
 
         return jsonify({
             'success': True,
@@ -318,65 +374,6 @@ def get_total_commissions():
         })
     except Exception as e:
         return jsonify({'success': False, 'error': 'Failed to fetch commission data', 'message': str(e)}), 500
-
-@loan_api.route('/set-status-to-paid/<int:loan_car_id>', methods=['POST'])
-def set_status_to_paid(loan_car_id):
-    try:
-        
-        data = request.get_json()
-        if not data or 'car_id' not in data:
-            return jsonify({'success': False, 'error': 'Invalid request data'}), 400
-        
-        car_id = data.get('car_id')
-        if not car_id:
-            return jsonify({'success': False, 'error': 'Car ID is required'}), 400
-        
-        if car_id != loan_car_id:
-            return jsonify({'success': False, 'error': 'Car ID mismatch'}), 400
-        
-        
-        loan_car = LoanCar.query.get(loan_car_id)
-        if not loan_car:
-            return jsonify({'success': False, 'error': 'LoanCar not found'}), 404
-        
-        if loan_car.status != 'active':
-            return jsonify({
-                'success': False, 
-                'error': f'Cannot set status to paid. Current status: {loan_car.status}'
-            }), 400
-        
-        loan_sale = LoanSale.query.filter_by(loan_car_id=loan_car_id).first()
-        if not loan_sale:
-            return jsonify({'success': False, 'error': 'LoanSale not found'}), 404
-        
-        if loan_sale.commission_received <= loan_sale.total_commission_expected:
-            return jsonify({
-                'success': False, 
-                'error': 'Commission not fully received'
-            }), 400
-        
-        loan_car.status = 'paid'
-        
-        try:
-            db.session.commit()
-        except Exception as e:
-            db.session.rollback()
-            print(f"Database commit error: {str(e)}")
-            return jsonify({
-                'success': False, 
-                'error': 'Failed to update loan status to paid'
-            }), 500
-        
-        return jsonify({
-            'success': True,
-            'loan_car_id': loan_car_id,
-            'new_status': loan_car.status,
-            'message': 'Loan car status set to paid'
-        })
-    
-    except Exception as e:
-        print(f"Error in set_status_to_paid: {str(e)}")
-        return jsonify({'success': False, 'error': 'Unexpected error', 'message': str(e)}), 500
 
 
 @loan_api.route('/all-cars', methods=['GET'])

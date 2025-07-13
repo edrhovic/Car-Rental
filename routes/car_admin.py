@@ -6,7 +6,7 @@ from models.car import Car
 from models import db
 from functools import wraps
 import json
-from sqlalchemy import func, extract
+from sqlalchemy import func, extract, or_
 car_admin = Blueprint('car_admin', __name__)
 
 
@@ -48,12 +48,12 @@ def loan_cars_dashboard():
     
     total_active_loans = LoanCar.query.filter_by(status='active').count()
     total_loan_value = db.session.query(func.sum(LoanCar.loan_sale_price)).filter_by(status='active').scalar() or 0.00
-    total_commissions = db.session.query(func.sum(LoanPayment.commission_received)).scalar() or 0.00
+    total_commissions = db.session.query(func.sum(LoanPayment.total_commission_received)).scalar() or 0.00
     
     pending_commissions = db.session.query(
-        func.sum(LoanPayment.total_commission_expected - LoanPayment.commission_received)
+        func.sum(LoanCar.loan_sale_price - LoanPayment.total_commission_received)
     ).filter(
-        LoanPayment.commission_received < LoanPayment.total_commission_expected
+        LoanPayment.commission_received < LoanCar.loan_sale_price
     ).scalar() or 0.00
     
     
@@ -63,12 +63,10 @@ def loan_cars_dashboard():
     monthly_active_loans = []
     
     for i in range(11, -1, -1):
-        # Calculate the date for each month
         target_date = current_date - timedelta(days=30*i)
         month_year = target_date.strftime('%Y-%m')
         month_name_short = target_date.strftime('%b %Y')
         
-        # Get commission data for the month
         commission_data = db.session.query(
             func.sum(LoanPayment.commission_received)
         ).filter(
@@ -76,7 +74,6 @@ def loan_cars_dashboard():
             extract('month', LoanPayment.date_commission_received) == target_date.month
         ).scalar() or 0
         
-        # Get active loans for the month (loans that were active during that month)
         active_loans_count = db.session.query(
             func.count(LoanCar.id)
         ).filter(
@@ -88,7 +85,6 @@ def loan_cars_dashboard():
         monthly_commissions.append(float(commission_data))
         monthly_active_loans.append(active_loans_count)
     
-    # Get recent loan activities (recently accepted loans)
     recent_activities = db.session.query(LoanSale).join(
         LoanCar, LoanSale.loan_car_id == LoanCar.id
     ).filter(
@@ -97,7 +93,6 @@ def loan_cars_dashboard():
         LoanCar.activated_at.desc()
     ).limit(10).all()
     
-    # Get all loan cars for the table
     loan_cars = db.session.query(LoanCar).join(
         Car, LoanCar.car_id == Car.id
     ).filter(
@@ -163,7 +158,6 @@ def offer_car_for_loan():
                 existing_loan_car.commission_rate = commission_rate
                 existing_loan_car.date_offered = datetime.utcnow()
                 existing_loan_car.date_withdrawn = None
-                existing_loan_car.offered_by = current_user.id
                 loan_car_to_commit = existing_loan_car
                 car.status = 'offered_for_loan'
                 car.is_available = False
@@ -174,7 +168,6 @@ def offer_car_for_loan():
                 car_id=car_id,
                 loan_sale_price=loan_sale_price,
                 commission_rate=commission_rate,
-                offered_by=current_user.id,
                 status='available',
                 date_offered=datetime.utcnow()
             )
@@ -248,7 +241,6 @@ def bulk_offer_cars_for_loan():
                         existing_loan_car.commission_rate = commission_rate
                         existing_loan_car.date_offered = datetime.utcnow()
                         existing_loan_car.date_withdrawn = None
-                        existing_loan_car.offered_by = current_user.id
                         car.status = 'offered_for_loan'
                         car.is_available = False
                         success_count += 1
@@ -258,7 +250,6 @@ def bulk_offer_cars_for_loan():
                         car_id=car_id,
                         loan_sale_price=loan_sale_price,
                         commission_rate=commission_rate,
-                        offered_by=current_user.id,
                         status='available',
                         date_offered=datetime.utcnow()
                     )
@@ -346,7 +337,7 @@ def car_loan_management():
     
     statistics = {
         'total_loan_cars': LoanCar.query.count(),
-        'active_loan_cars': LoanCar.query.filter_by(status='active').all(),
+        'all_loan_cars': LoanCar.query.filter(or_(LoanCar.status == 'active', LoanCar.status == 'pending', LoanCar.status == 'paid')).all(),
         'total_available_cars': LoanCar.query.filter_by(status='available').count(),
         'total_commissions': db.session.query(db.func.sum(LoanPayment.commission_received)).scalar() or 0.00,
         'total_active_loan_cars': LoanCar.query.filter_by(status='active').count(),
@@ -365,7 +356,6 @@ def withdraw_loan_car(loan_car_id):
     """Withdraw a loan car offering"""
     try:
         loan_car = LoanCar.query.get(loan_car_id)
- 
         
         if not loan_car:
             flash('Loan car not found', 'error')

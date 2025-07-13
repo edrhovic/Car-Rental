@@ -57,12 +57,7 @@ CREATE TABLE IF NOT EXISTS loan_cars (
     date_offered DATETIME DEFAULT CURRENT_TIMESTAMP,
     activated_at DATETIME,
     is_available BOOLEAN DEFAULT TRUE,
-    is_sold_via_loan BOOLEAN DEFAULT FALSE,
-    date_sold DATETIME,
-    loan_system_id VARCHAR(50),
-    offered_by INT NOT NULL,
-    FOREIGN KEY (car_id) REFERENCES cars(id),
-    FOREIGN KEY (offered_by) REFERENCES users(id)
+    FOREIGN KEY (car_id) REFERENCES cars(id)
 );
 
 -- Create Loan Sales Table (CORRECTED to match SQLAlchemy model exactly)
@@ -76,23 +71,33 @@ CREATE TABLE IF NOT EXISTS loan_sales (
     last_name VARCHAR(120) NOT NULL,
     email VARCHAR(120) NOT NULL,
     contact VARCHAR(20),
-    sale_date DATETIME DEFAULT CURRENT_TIMESTAMP,
-    loan_system_reference VARCHAR(100),
-    FOREIGN KEY (loan_car_id) REFERENCES loan_cars(id),
-    INDEX idx_disbursement_id (disbursement_id)
+    FOREIGN KEY (loan_car_id) REFERENCES loan_cars(id)
 );
 
-
--- Create Loan Payment Table (CORRECTED with proper foreign key to loan_sales.id)
-CREATE TABLE IF NOT EXISTS loan_payment (
+CREATE TABLE IF NOT EXISTS loan_payments (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    disbursement_id INT,
-    total_commission_expected FLOAT NOT NULL,
+    loan_sale_id INT,
     commission_received FLOAT DEFAULT 0.0,
     date_commission_received DATETIME,
-    FOREIGN KEY (disbursement_id) REFERENCES loan_sales(id),
-    INDEX idx_disbursement_id (disbursement_id)
+    FOREIGN KEY (loan_sale_id) REFERENCES loan_sales(id)
 );
+
+-- Create Loan Notifications Table
+CREATE TABLE IF NOT EXISTS loan_notifications (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    loan_car_id INT,
+    loan_sale_id INT,
+    loan_payment_id INT,
+    title VARCHAR(100) NOT NULL,
+    message TEXT NOT NULL,
+    notification_type VARCHAR(50) NOT NULL,
+    is_read BOOLEAN DEFAULT FALSE,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (loan_car_id) REFERENCES loan_cars(id),
+    FOREIGN KEY (loan_sale_id) REFERENCES loan_sales(id),
+    FOREIGN KEY (loan_payment_id) REFERENCES loan_payments(id)
+);
+
 
 -- Create Bookings Table
 CREATE TABLE IF NOT EXISTS bookings (
