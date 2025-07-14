@@ -29,7 +29,7 @@ class User(db.Model, UserMixin):
     # Relationships
     bookings = db.relationship('Booking', backref='user', lazy=True, cascade="all, delete-orphan")
     reviews = db.relationship('Review', backref='user', lazy=True, cascade="all, delete-orphan")
-    
+
     def __repr__(self):
         return f"User('{self.username}', '{self.email}', '{self.first_name} {self.last_name}')"
         

@@ -28,7 +28,7 @@ def car_list():
     # Start with base query
     query = Car.query.filter_by(is_available=True, status='available')
     
-    # Apply search filter if provided
+    # Apply search filter if provided 
     if search_query:
         search_term = f"%{search_query}%"
         query = query.filter(

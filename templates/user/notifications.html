@@ -32,6 +32,27 @@
         border-left-color: #9C27B0;
     }
     
+    .notification.loan_pending {
+        border-left-color: #FFC107;
+    }
+    
+    .notification.loan_approved {
+        border-left-color: #28a745;
+    }
+    
+    .notification.loan_rejected {
+        border-left-color: #dc3545;
+    }
+    
+    .notification.payment_received {
+        border-left-color: #17a2b8;
+    }
+    
+    
+    .notification.last_payment_received {
+        border-left-color: #6f42c1;
+    }
+    
     .notification-time {
         font-size: 0.8rem;
         color: #6c757d;
@@ -48,6 +69,7 @@
         color: white;
     }
     
+    
     .icon-booking {
         background-color: #2196F3;
     }
@@ -58,6 +80,26 @@
     
     .icon-system {
         background-color: #9C27B0;
+    }
+    
+    .icon-loan-pending {
+        background-color: #FFC107;
+    }
+    
+    .icon-loan-approved {
+        background-color: #28a745;
+    }
+    
+    .icon-loan-rejected {
+        background-color: #dc3545;
+    }
+    
+    .icon-payment-received {
+        background-color: #17a2b8;
+    }
+    
+    .icon-last-payment {
+        background-color: #6f42c1;
     }
     
     .empty-notifications {
@@ -79,7 +121,7 @@
         <div class="col-12">
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h1 class="h3">Your Notifications</h1>
-                {% if notifications.items %}
+                {% if all_notifications.items %}
                 <button type="button" class="btn btn-outline-primary" onclick="markAllNotificationsAsRead()">
                     <i class="fas fa-check-double me-2"></i> Mark All as Read
                 </button>
@@ -91,14 +133,14 @@
                     <div class="d-flex justify-content-between align-items-center">
                         <h5 class="mb-0">
                             Notifications 
-                            <span class="badge bg-primary ms-2">{{ notifications.total }}</span>
+                            <span class="badge bg-primary ms-2">{{ all_notifications.total }}</span>
                         </h5>
                     </div>
                 </div>
                 <div class="card-body">
-                    {% if notifications.items %}
+                    {% if all_notifications.items %}
                         <div class="list-group">
-                            {% for notification in notifications.items %}
+                            {% for notification in all_notifications.items %}
                                 <div class="list-group-item notification {{ 'unread' if not notification.is_read }} {{ notification.notification_type }}">
                                     <div class="d-flex">
                                         <div class="me-3">
@@ -109,6 +151,26 @@
                                             {% elif notification.notification_type == 'payment' %}
                                                 <div class="notification-icon icon-payment">
                                                     <i class="fas fa-money-bill-wave"></i>
+                                                </div>
+                                            {% elif notification.notification_type == 'loan_pending' %}
+                                                <div class="notification-icon icon-loan-pending">
+                                                    <i class="fas fa-clock"></i>
+                                                </div>
+                                            {% elif notification.notification_type == 'loan_approved' %}
+                                                <div class="notification-icon icon-loan-approved">
+                                                    <i class="fas fa-check-circle"></i>
+                                                </div>
+                                            {% elif notification.notification_type == 'loan_rejected' %}
+                                                <div class="notification-icon icon-loan-rejected">
+                                                    <i class="fas fa-times-circle"></i>
+                                                </div>
+                                            {% elif notification.notification_type == 'payment_received' %}
+                                                <div class="notification-icon icon-payment-received">
+                                                    <i class="fas fa-coins"></i>
+                                                </div>
+                                            {% elif notification.notification_type == 'last_payment_received' %}
+                                                <div class="notification-icon icon-last-payment">
+                                                    <i class="fas fa-trophy"></i>
                                                 </div>
                                             {% else %}
                                                 <div class="notification-icon icon-system">
@@ -132,7 +194,19 @@
                                                     </button>
                                                 {% endif %}
                                                 
+                                                {% if notification.loan_car_id %}
+                                                    <button type="button" class="btn btn-sm btn-outline-info" onclick="loadLoanCarDetails({{ notification.loan_car_id }})">
+                                                        <i class="fas fa-car me-1"></i> View Loan Car Details
+                                                    </button>
+                                                {% endif %}
+                                                
+                                                <!-- Fixed delete form with proper source detection -->
                                                 <form action="{{ url_for('notification.delete_notification', notification_id=notification.id) }}" method="POST" class="d-inline-block">
+                                                    {% if notification.source == 'loan' %}
+                                                        <input type="hidden" name="source" value="loan">
+                                                    {% else %}
+                                                        <input type="hidden" name="source" value="regular">
+                                                    {% endif %}
                                                     <button type="submit" class="btn btn-sm btn-outline-danger">
                                                         <i class="fas fa-trash me-1"></i> Delete
                                                     </button>
@@ -149,13 +223,12 @@
                             {% endfor %}
                         </div>
                         
-                        <!-- Pagination -->
-                        {% if notifications.pages > 1 %}
+                        {% if all_notifications.pages > 1 %}
                             <nav aria-label="Notification pagination" class="mt-4">
                                 <ul class="pagination justify-content-center">
-                                    {% if notifications.has_prev %}
+                                    {% if all_notifications.has_prev %}
                                         <li class="page-item">
-                                            <a class="page-link" href="{{ url_for('notification.list_notifications', page=notifications.prev_num) }}">Previous</a>
+                                            <a class="page-link" href="{{ url_for('notification.list_notifications', page=all_notifications.prev_num) }}">Previous</a>
                                         </li>
                                     {% else %}
                                         <li class="page-item disabled">
@@ -163,9 +236,9 @@
                                         </li>
                                     {% endif %}
                                     
-                                    {% for page_num in notifications.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2) %}
+                                    {% for page_num in all_notifications.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2) %}
                                         {% if page_num %}
-                                            {% if page_num == notifications.page %}
+                                            {% if page_num == all_notifications.page %}
                                                 <li class="page-item active">
                                                     <a class="page-link" href="#">{{ page_num }}</a>
                                                 </li>
@@ -181,9 +254,9 @@
                                         {% endif %}
                                     {% endfor %}
                                     
-                                    {% if notifications.has_next %}
+                                    {% if all_notifications.has_next %}
                                         <li class="page-item">
-                                            <a class="page-link" href="{{ url_for('notification.list_notifications', page=notifications.next_num) }}">Next</a>
+                                            <a class="page-link" href="{{ url_for('notification.list_notifications', page=all_notifications.next_num) }}">Next</a>
                                         </li>
                                     {% else %}
                                         <li class="page-item disabled">
@@ -205,12 +278,30 @@
         </div>
     </div>
 </div>
+
+<div class="modal fade" id="loanCarModal" tabindex="-1" aria-labelledby="loanCarModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="loanCarModalLabel">Loan Car Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="loanCarModalBody">
+                <div class="d-flex justify-content-center">
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block scripts %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const markAllReadBtn = document.getElementById('markAllReadBtn');
+    const markAllReadBtn = document.querySelector('button[onclick="markAllNotificationsAsRead()"]');
     if (markAllReadBtn) {
         markAllReadBtn.addEventListener('click', function() {
             fetch('{{ url_for("notification.mark_all_read") }}', {
@@ -223,7 +314,6 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    // Update UI to show all notifications as read
                     document.querySelectorAll('.notification.unread').forEach(notification => {
                         notification.classList.remove('unread');
                         const badge = notification.querySelector('.badge.bg-success');
@@ -235,5 +325,63 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
+
+function loadLoanCarDetails(loanCarId) {
+    const modal = new bootstrap.Modal(document.getElementById('loanCarModal'));
+    const modalBody = document.getElementById('loanCarModalBody');
+    
+    modalBody.innerHTML = `
+        <div class="d-flex justify-content-center">
+            <div class="spinner-border" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+    `;
+    
+    modal.show();
+    
+    fetch(`{{ url_for('notification.get_loan_car_details', loan_car_id=0) }}`.replace('0', loanCarId))
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                modalBody.innerHTML = `<div class="alert alert-danger">${data.error}</div>`;
+                return;
+            }
+            
+            modalBody.innerHTML = `
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Car Information</h6>
+                        <p><strong>Make:</strong> ${data.car.make}</p>
+                        <p><strong>Model:</strong> ${data.car.model}</p>
+                        <p><strong>Year:</strong> ${data.car.year}</p>
+                        <p><strong>Color:</strong> ${data.car.color || 'N/A'}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Loan Information</h6>
+                        <p><strong>Loan Price:</strong> $${data.loan_sale_price.toLocaleString()}</p>
+                        <p><strong>Commission Rate:</strong> ${data.commission_rate}%</p>
+                        <p><strong>Status:</strong> <span class="badge bg-${data.status === 'active ' ? 'success' : data.status === 'pending' ? 'warning' : 'danger'}">${data.status}</span></p>
+                        <p><strong>Date Offered:</strong> ${data.date_offered}</p>
+                        ${data.activated_at ? `<p><strong>Activated:</strong> ${data.activated_at}</p>` : ''}
+                    </div>
+                </div>
+                ${data.loan_sale ? `
+                    <div class="mt-3">
+                        <h6>Loan Sale Information</h6>
+                        <p><strong>Buyer:</strong> ${data.loan_sale.first_name} ${data.loan_sale.middle_name || ''} ${data.loan_sale.last_name}</p>
+                        <p><strong>Email:</strong> ${data.loan_sale.email}</p>
+                        <p><strong>Contact:</strong> ${data.loan_sale.contact || 'N/A'}</p>
+                        <p><strong>Loan Term:</strong> ${data.loan_sale.loan_term} months</p>
+                        ${data.loan_sale.disbursement_id ? `<p><strong>Disbursement ID:</strong> ${data.loan_sale.disbursement_id}</p>` : ''}
+                    </div>
+                ` : ''}
+            `;
+        })
+        .catch(error => {
+            console.error('Error loading loan car details:', error);
+            modalBody.innerHTML = '<div class="alert alert-danger">Error loading loan car details</div>';
+        });
+}
 </script>
-{% endblock %} 
+{% endblock %}

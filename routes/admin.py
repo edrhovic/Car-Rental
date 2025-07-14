@@ -893,7 +893,7 @@ def car_list():
     
     # Execute query
     cars = query.all()
-    
+
     return render_template('admin/cars/list.html', 
                           cars=cars, 
                           search_query=search_query,
@@ -1007,9 +1007,8 @@ def add_car():
 @login_required
 @admin_required
 def edit_car(car_id):
-    
     car = Car.query.get_or_404(car_id)
-    
+
     if request.method == 'POST':
         # Get form data
         make = request.form.get('make')
@@ -1026,10 +1025,11 @@ def edit_car(car_id):
         horsepower = request.form.get('horsepower')
         mileage = request.form.get('mileage')
         body_type = request.form.get('body_type')
-        
-        # Validate fields
+        status = request.form.get('status')
+        image_url = request.form.get('image_url')
+
         errors = []
-        
+
         # VIN validation
         if not vin:
             errors.append('VIN is required')
@@ -1037,50 +1037,49 @@ def edit_car(car_id):
             errors.append('VIN must be exactly 17 characters')
         elif any(c in vin.upper() for c in 'IOQ'):
             errors.append('VIN cannot contain the letters I, O, or Q')
-            
-        # Basic validation for other fields
+
         if not make or len(make) > 50:
             errors.append('Make is required and must be less than 50 characters')
-            
+
         if not model or len(model) > 50:
             errors.append('Model is required and must be less than 50 characters')
-            
+
         if not license_plate or len(license_plate) > 20:
             errors.append('License plate is required and must be less than 20 characters')
-            
-        # Check for duplicate license plate or VIN (excluding current car)
+
+        # Check for duplicates
         existing_car = Car.query.filter(
-            ((Car.license_plate == license_plate) | (Car.vin == vin)) & 
+            ((Car.license_plate == license_plate) | (Car.vin == vin)) &
             (Car.id != car_id)
         ).first()
-        
+
         if existing_car:
             errors.append('Another car with this license plate or VIN already exists')
-            
-        # If there are validation errors, flash them and return to form
+
         if errors:
             for error in errors:
                 flash(error, 'danger')
             return redirect(url_for('admin.edit_car', car_id=car_id))
-        
+
         try:
-            # Store old image URL for potential deletion
-            old_image_url = car.image_url
-            
-            # Check if the car is currently offered on loan BEFORE making changes
+            # Check if car is in active loan
             active_loan_offers = LoanCar.query.filter(
                 LoanCar.car_id == car_id,
                 LoanCar.status.in_(['available', 'pending', 'active'])
             ).first()
-            
+
             if active_loan_offers:
                 flash('Cannot edit car that is currently offered for loan.', 'danger')
                 return redirect(url_for('admin.edit_car', car_id=car_id))
-            
-            
-                
-            
-            # Update car details
+
+            if car.status == 'sold':
+                flash('Cannot edit the car. Already sold for loan.', 'danger')
+                return redirect(url_for('admin.edit_car', car_id=car_id))
+
+            # Save old image before possible overwrite
+            old_image_url = car.image_url
+
+            # Update car fields
             car.make = make
             car.model = model
             car.year = year
@@ -1092,58 +1091,52 @@ def edit_car(car_id):
             car.fuel_type = fuel_type
             car.seats = seats
             car.description = description
-            horsepower = horsepower
+            car.body_type = body_type
+            car.status = status
+            car.is_available = (status == 'available')
+
             if horsepower:
                 car.horsepower = int(horsepower)
-            mileage = mileage
             if mileage:
                 car.mileage = int(mileage)
-            car.body_type = body_type
-            car.status = request.form.get('status')
-            
+
+            # If status is available, cancel related bookings
             if car.status == 'available':
-                Booking.status = 'cancelled'
-            
+                Booking.query.filter_by(car_id=car.id, status='booked').update({'status': 'cancelled'})
+
+            # If status is offered_for_loan, update related loan offer
             if car.status == 'offered_for_loan':
                 loan_offer = LoanCar.query.filter_by(car_id=car.id).first()
                 if loan_offer:
                     loan_offer.status = 'available'
-            car.is_available = (car.status == 'available')
-            
-            if car.status == 'available':
-                Booking.status = 'cancelled'
-            
-            # Handle image URL first (will be overridden by uploaded file if present)
-            image_url = request.form.get('image_url')
+
+            # Handle image upload
             new_image_uploaded = False
-            # Handle image upload to Cloudinary
             if 'car_image' in request.files:
                 file = request.files['car_image']
-                if file and file.filename:  # Check if a file was actually selected
+                if file and file.filename:
                     cloudinary_url = upload_image_to_cloudinary(file)
                     if cloudinary_url:
-                        image_url = cloudinary_url  # Use Cloudinary URL
+                        image_url = cloudinary_url
                         new_image_uploaded = True
-                    elif file.filename:  # If file was selected but upload failed
+                    else:
+                        flash('Image upload failed.', 'danger')
                         return redirect(url_for('admin.edit_car', car_id=car_id))
-            
-            # Only update the image_url if a new one is provided
+
             if image_url and image_url.strip():
                 car.image_url = image_url
-                
-                # Delete old image from Cloudinary if a new one was uploaded
                 if new_image_uploaded and old_image_url and old_image_url != image_url:
                     delete_image_from_cloudinary(old_image_url)
-            
+
             db.session.commit()
-            
             flash('Car updated successfully!', 'success')
             return redirect(url_for('admin.car_list'))
+
         except Exception as e:
             db.session.rollback()
             flash(f'Error updating car: {str(e)}', 'danger')
             return redirect(url_for('admin.edit_car', car_id=car_id))
-    
+
     return render_template('admin/cars/edit.html', car=car)
 
 @admin.route('/admin/cars/<int:car_id>/delete', methods=['POST'])
@@ -1168,6 +1161,7 @@ def delete_car(car_id):
             LoanCar.car_id == car_id,
             LoanCar.status == 'pending'
         ).first()
+        
 
         if(pending_loan_offer):
             flash('Cannot delete car that is currently offered for loan. Please withdraw the offer first before deleting this car.', 'danger')

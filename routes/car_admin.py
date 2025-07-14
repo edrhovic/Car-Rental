@@ -7,6 +7,8 @@ from models import db
 from functools import wraps
 import json
 from sqlalchemy import func, extract, or_
+from decimal import Decimal
+
 car_admin = Blueprint('car_admin', __name__)
 
 
@@ -68,7 +70,7 @@ def loan_cars_dashboard():
         month_name_short = target_date.strftime('%b %Y')
         
         commission_data = db.session.query(
-            func.sum(LoanPayment.commission_received)
+            func.sum(LoanPayment.total_commission_received)
         ).filter(
             extract('year', LoanPayment.date_commission_received) == target_date.year,
             extract('month', LoanPayment.date_commission_received) == target_date.month
@@ -103,9 +105,9 @@ def loan_cars_dashboard():
     
     statistics = {
         'total_active_loan_cars': total_active_loans,
-        'total_loan_value': total_loan_value,
-        'total_commissions': total_commissions,
-        'pending_commissions': pending_commissions
+        'total_loan_value': Decimal(total_loan_value),
+        'total_commissions': Decimal(total_commissions),
+        'pending_commissions': Decimal(pending_commissions)
     }
 
     return render_template('admin/loan_dashboard.html', statistics=statistics,

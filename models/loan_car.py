@@ -44,7 +44,7 @@ class LoanPayment(db.Model):
     __tablename__ = 'loan_payments'  # Fixed table name to be plural
     
     id = db.Column(db.Integer, primary_key=True)
-    loan_sale_id = db.Column(db.Integer, db.ForeignKey('loan_sales.id'), nullable=False)
+    loan_sale_id = db.Column(db.Integer, db.ForeignKey('loan_sales.id'), nullable=False)    
     commission_received = db.Column(db.Float, default=0.0)
     date_commission_received = db.Column(db.DateTime, nullable=True)
     monthly_payment = db.Column(db.Float, nullable=True)

@@ -23,89 +23,112 @@
 
     <!-- Notification Styles -->
     <style>
-        .notification-icon {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
+    .notification-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+    }
+
+    .notification-dropdown {
+        width: 320px !important;
+        overflow-y: auto;
+        max-height: 400px;
+    }
+
+    .notification-item {
+        padding: 0.75rem 1rem;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        transition: background-color 0.2s;
+        overflow: hidden;              /* Prevent horizontal scroll */
+        text-overflow: ellipsis;       /* Add ... at the end */
+        white-space: nowrap;           /* Keep text in one line */
+        max-width: 100%;
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    /* If content is wrapped inside a div */
+    .notification-content {
+        flex: 1;
+        min-width: 0; /* required for text-overflow in flex items */
+        overflow: hidden;
+    }
+
+    .notification-content h6,
+    .notification-content p {
+        margin: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        max-width: 100%;
+    }
+
+    .notification-item:hover {
+        background-color: rgba(0, 0, 0, 0.03);
+    }
+
+    .notification-item.read {
+        background-color: #f8f9fa;
+    }
+
+    .notification-item.read h6 {
+        font-weight: normal;
+        color: #6c757d;
+    }
+
+    /* Animation for bell icon when there are unread notifications */
+    @keyframes bell-pulse {
+        0% {
+            transform: scale(1);
         }
 
-        .notification-dropdown {
-            width: 320px !important;
-            overflow-y: auto;
-            max-height: 400px;
+        25% {
+            transform: scale(1.1);
         }
 
-        .notification-item {
-            padding: 0.75rem 1rem;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-            transition: background-color 0.2s;
+        50% {
+            transform: scale(1);
         }
 
-        .notification-item:hover {
-            background-color: rgba(0, 0, 0, 0.03);
+        75% {
+            transform: scale(1.1);
         }
 
-        .notification-item.read {
-            background-color: #f8f9fa;
+        100% {
+            transform: scale(1);
         }
+    }
 
-        .notification-item.read h6 {
-            font-weight: normal;
-            color: #6c757d;
-        }
+    .bell-animated {
+        animation: bell-pulse 2s ease infinite;
+        transform-origin: center;
+    }
 
-        /* Animation for bell icon when there are unread notifications */
-        @keyframes bell-pulse {
-            0% {
-                transform: scale(1);
-            }
+    /* Make notification badge more noticeable */
+    #notification-badge {
+        font-size: 0.7rem;
+        font-weight: bold;
+        padding: 0.25em 0.4em;
+        box-shadow: 0 0 0 2px #fff;
+    }
 
-            25% {
-                transform: scale(1.1);
-            }
+    /* Empty state styling */
+    .notifications-empty-state {
+        text-align: center;
+        padding: 2rem 1rem;
+        color: #6c757d;
+    }
 
-            50% {
-                transform: scale(1);
-            }
-
-            75% {
-                transform: scale(1.1);
-            }
-
-            100% {
-                transform: scale(1);
-            }
-        }
-
-        .bell-animated {
-            animation: bell-pulse 2s ease infinite;
-            transform-origin: center;
-        }
-
-        /* Make notification badge more noticeable */
-        #notification-badge {
-            font-size: 0.7rem;
-            font-weight: bold;
-            padding: 0.25em 0.4em;
-            box-shadow: 0 0 0 2px #fff;
-        }
-
-        /* Empty state styling */
-        .notifications-empty-state {
-            text-align: center;
-            padding: 2rem 1rem;
-            color: #6c757d;
-        }
-
-        .notifications-empty-state i {
-            font-size: 3rem;
-            margin-bottom: 1rem;
-            opacity: 0.5;
-        }
-    </style>
+    .notifications-empty-state i {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        opacity: 0.5;
+    }
+</style>
+    
 
     {% block styles %}{% endblock %}
 </head>
@@ -324,6 +347,7 @@
             });
         })();
     </script>
+    
     {% endif %}
 
     <!-- AJAX Search Utilities -->

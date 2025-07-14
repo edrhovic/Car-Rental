@@ -112,6 +112,10 @@
                                             <span class="badge bg-warning">Rented</span>
                                             {% elif car.status == 'maintenance' %}
                                             <span class="badge bg-danger">Maintenance</span>
+                                            {% elif car.status == 'offered_for_loan'% }
+                                            <span class="badge bg-primary">Offered for Loan</span>
+                                            {% elif car.status == 'sold' %}
+                                            <span class="badge bg-light">Sold for Loan</span>   
                                             {% endif %}
                                         </td>
                                         <td>

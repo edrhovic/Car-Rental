@@ -55,8 +55,8 @@
                                 <span class="badge bg-secondary fs-6 px-3 py-2">In Maintenance</span>
                                 {% elif car.status == 'offered_for_loan' %}
                                 <span class="badge bg-info fs-6 px-3 py-2">Offered for Loan</span>
-                                {% else %}
-                                <span class="badge bg-danger fs-6 px-3 py-2">Unavailable</span>
+                                {% elif car.status == 'sold' %}
+                                <span class="badge bg-danger fs-6 px-3 py-2">Sold for Loan</span>
                                 {% endif %}
                             </div>
                         </div>

@@ -242,10 +242,9 @@ def receive_monthly_commission():
         is_paid = data.get('is_paid', False)
         monthly_commission_amount = data.get('commission_amount')
         
-        if not isinstance(monthly_commission_amount, (int, float)) or monthly_commission_amount <= 0:
-            return jsonify({'success': False, 'error': 'Invalid commission amount'}), 400
-        
-        monthly_commission_amount = Decimal(str(monthly_commission_amount)).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+        car = Car.query.filter_by(id=car_id).first()
+        if not car:
+            return jsonify({'succes': False, 'error': 'Car not found'}), 404
         
         loan_car = LoanCar.query.filter_by(car_id=car_id).first()
         if not loan_car:
@@ -267,35 +266,37 @@ def receive_monthly_commission():
         
         loan_payment = LoanPayment.query.filter_by(loan_sale_id=loan_sale.id).first()
         
-        monthly_payment = loan_car.loan_sale_price / loan_sale.loan_term
+        monthly_payment = Decimal(loan_car.loan_sale_price) / loan_sale.loan_term
         
         if not loan_payment:
             loan_payment = LoanPayment(
                 loan_sale_id=loan_sale.id,
-                commission_received=monthly_commission_amount,
+                commission_received=Decimal(monthly_commission_amount),
                 total_commission_received=0.0,
                 date_commission_received = datetime.datetime.utcnow(),
-                monthly_payment=monthly_payment
+                monthly_payment=Decimal(monthly_payment)
             )
             db.session.add(loan_payment)
         
-        current_total = Decimal(str(loan_payment.total_commission_received or 0))
-        new_total_received = current_total + monthly_commission_amount
-        loan_sale_price = Decimal(str(loan_car.loan_sale_price))
+        current_total = Decimal(loan_payment.total_commission_received or 0)
+        new_total_received = Decimal(current_total) + Decimal(monthly_commission_amount)
+        loan_sale_price = Decimal(loan_car.loan_sale_price)
         
         if new_total_received > loan_sale_price:
             return jsonify({
                 'success': False,
-                'error': f'Commission amount exceeds remaining balance. Expected: {loan_car.loan_sale_price}, Already received: {loan_payment.total_commission_received or 0}. Remaining Balance: {loan_car.loan_sale_price - loan_payment.total_commission_received}'
+                'error': f'Commission amount exceeds remaining balance. Expected: {Decimal(loan_car.loan_sale_price)}, Already received: {Decimal(loan_payment.total_commission_received or 0)}. Remaining Balance: {Decimal(loan_car.loan_sale_price) - Decimal(loan_payment.total_commission_received)}'
             }), 400
         
             
-        loan_payment.commission_received = float(monthly_commission_amount)
-        loan_payment.total_commission_received = float(new_total_received)
+        loan_payment.commission_received = Decimal(monthly_commission_amount)
+        loan_payment.total_commission_received = Decimal(new_total_received)
         loan_payment.date_commission_received = datetime.datetime.utcnow()
         
         if loan_payment.total_commission_received >= loan_car.loan_sale_price:
             loan_car.status = 'paid'
+            car.is_available = False
+            car.status = 'sold'
         
         db.session.commit()
         
@@ -328,8 +329,8 @@ def receive_monthly_commission():
             'success': True,
             'disbursement_id': loan_sale.disbursement_id,
             'car_id': car_id,
-            'commission_received': float(monthly_commission_amount),
-            'total_commission_received': float(new_total_received),
+            'commission_received': monthly_commission_amount,
+            'total_commission_received': new_total_received,
             'total_loan_value': loan_car.loan_sale_price,
             'date_commission_received': loan_payment.date_commission_received.isoformat(),
             'loan_status': loan_car.status,
@@ -338,6 +339,7 @@ def receive_monthly_commission():
         })
         
     except Exception as e:
+        print(e)
         db.session.rollback()
         return jsonify({
             'success': False,
