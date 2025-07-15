@@ -216,18 +216,32 @@ def approve_status(car_id):
                 'approved_at': loan_car.activated_at.isoformat() if loan_car.activated_at else None,
                 'disbursement_id': disbursement_id
             })
-        else:
-            LoanNotification.create_loan_status_notification(loan_car, 'rejected')
-            loan_car.status = 'available'
-            loan_car.is_available = True
             
-            db.session.commit()
-            return jsonify({'success': False, 'error': 'Loan not approved'}), 400
-
     except Exception as e:
         print(f"Error in approve_status: {str(e)}")
         return jsonify({'success': False, 'error': 'Error in updating loan status', 'message': str(e)}), 500
     
+
+@loan_api.route('/car-loan-status-reject', methods=['POST'])
+def car_loan_status_reject():
+    try:
+        data = request.get_json()
+        
+        car_id = data.get('car_id')
+        
+        loan_car = LoanCar.query.filter_by(car_id=car_id).first()
+        
+        loan_car.status = 'available'
+        loan_car.is_available = True
+        
+        LoanNotification.create_loan_status_notification(loan_car, 'rejected')
+        
+        
+        return jsonify({'success': True, 'new_status': loan_car.status})
+        
+    except Exception as e:
+        print(e)
+        return jsonify({'success': False, 'error': 'Error'})
         
 
 @loan_api.route('/receive-monthly-commission', methods=['POST'])
