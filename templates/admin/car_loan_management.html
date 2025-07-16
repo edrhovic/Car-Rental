@@ -41,11 +41,6 @@
                 <p class="label mb-0">Cars for Loan</p>
               </div>
             </div>
-            <div class="card-footer d-flex align-items-center justify-content-between bg-transparent border-top-0">
-              <a href="{{ url_for('car_admin.manage_loan_cars') }}" class="text-white text-decoration-none">View
-                Details</a>
-              <span class="text-white"><i class="fas fa-arrow-circle-right"></i></span>
-            </div>
           </div>
         </div>
         <div class="col-xl-3 col-lg-6 col-md-6">
@@ -59,11 +54,6 @@
                 <p class="label mb-0">Active Loans</p>
               </div>
             </div>
-            <div class="card-footer d-flex align-items-center justify-content-between bg-transparent border-top-0">
-              <a href="{{ url_for('car_admin.car_loan_management' )}}" class="text-white text-decoration-none">View
-                Details</a>
-              <span class="text-white"><i class="fas fa-arrow-circle-right"></i></span>
-            </div>
           </div>
         </div>
         <div class="col-xl-3 col-lg-6 col-md-6">
@@ -76,10 +66,6 @@
                 <h2 class="counter mb-2">{{ statistics.total_pending_loan_cars }}</h2>
                 <p class="label mb-0">Pending Applications</p>
               </div>
-            </div>
-            <div class="card-footer d-flex align-items-center justify-content-between bg-transparent border-top-0">
-              <a href="#" class="text-white text-decoration-none">View Details</a>
-              <span class="text-white"><i class="fas fa-arrow-circle-right"></i></span>
             </div>
           </div>
         </div>
@@ -96,10 +82,6 @@
                 </h2>
                 <p class="label mb-0">All Available Cars</p>
               </div>
-            </div>
-            <div class="card-footer d-flex align-items-center justify-content-between bg-transparent border-top-0">
-              <a href="#" class="text-white text-decoration-none">View Details</a>
-              <span class="text-white"><i class="fas fa-arrow-circle-right"></i></span>
             </div>
           </div>
         </div>
@@ -233,11 +215,11 @@
               applications and payments.
             </p>
             <div class="d-flex flex-column flex-sm-row gap-2 justify-content-center">
-              <a href="#" class="btn btn-primary">
-                <i class="fas fa-handshake me-1"></i> View Loan Offers
+              <a href="{{ url_for('car_admin.manage_loan_cars') }}" class="btn btn-primary">
+                <i class="fas fa-handshake me-1"></i> View Cars For Loan
               </a>
-              <a href="#" class="btn btn-outline-secondary">
-                <i class="fas fa-car me-1"></i> Manage Inventory
+              <a href="{{ url_for('admin.car_list') }}" class="btn btn-outline-secondary">
+                <i class="fas fa-car me-1"></i> View All Cars
               </a>
             </div>
           </div>

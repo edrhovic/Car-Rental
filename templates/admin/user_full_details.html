@@ -1,0 +1,514 @@
+{% extends 'base.html' %}
+{% block title %}User Full Details - {{ loan_sale.first_name }} {{ loan_sale.last_name }} - JDM Car Rentals{% endblock %}
+{% block content %}
+<div class="container-fluid">
+  <div class="row">
+    <!-- Sidebar -->
+    {% include 'admin/partials/sidebar.html' %}
+
+    <!-- Main content -->
+    <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+      <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <div>
+          <h1 class="h2">User Full Details</h1>
+          <p class="text-muted">Complete information about the loan applicant</p>
+        </div>
+        <div class="btn-toolbar mb-2 mb-md-0">
+          <a href="{{ url_for('car_admin.loan_sale_details', sale_id=loan_car.id) }}" class="btn btn-sm btn-outline-secondary">
+            <i class="fas fa-arrow-left me-1"></i> Back to Loan Details
+          </a>
+        </div>
+      </div>
+      
+      <!-- Main Content Row -->
+      <div class="row">
+        <!-- Left Column - Personal Information -->
+        <div class="col-lg-8">
+          <!-- Personal Information Card -->
+          <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+              <h5 class="mb-0">
+                <i class="fas fa-user me-2"></i>Personal Information
+              </h5>
+            </div>
+            <div class="card-body">
+              <div class="row">
+                <div class="col-md-6">
+                  <div class="mb-3 d-flex align-items-center">
+                    <i class="fas fa-user-tag text-muted me-2"></i>
+                    <div>
+                      <small class="text-muted d-block">Full Name</small>
+                      <strong>{{ loan_sale.first_name }} {{ loan_sale.middle_name }} {{ loan_sale.last_name }}</strong>
+                    </div>
+                  </div>
+                  <div class="mb-3 d-flex align-items-center">
+                    <i class="fas fa-envelope text-muted me-2"></i>
+                    <div>
+                      <small class="text-muted d-block">Email Address</small>
+                      <strong>{{ loan_sale.email }}</strong>
+                    </div>
+                  </div>
+                  <div class="mb-3 d-flex align-items-center">
+                    <i class="fas fa-phone text-muted me-2"></i>
+                    <div>
+                      <small class="text-muted d-block">Contact Number</small>
+                      <strong>{{ loan_sale.contact if loan_sale.contact else 'N/A' }}</strong>
+                    </div>
+                  </div>
+                  <div class="mb-3 d-flex align-items-center">
+                    <i class="fas fa-calendar text-muted me-2"></i>
+                    <div>
+                      <small class="text-muted d-block">Date of Birth</small>
+                      <strong>{{ loan_sale.birthdate.strftime('%b %d, %Y') if loan_sale.birthdate else 'N/A' }}</strong>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="mb-3 d-flex align-items-center">
+                    <i class="fas fa-venus-mars text-muted me-2"></i>
+                    <div>
+                      <small class="text-muted d-block">Gender</small>
+                      <strong>{{ loan_sale.gender if loan_sale.gender else 'N/A' }}</strong>
+                    </div>
+                  </div>
+                  <div class="mb-3 d-flex align-items-center">
+                    <i class="fas fa-heart text-muted me-2"></i>
+                    <div>
+                      <small class="text-muted d-block">Marital Status</small>
+                      <strong>{{ loan_sale.marital_status if loan_sale.marital_status else 'N/A' }}</strong>
+                    </div>
+                  </div>
+                  <div class="mb-3 d-flex align-items-center">
+                    <i class="fas fa-city text-muted me-2"></i>
+                    <div>
+                      <small class="text-muted d-block">City</small>
+                      <strong>{{ loan_sale.city if loan_sale.city else 'N/A' }}</strong>
+                    </div>
+                  </div>
+                  <div class="mb-3 d-flex align-items-center">
+                    <i class="fas fa-map-marker-alt text-muted me-2"></i>
+                    <div>
+                      <small class="text-muted d-block">Complete Address</small>
+                      <strong>{{ loan_sale.complete_address if loan_sale.complete_address else 'N/A' }}</strong>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Employment Information Card -->
+          <div class="card mb-4">
+            <div class="card-header bg-success text-white">
+              <h5 class="mb-0">
+                <i class="fas fa-briefcase me-2"></i>Employment Information
+              </h5>
+            </div>
+            <div class="card-body">
+              <div class="row">
+                <div class="col-md-6">
+                  <div class="mb-3 d-flex align-items-center">
+                    <i class="fas fa-building text-muted me-2"></i>
+                    <div>
+                      <small class="text-muted d-block">Company Name</small>
+                      <strong>{{ loan_sale.company_name if loan_sale.company_name else 'N/A' }}</strong>
+                    </div>
+                  </div>
+                  <div class="mb-3 d-flex align-items-center">
+                    <i class="fas fa-user-tie text-muted me-2"></i>
+                    <div>
+                      <small class="text-muted d-block">Job Title</small>
+                      <strong>{{ loan_sale.job_title if loan_sale.job_title else 'N/A' }}</strong>
+                    </div>
+                  </div>
+                  <div class="mb-3 d-flex align-items-center">
+                    <i class="fas fa-id-badge text-muted me-2"></i>
+                    <div>
+                      <small class="text-muted d-block">Employment Type</small>
+                      <strong>{{ loan_sale.employment_type if loan_sale.employment_type else 'N/A' }}</strong>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="mb-3 d-flex align-items-center">
+                    <i class="fas fa-clock text-muted me-2"></i>
+                    <div>
+                      <small class="text-muted d-block">Years Employed</small>
+                      <strong>{{ loan_sale.years_employed if loan_sale.years_employed else 'N/A' }}</strong>
+                    </div>
+                  </div>
+                  <div class="mb-3 d-flex align-items-center">
+                    <i class="fas fa-money-bill-wave text-muted me-2"></i>
+                    <div>
+                      <small class="text-muted d-block">Monthly Income</small>
+                      <strong>₱{{ "{:,.2f}".format(loan_sale.monthly_income) if loan_sale.monthly_income else 'N/A' }}</strong>
+                    </div>
+                  </div>
+                  <div class="mb-3 d-flex align-items-center">
+                    <i class="fas fa-plus-circle text-muted me-2"></i>
+                    <div>
+                      <small class="text-muted d-block">Other Income</small>
+                      <strong>₱{{ "{:,.2f}".format(loan_sale.other_income) if loan_sale.other_income else 'N/A' }}</strong>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+
+
+          <!-- Identity Documents Card -->
+          <div class="card">
+            <div class="card-header bg-info text-white">
+              <h5 class="mb-0">
+                <i class="fas fa-id-card me-2"></i>Identity Documents
+              </h5>
+            </div>
+            <div class="card-body">
+              <div class="row">
+                <div class="col-md-6">
+                  <div class="mb-3">
+                    <small class="text-muted d-block mb-2">Front ID</small>
+                    {% if loan_sale.user_front_id %}
+                      <div class="border rounded p-2 bg-light">
+                        <img src="{{ loan_sale.user_front_id }}" class="img-fluid rounded mb-2" alt="Front ID" style="max-height: 200px; width: 100%; object-fit: contain;">
+                        <div class="text-center">
+                          <button class="btn btn-sm btn-primary" onclick="openImageModal('{{ loan_sale.user_front_id }}', 'Front ID')">
+                            <i class="fas fa-expand me-1"></i> View Full Image
+                          </button>
+                        </div>
+                      </div>
+                    {% else %}
+                      <div class="border rounded p-4 bg-light text-center text-muted">
+                        <i class="fas fa-id-card mb-2" style="font-size: 2rem;"></i>
+                        <p class="mb-0">No front ID uploaded</p>
+                      </div>
+                    {% endif %}
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="mb-3">
+                    <small class="text-muted d-block mb-2">Back ID</small>
+                    {% if loan_sale.user_back_id %}
+                      <div class="border rounded p-2 bg-light">
+                        <img src="{{ loan_sale.user_back_id }}" class="img-fluid rounded mb-2" alt="Back ID" style="max-height: 200px; width: 100%; object-fit: contain;">
+                        <div class="text-center">
+                          <button class="btn btn-sm btn-primary" onclick="openImageModal('{{ loan_sale.user_back_id }}', 'Back ID')">
+                            <i class="fas fa-expand me-1"></i> View Full Image
+                          </button>
+                        </div>
+                      </div>
+                    {% else %}
+                      <div class="border rounded p-4 bg-light text-center text-muted">
+                        <i class="fas fa-id-card mb-2" style="font-size: 2rem;"></i>
+                        <p class="mb-0">No back ID uploaded</p>
+                      </div>
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Column - Loan Summary -->
+        <div class="col-lg-4">
+          <!-- Loan Summary Card -->
+          <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+              <h5 class="mb-0">
+                <i class="fas fa-clipboard-list me-2"></i>Loan Summary
+              </h5>
+            </div>
+            <div class="card-body">
+              <div class="mb-3">
+                <div class="d-flex align-items-center">
+                  <i class="fas fa-hashtag text-muted me-2"></i>
+                  <div>
+                    <small class="text-muted d-block">Loan Sale ID</small>
+                    <strong>#{{ loan_sale.id }}</strong>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="mb-3">
+                <div class="d-flex align-items-center">
+                  <i class="fas fa-money-bill-wave text-muted me-2"></i>
+                  <div>
+                    <small class="text-muted d-block">Disbursement ID</small>
+                    <strong>{{ loan_sale.disbursement_id if loan_sale.disbursement_id else 'Pending' }}</strong>
+                  </div>
+                </div>
+              </div>
+
+              <div class="mb-3">
+                <div class="d-flex align-items-center">
+                  <i class="fas fa-user-circle text-muted me-2"></i>
+                  <div>
+                    <small class="text-muted d-block">User ID</small>
+                    <strong>{{ loan_sale.user_id if loan_sale.user_id else 'N/A' }}</strong>
+                  </div>
+                </div>
+              </div>
+
+              <div class="mb-3">
+                <div class="d-flex align-items-center">
+                  <i class="fas fa-car text-muted me-2"></i>
+                  <div>
+                    <small class="text-muted d-block">Loan Car ID</small>
+                    <strong>{{ loan_sale.loan_car_id if loan_sale.loan_car_id else 'N/A' }}</strong>
+                  </div>
+                </div>
+              </div>
+
+              {% if loan_car %}
+              <div class="mb-3">
+                <div class="d-flex align-items-center">
+                  <i class="fas fa-peso-sign text-muted me-2"></i>
+                  <div>
+                    <small class="text-muted d-block">Loan Sale Price</small>
+                    <strong>₱{{ "{:,.2f}".format(loan_car.loan_sale_price) }}</strong>
+                  </div>
+                </div>
+              </div>
+              {% endif %}
+            </div>
+          </div>
+
+          <!-- Financial Information Card -->
+          <div class="card mb-4">
+            <div class="card-header bg-warning text-dark">
+              <h5 class="mb-0">
+                <i class="fas fa-chart-line me-2"></i>Financial Information
+              </h5>
+            </div>
+            <div class="card-body">
+              <div class="row">
+                <div class="col-md-6">
+                  <div class="mb-3 d-flex align-items-center">
+                    <i class="fas fa-money-bill-wave text-muted me-2"></i>
+                    <div>
+                      <small class="text-muted d-block">Total Monthly Income</small>
+                      <strong>₱{{ "{:,.2f}".format((loan_sale.monthly_income or 0) + (loan_sale.other_income or 0)) }}</strong>
+                    </div>
+                  </div>
+                  <div class="mb-3 d-flex align-items-center">
+                    <i class="fas fa-credit-card text-muted me-2"></i>
+                    <div>
+                      <small class="text-muted d-block">Have Existing Loans</small>
+                      <strong>
+                        {% if loan_sale.existing_loans %}
+                          <span class="text-warning">Yes</span>
+                        {% elif loan_sale.existing_loans == False %}
+                          <span class="text-success">None</span>
+                        {% else %}
+                          N/A
+                        {% endif %}
+                      </strong>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="mb-3 d-flex align-items-center">
+                    <i class="fas fa-calendar-alt text-muted me-2"></i>
+                    <div>
+                      <small class="text-muted d-block">Loan Term</small>
+                      <strong>{{ loan_sale.loan_term }} months</strong>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="d-grid gap-2">
+            <button type="button" class="btn btn-outline-primary" onclick="printUserDetails()">
+              <i class="fas fa-print me-1"></i> Print User Details
+            </button>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- Image Modal -->
+<div class="modal fade" id="imageModal" tabindex="-1" aria-labelledby="imageModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="imageModalLabel">ID Document</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body text-center">
+        <img id="modalImage" src="" alt="ID Document" class="img-fluid rounded" style="max-width: 100%; max-height: 70vh;">
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary" onclick="downloadImage()">
+          <i class="fas fa-download me-1"></i> Download
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+  let currentImageSrc = '';
+  let currentImageTitle = '';
+
+  // Function to open image modal
+  function openImageModal(imageSrc, title) {
+    currentImageSrc = imageSrc;
+    currentImageTitle = title;
+    
+    document.getElementById('modalImage').src = imageSrc;
+    document.getElementById('imageModalLabel').textContent = title;
+    
+    const modal = new bootstrap.Modal(document.getElementById('imageModal'));
+    modal.show();
+  }
+
+  // Function to download image
+  function downloadImage() {
+    const link = document.createElement('a');
+    link.href = currentImageSrc;
+    link.download = currentImageTitle.replace(/\s+/g, '_').toLowerCase() + '.jpg';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+
+  // Print function for user details
+  function printUserDetails() {
+    const printWindow = window.open('', '_blank');
+    const printContent = `
+      <html>
+        <head>
+          <title>User Full Details - {{ loan_sale.first_name }} {{ loan_sale.last_name }}</title>
+          <style>
+            body { font-family: Arial, sans-serif; margin: 20px; }
+            .header { text-align: center; margin-bottom: 30px; }
+            .section { margin-bottom: 25px; }
+            .section h3 { color: #0066cc; border-bottom: 2px solid #0066cc; padding-bottom: 5px; margin-bottom: 15px; }
+            .detail-row { display: flex; justify-content: space-between; margin-bottom: 10px; padding: 5px 0; border-bottom: 1px solid #eee; }
+            .detail-label { font-weight: bold; width: 40%; }
+            .detail-value { width: 60%; }
+            @media print { body { margin: 0; } }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <h1>JDM Car Rentals - User Full Details</h1>
+            <h2>{{ loan_sale.first_name }} {{ loan_sale.middle_name }} {{ loan_sale.last_name }}</h2>
+          </div>
+          
+          <div class="section">
+            <h3>Personal Information</h3>
+            <div class="detail-row">
+              <span class="detail-label">Full Name:</span>
+              <span class="detail-value">{{ loan_sale.first_name }} {{ loan_sale.middle_name }} {{ loan_sale.last_name }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Email:</span>
+              <span class="detail-value">{{ loan_sale.email }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Contact:</span>
+              <span class="detail-value">{{ loan_sale.contact if loan_sale.contact else 'N/A' }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Date of Birth:</span>
+              <span class="detail-value">{{ loan_sale.birthdate.strftime('%b %d, %Y') if loan_sale.birthdate else 'N/A' }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Gender:</span>
+              <span class="detail-value">{{ loan_sale.gender if loan_sale.gender else 'N/A' }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Marital Status:</span>
+              <span class="detail-value">{{ loan_sale.marital_status if loan_sale.marital_status else 'N/A' }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">City:</span>
+              <span class="detail-value">{{ loan_sale.city if loan_sale.city else 'N/A' }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Complete Address:</span>
+              <span class="detail-value">{{ loan_sale.complete_address if loan_sale.complete_address else 'N/A' }}</span>
+            </div>
+          </div>
+          
+          <div class="section">
+            <h3>Employment Information</h3>
+            <div class="detail-row">
+              <span class="detail-label">Company Name:</span>
+              <span class="detail-value">{{ loan_sale.company_name if loan_sale.company_name else 'N/A' }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Job Title:</span>
+              <span class="detail-value">{{ loan_sale.job_title if loan_sale.job_title else 'N/A' }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Employment Type:</span>
+              <span class="detail-value">{{ loan_sale.employment_type if loan_sale.employment_type else 'N/A' }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Years Employed:</span>
+              <span class="detail-value">{{ loan_sale.years_employed if loan_sale.years_employed else 'N/A' }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Monthly Income:</span>
+              <span class="detail-value">₱{{ "{:,.2f}".format(loan_sale.monthly_income) if loan_sale.monthly_income else 'N/A' }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Other Income:</span>
+              <span class="detail-value">₱{{ "{:,.2f}".format(loan_sale.other_income) if loan_sale.other_income else 'N/A' }}</span>
+            </div>
+          </div>
+          
+          <div class="section">
+            <h3>Loan Information</h3>
+            <div class="detail-row">
+              <span class="detail-label">Loan Sale ID:</span>
+              <span class="detail-value">#{{ loan_sale.id }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Loan Term:</span>
+              <span class="detail-value">{{ loan_sale.loan_term }} months</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Existing Loans:</span>
+              <span class="detail-value">{{ 'Yes' if loan_sale.existing_loans else 'No' if loan_sale.existing_loans == False else 'N/A' }}</span>
+            </div>
+          </div>
+          
+        </body>
+      </html>
+    `;
+    
+    printWindow.document.write(printContent);
+    printWindow.document.close();
+    printWindow.print();
+  }
+
+  // Export function (placeholder)
+  function exportUserDetails() {
+    // You can implement CSV/Excel export functionality here
+    alert('Export functionality will be implemented soon!');
+  }
+</script>
+
+<!-- Add custom CSS for better styling -->
+<style>
+  .img-fluid:hover {
+    opacity: 0.9;
+    transition: opacity 0.2s ease;
+  }
+</style>
+{% endblock %}

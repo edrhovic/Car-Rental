@@ -402,3 +402,12 @@ def loan_sale_details(sale_id):
                          loan_car=loan_car, 
                          car=car, loan_sale=loan_sale)
     
+
+@car_admin.route('/user-full-details/<int:sale_id>')
+def user_full_details(sale_id):
+    
+    loan_car = LoanCar.query.get_or_404(sale_id)
+    loan_sale = LoanSale.query.filter_by(loan_car_id=loan_car.id).first()
+    
+    
+    return render_template('admin/user_full_details.html', loan_sale=loan_sale, loan_car=loan_car)

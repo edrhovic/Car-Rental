@@ -179,6 +179,21 @@ def approve_status(car_id):
             email = data.get('email')
             contact = data.get('contact')
             loan_term = data.get('loan_term')
+            birthdate = data.get('birthdate')
+            gender = data.get('gender')
+            marital_status = data.get('marital_status')
+            city = data.get('city')
+            complete_address = data.get('complete_address')
+            company_name = data.get('company_name')
+            job_title = data.get('job_title')
+            employment_type = data.get('employment_type')
+            years_employed = data.get('years_employed')
+            monthly_income = data.get('monthly_income')
+            other_income = data.get('other_income')
+            existing_loans = data.get('existing_loans')
+            user_front_id = data.get('front')
+            user_back_id = data.get('back')
+            
 
             required_fields = [user_id, first_name, last_name, email, contact, disbursement_id]
             if any(field is None for field in required_fields):
@@ -194,7 +209,21 @@ def approve_status(car_id):
                     last_name=last_name,
                     email=email,
                     contact=contact,
-                    loan_term=loan_term
+                    loan_term=loan_term,
+                    birthdate=birthdate,
+                    gender=gender,
+                    marital_status=marital_status,
+                    city=city,
+                    complete_address=complete_address,
+                    company_name=company_name,
+                    job_title=job_title,
+                    employment_type=employment_type,
+                    years_employed=years_employed,
+                    monthly_income=monthly_income,
+                    other_income=other_income,
+                    existing_loans=existing_loans,
+                    user_front_id=user_front_id,
+                    user_back_id=user_back_id
                 )
                 
                 loan_notification = LoanNotification.create_loan_status_notification(loan_car, 'approved')
@@ -412,127 +441,3 @@ def get_all_cars():
         'success': True,
         'cars': car_list
     })
-
-# @loan_api.route('/get-active-loans', methods=['GET'])
-
-# def get_active_loans():
-    
-#     try:
-#         active_loans = db.session.query(LoanCar, Car).join(Car).filter(
-#             LoanCar.status == 'active'
-#         ).all()
-        
-#         loan_sale = db.session.query(LoanSale).filter(
-#             LoanSale.loan_car_id.in_([loan_car.id for loan_car, _ in active_loans])
-#         ).all()
-        
-#         loans_data = []
-#         for loan_car, car in active_loans:
-#             loans_data.append({
-#                 'id': loan_car.id,
-#                 'car_id': car.id,
-#                 'car_details': {
-#                     'id': car.id,
-#                     'make': car.make,
-#                     'model': car.model,
-#                     'year': car.year,
-#                     'color': car.color,
-#                     'horsepower': car.horsepower,
-#                     'mileage': car.mileage,
-#                     'body_type': car.body_type,
-#                     'transmission': car.transmission,
-#                     'fuel_type': car.fuel_type,
-#                     'seats': car.seats,
-#                     'image_url': car.image_url,
-#                     'license_plate': car.license_plate,
-#                     'description': car.description
-#                 },
-#                 'borrower_info': {
-#                     'id': loan_sale.id,
-#                     'name': loan_sale.borrower_name,
-#                     'email': loan_sale.borrower_email,
-#                     'phone': loan_sale.borrower_phone
-#                 },
-#                 'loan_details': {
-#                     'loan_amount': float(loan_car.loan_sale_price),
-#                     'loan_term': loan_sale.loan_term_months,
-#                     'interest_rate': float(loan_sale.interest_rate),
-#                 },
-#                 'status': loan_car.status,
-#                 'activated_at': loan_car.activated_at.isoformat() if loan_car.activated_at else None,
-#                 'date_offered': loan_car.date_offered.isoformat() if loan_car.date_offered else None,
-#             })
-            
-#         return jsonify({
-#             'success': True,
-#             'active_loans': loans_data,
-#             'total': len(loans_data)
-#         })
-#     except Exception as e:
-#         print(f"Error in get_active_loans: {str(e)}")
-#         return jsonify({
-#             'success': False, 
-#             'error': 'Failed to fetch active loans',
-#             'message': str(e)
-#         }), 500
-        
-# # This endpoint will return all loans for a specific user.
-# @loan_api.route('/get-loan-by-user/<int:user_id>', methods=['GET'])
-
-# def get_loan_by_user(user_id):
-#     try:
-#         user_loans = db.session.query(LoanCar, Car).join(Car).filter(
-#             LoanCar.borrower_id == user_id,
-#             LoanCar.status.in_(['active'])
-#         ).all()
-        
-#         loan_sale = db.session.query(LoanSale).filter(
-#             LoanSale.loan_car_id.in_([loan_car.id for loan_car, _ in user_loans])  
-#         ).all()
-        
-#         if not user_loans:
-#             return jsonify({'success': False, 'error': 'No active loans found for this user'}), 404
-        
-#         loans_data = []
-#         for loan_car, car in user_loans:
-#             loans_data.append({
-#                 'id': loan_car.id,
-#                 'car_id': car.id,
-#                 'car_details': {
-#                     'make': car.make,
-#                     'model': car.model,
-#                     'year': car.year,
-#                     'color': car.color,
-#                     'horsepower': car.horsepower,
-#                     'mileage': car.mileage,
-#                     'body_type': car.body_type,
-#                     'transmission': car.transmission,
-#                     'fuel_type': car.fuel_type,
-#                     'seats': car.seats,
-#                     'image_url': car.image_url,
-#                     'license_plate': car.license_plate,
-#                     'description': car.description
-#                 },
-#                 'loan_details': {
-#                     'loan_amount': float(loan_car.loan_sale_price),
-#                     'loan_term': loan_sale.loan_term_months,
-#                     'interest_rate': float(loan_car.interest_rate),
-#                 },
-#                 'status': loan_car.status,
-#                 'activated_at': loan_car.activated_at.isoformat() if loan_car.activated_at else None,
-#                 'date_offered': loan_car.date_offered.isoformat() if loan_car.date_offered else None,
-#             })
-            
-#         return jsonify({
-#             'success': True,
-#             'user_loans': loans_data,
-#             'total': len(loans_data)
-#         })
-        
-#     except Exception as e:
-#         print(f"Error in get_loan_by_user: {str(e)}")
-#         return jsonify({
-#             'success': False, 
-#             'error': 'Failed to fetch user loans',
-#             'message': str(e)
-#         }), 500

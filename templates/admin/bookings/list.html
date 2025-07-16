@@ -197,8 +197,10 @@
                                                 <span class="badge bg-success">Completed</span>
                                             {% elif booking.status == 'cancelled' %}
                                                 <span class="badge bg-danger">Cancelled</span>
-                                            {% else %}
-                                                <span class="badge bg-secondary">{{ booking.status }}</span>
+                                            {% elif booking.status == 'pending_approval' %}
+                                                <span class="badge bg-warning">Pending Approval</span>
+                                            {% elif booking.status == 'pending_return' %}
+                                                <span class="badge bg-success">Pending Return</span>
                                             {% endif %}
                                         </td>
                                         <td>

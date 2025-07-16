@@ -255,6 +255,10 @@
                                         <span class="badge bg-secondary">In Maintenance</span>
                                         {% elif car.status == 'offered_for_loan' %}
                                         <span class="badge bg-info">Offered for Loan</span>
+                                        {% elif car.status == 'pending_booking' %}
+                                        <span class="badge bg-secondary">Pending for Booking</span>
+                                        {% elif car.status == 'pending_return' %}
+                                        <span class="badge bg-warning">Pending Return</span>
                                         {% else %}
                                         <span class="badge bg-dark">Unavailable</span>
                                         {% endif %}

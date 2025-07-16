@@ -221,35 +221,44 @@
 
               <div class="mb-3">
                 <div class="d-flex align-items-center">
-                  <i class="fas fa-hashtag text-muted me-2"></i>
+                  <i class="fas fa-birthday-cake text-muted me-2"></i>
                   <div>
-                    <small class="text-muted d-block">Loan Sale ID</small>
-                    <strong>#{{ loan_sale.id }}</strong>
+                    <small class="text-muted d-block">Birth Date</small>
+                    <strong>{{ loan_sale.birthdate }}</strong>
                   </div>
                 </div>
               </div>
 
               <div class="mb-3">
                 <div class="d-flex align-items-center">
-                  <i class="fas fa-money-bill-wave text-muted me-2"></i>
+                  <i class="fas fa-map-marker-alt text-muted me-2"></i>
                   <div>
-                    <small class="text-muted d-block">Disbursement ID</small>
-                    <strong>{{ loan_sale.disbursement_id if loan_sale.disbursement_id else 'Pending' }}</strong>
+                    <small class="text-muted d-block">Full Address</small>
+                    <strong>{{ loan_sale.complete_address }}</strong>
                   </div>
                 </div>
               </div>
 
               <div class="mb-3">
                 <div class="d-flex align-items-center">
-                  <i class="fas fa-user-circle text-muted me-2"></i>
+                  <i class="fas fa-heart text-muted me-2"></i>
                   <div>
-                    <small class="text-muted d-block">User ID</small>
-                    <strong>{{ loan_sale.user_id if loan_sale.user_id else 'N/A' }}</strong>
+                    <small class="text-muted d-block">Marital Status</small>
+                    <strong>{{ loan_sale.marital_status }}</strong>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
+
+            <div class="mb-3">
+                <div class="d-flex align-items-center justify-content-center">
+                  <a href="{{ url_for('car_admin.user_full_details', sale_id=loan_car.id) }}" class="btn btn-primary">
+                    <i class="fas fa-eye me-2"></i>
+                    View Full Details
+                  </a>
+                </div>
+              </div>
+            </div>
           {% else %}
           <!-- No Borrower Card -->
           <div class="card">

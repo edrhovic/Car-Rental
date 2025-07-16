@@ -36,6 +36,21 @@ class LoanSale(db.Model):
     email = db.Column(db.String(120), nullable=False)
     contact = db.Column(db.String(20), nullable=True)
     loan_term = db.Column(db.Integer, nullable=True)
+    birthdate = db.Column(db.DateTime, nullable=True)
+    gender = db.Column(db.String(20), nullable=True)
+    marital_status = db.Column(db.String(50), nullable=True)
+    city = db.Column(db.String(100), nullable=True)
+    complete_address = db.Column(db.String(225), nullable=True)
+    company_name = db.Column(db.String(100), nullable=True)
+    job_title = db.Column(db.String(100), nullable=True)
+    employment_type = db.Column(db.String(100), nullable=True)
+    years_employed = db.Column(db.String(50), nullable=True)
+    monthly_income = db.Column(db.Float, nullable=True)
+    other_income = db.Column(db.Float, nullable=True)
+    existing_loans = db.Column(db.Boolean, nullable=True)
+    user_front_id = db.Column(db.String(255), nullable=True)
+    user_back_id = db.Column(db.String(255), nullable=True)
+    
     
     def __repr__(self):
         return f"<LoanSale {self.id} - {self.first_name} {self.last_name}>"

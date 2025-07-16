@@ -70,7 +70,22 @@ CREATE TABLE IF NOT EXISTS loan_sales (
     middle_name VARCHAR(120) NOT NULL,
     last_name VARCHAR(120) NOT NULL,
     email VARCHAR(120) NOT NULL,
-    contact VARCHAR(20),
+    contact VARCHAR(20) NOT NULL,
+    loan_term INT NOT NULL,
+    birthdate datetime NOT NULL,
+    gender VARCHAR(20) NOT NULL,
+    marital_status VARCHAR(50) NOT NULL,
+    city VARCHAR(100) NOT NULL,
+    complete_address VARCHAR(225) NOT NULL,
+    company_name VARCHAR(100) NOT NULL,
+    job_title VARCHAR(100) NOT NULL,
+    employment_type VARCHAR(100) NOT NULL,
+    years_employed VARCHAR(50) NOT NULL,
+    monthly_income FLOAT NOT NULL,
+    other_income FLOAT NOT NULL,
+    existing_loans BOOLEAN NOT NULL,
+    user_front_id VARCHAR(300) NOT NULL,
+    user_back_id VARCHAR(300) NOT NULL,
     FOREIGN KEY (loan_car_id) REFERENCES loan_cars(id)
 );
 
@@ -79,6 +94,8 @@ CREATE TABLE IF NOT EXISTS loan_payments (
     loan_sale_id INT,
     commission_received FLOAT DEFAULT 0.0,
     date_commission_received DATETIME,
+    total_commission_received FLOAT DEFAULT 0.0,
+    monthly_payment FLOAT,
     FOREIGN KEY (loan_sale_id) REFERENCES loan_sales(id)
 );
 

@@ -1702,6 +1702,7 @@ def update_booking_status(booking_id):
         # If status is pending_return, the customer is trying to return the car
         elif status == 'pending_return':
             flash('Booking marked as pending return. Please inspect the car and approve or reject the return.', 'info')
+            car.status = 'pending_return'
         
         # If status is cancelled, make car available again
         elif status == 'cancelled':
